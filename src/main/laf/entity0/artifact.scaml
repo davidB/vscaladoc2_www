@@ -1,0 +1,32 @@
+!!! XML
+!!!
+
+-@ import val artifact : net_alchim31_vscaladoc2_www.info.ArtifactInfo
+-@ val helper : net_alchim31_vscaladoc2_www.info.Helper
+%html
+  %head      
+    %title api : #{groupId}/{arifactId} 
+    %meta(http-equiv="content-type" content="text/html; charset=UTF-8") 
+    %meta(content="vscaladoc2" name="generator") 
+    %script(type="text/javascript" src="http://code.jquery.com/jquery-1.4.2.min.js" 
+    %link(href="#{helper.urlOf("/content.css")} type="text/css" rel="stylesheet") 
+    %script(src="#{helper.urlOf("/content.js")} language="javascript" id="content.js") 
+    %link(href="#{helper.urlOf("/highlighter/SyntaxHighlighter.css")} type="text/css" rel="stylesheet") 
+    %script(src="#{helper.urlOf("/highlighter/shAll.js")} language="javascript" id="shAll.js")
+    
+  %body 
+    %h1 Overview
+
+    def groupId: String = ""
+    def artifactId: String = remoteApiInfo.artifactId
+    def version: String = remoteApiInfo.version
+    def description: HtmlString = ""
+    def homeUrl: Option[URI] = None
+    def licences: List[String] = Nil
+    def kind: ArtifactKind = ArtifactKind.Jar
+    
+    %h1 Groups
+    def groups: List[ArtifactInfo] = Nil
+  
+    %h1 Dependencies
+    def dependencies: List[(ArtifactInfo, Scope)] = Nil

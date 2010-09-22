@@ -1,0 +1,117 @@
+!!! XML
+!!!
+
+-@ val title : String
+-@ val copyright : String 
+-@ import val tpe : TypeInfo 
+-import urlOf, nameOf, fqNameOf, subTypesOf, ctorsOf, fieldsOf, methodOf
+-@ def navBar =
+    %table(cellpadding="1" width="100%" class="NavBar" cellspacing="0" border="0") 
+      %tr 
+        %td(class="NavBarCell1") 
+          %a(href="#{urlOfArtifact}) ARTIFACT
+          &nbsp;|&nbsp;
+          %a(href="#{urlOfPackage}) PACKAGE 
+          &nbsp;|&nbsp;
+          %a(href="#Constructors") CONSTR
+          &nbsp;|&nbsp;
+          %a(href="#Fields") FIELDS
+          &nbsp;|&nbsp;
+          %a(href="#Methods")METHODS 
+        %td(class="NavBarCell2") 
+         %a(href="#{urlOf("/_navigator.html")}" target="_top")FRAMES 
+         &nbsp;&nbsp;
+         %a(href="#{url}" target="_top")NO FRAMES 
+        %td(class="NavBarCell3")
+         %a(href="#" title="show/hide inherited" class="btnInherited" onclick="toggleInherited()")INHERITED
+           %input(type="checkbox" class="filter_inherited_cb" checked="true")
+
+-@ def memberRow(m : MemberInfo) =
+        %tr(class="#{if (isInherited(m) "isInherited"}") 
+          %td(class="name")=m.simpleName 
+          %td(class="signature") 
+            %code(class="signature")=m.signature 
+            %div(class="apiComments")=m.description 
+          %td(class="type")=m.tpe 
+          %td(class="remarks") 
+
+-# need a function that transform NamedType into link into a signature (convert signature into a list (tokenized))
+%html
+  %head      
+    %title #{title} 
+    %meta(http-equiv="content-type" content="text/html; charset=UTF-8") 
+    %meta(content="vscaladoc2" name="generator") 
+    %script(type="text/javascript" src="#{urlOf("./jquery-1.2.3.js")}") 
+    %link(href="#{urlOf("./content.css")} type="text/css" rel="stylesheet") 
+    %script(src="#{urlOf("./content.js")} language="javascript" id="content.js") 
+    %link(href="#{urlOf("./highlighter/SyntaxHighlighter.css")} type="text/css" rel="stylesheet") 
+    %script(src="#{urlOf("./highlighter/shAll.js")} language="javascript" id="shAll.js")
+  %body 
+    %div(class="header") 
+    / ========= START OF TOP NAVBAR ======= 
+    %a(name="navbar_top")/
+    =navBar 
+    / ========= END OF TOP NAVBAR ========= 
+      
+    / ======== START OF CLASS DATA ======== 
+    %h2 
+      %span(style="font-size:80%") #{fqName}
+      %br 
+      #{kind} {simpleName}
+    %div( id="intro") 
+      %code(class="signature")=signature 
+      %br 
+      %div(class="apiComments")
+        = description
+        %dl 
+          - for (docTag <- docTags) 
+            %dt= docTag.label 
+            %dd
+              %code= docTag.key
+              = docTag.body
+          - for(source <- source) 
+	          %dt Source
+	          %dd
+	            %a(href="#{urlOf(source)}") #{labelOf(source)}    
+          - for(companion <- companion) 
+            %dt Companion
+            %dd
+              %a(href="#{companion.url}") #{companion.simpleName}     
+      
+    %h3 Known Subclasses 
+    - for (subType <- subTypes) 
+      %a(href="#{urlOf(subType)}") #{labelOf(subType)}, 
+      
+    %h3 Constructors
+    %a(name="Constructors")
+    -# TODO include constructor from Companion.apply
+    -# TODO include factory define by comments ?      
+    - for (m <- constructors) 
+      = memberRow(m) 
+      
+    %h3 Fields  
+    %a(name="Fields")
+    %table(summary="" cellpadding="3" width="100%" cellspacing="0" border="1") 
+      %tbody(class="TableRowColor")
+      - for(m <- fields) 
+        = memberRow(m) 
+
+    %h3 Methods  
+    %a(name="Methods")
+    %table(summary="" cellpadding="3" width="100%" cellspacing="0" border="1") 
+      %tbody(class="TableRowColor")
+      - for(m <- methods)
+        = memberRow(m) 
+      
+    / ========= END OF CLASS DATA ========= 
+    
+    / ======= START OF BOTTOM NAVBAR ====== 
+    %a(name="navbar_bottom") 
+    =navBar 
+    / ======== END OF BOTTOM NAVBAR ======= 
+    %div(class="copyright")= copyright
+
+    %script(language="javascript") 
+      dp.SyntaxHighlighter.ClipboardSwf = '#{urlOf("./highlighter/clipboard.swf")}';
+      dp.SyntaxHighlighter.HighlightAll('code');
+    
