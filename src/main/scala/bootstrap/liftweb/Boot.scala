@@ -56,7 +56,8 @@ class Boot {
       Full(() => LiftRules.jsArtifacts.hide("ajax-loader").cmd)
 
     LiftRules.early.append(makeUtf8)
-
+    LiftRules.useXhtmlMimeType = false // recaptcha js lib
+    
     LiftRules.loggedInTest = Full(() => User.loggedIn_?)
 
   }
