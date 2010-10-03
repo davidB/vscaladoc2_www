@@ -6,7 +6,6 @@ import net_alchim31_vscaladoc2_www.EntityDisplayer4Laf
 import net_alchim31_vscaladoc2_www.EntityDisplayer4Debug
 import net_alchim31_vscaladoc2_www.EntityDisplayer
 import net_alchim31_vscaladoc2_www.model.Scaladoc
-import net_alchim31_vscaladoc2_www.model.Made
 import net_alchim31_vscaladoc2_www.model.Scaladoc2
 import net_alchim31_vscaladoc2_www.model.VScaladoc2
 import net_alchim31_vscaladoc2_www.model.RemoteApiInfo
@@ -19,12 +18,6 @@ import _root_.net.liftweb.http._
 //TODO optimization : set expiration to never, use a cache, etag,... in front of request as content from a url should be immutable (for non SNAPSHOT version)
 //TODO manage special version : latest, latest-snapshot
 object ApiView {
-
-  private val _remoteApiInfos: List[RemoteApiInfo] = List[RemoteApiInfo](
-    RemoteApiInfo("sample", "1.0.0", new URL("file://tmp/sample-api"), VScaladoc2, Made("0", new Date())),
-    RemoteApiInfo("scala-library", "2.8.0", new URL("http://www.scala-lang.org/api/2.8.0/index.html"), Scaladoc2, Made("0", new Date())),
-    RemoteApiInfo("scala-library", "2.7.7", new URL("http://www.scala-lang.org/api/2.7.7/index.html"), Scaladoc, Made("0", new Date()))
-  )
 
   private val _entityDisplayer : EntityDisplayer = new EntityDisplayer4Laf()//new EntityDisplayer4Debug()
   private val _navigatorDisplayer : NavigatorDisplayer = new NavigatorDisplayer4Laf()//new EntityDisplayer4Debug()
@@ -41,10 +34,12 @@ object ApiView {
   }
 
 
+  def urlOf(v : RemoteApiInfo) = "navigator/api/" + v.artifactId + "/" + v.version
+  
   //TODO should we transform entityPath to following ApiProvider way to create page ?
-  def serveOriginal(artifactId: String, version: String, entityPath: List[String]): Box[LiftResponse] = {
+  private def serveOriginal(artifactId: String, version: String, entityPath: List[String]): Box[LiftResponse] = {
     for (
-      api <- findApiOf(artifactId, version) // ?~ "no registered api for " + artifactId + "/" + version
+      api <- RemoteApiInfo.findApiOf(artifactId, version) // ?~ "no registered api for " + artifactId + "/" + version
     ) yield {
       RedirectResponse(api.baseUrl.toExternalForm)
     }
@@ -52,7 +47,7 @@ object ApiView {
 
   private def serveEntity(artifactId : String, version : String, entityPath : List[String])(srv : (RemoteApiInfo, String, List[String]) => Box[LiftResponse]) : Box[LiftResponse] = {
       for (
-        api <- findApiOf(artifactId, version); // ?~ "no registered api for " + artifactId + "/" + version ;
+        api <- RemoteApiInfo.findApiOf(artifactId, version); // ?~ "no registered api for " + artifactId + "/" + version ;
         rurl <- api.provider.rurlPathOf(entityPath);
         resp <- srv(api, rurl, entityPath)
       ) yield resp
@@ -85,12 +80,5 @@ object ApiView {
     }
   }
 
-  //TODO sort remoteApiInfos by version / ApiProvider
-  //TODO support special version (latest, ...)
-  private def findApiOf(artifactId: String, version: String): Box[RemoteApiInfo] = {
-    _remoteApiInfos.find(x => x.artifactId == artifactId && x.version == version) match {
-      case Some(api) => Full(api)
-      case None => println("f0") ; Failure("api for " + artifactId + "::" + version + " is not registered")
-    }
-  }
+
 }

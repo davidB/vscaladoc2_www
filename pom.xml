@@ -103,6 +103,11 @@
 			<artifactId>lift-mapper_${scala.version}</artifactId>
 			<version>${liftweb.version}</version>
 		</dependency>
+    <dependency>
+      <groupId>net.tanesha.recaptcha4j</groupId>
+      <artifactId>recaptcha4j</artifactId>
+      <version>0.0.7</version>
+    </dependency>		
 		<dependency>
 			<groupId>org.fusesource.scalate</groupId>
 			<artifactId>scalate-core</artifactId>

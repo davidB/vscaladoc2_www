@@ -5,6 +5,7 @@ import net.liftweb.common._
 import _root_.net.liftweb.http._
 
 sealed trait ApiProvider {
+  def label : String	
   def rurlPathOf(packageName: String, typeName: String, memberName: String, memberType64: String): Box[String] = Failure("not supported")
   def rurlPathOf(packageName: String, typeName: String, memberName: String): Box[String] = Failure("not supported")
   def rurlPathOf(packageName: String, typeName: String): Box[String] = Failure("not supported")
@@ -33,13 +34,19 @@ sealed trait ApiProvider {
 }
 
 case object Scaladoc extends ApiProvider {
+  val label = "Scaladoc" 	
   override def rurlPathOf(packageName: String): Box[String] = {
     Full(packageName.replace('.', '/') + "$content.html")
   }
 }
-case object Scaladoc2 extends ApiProvider
-case object VScaladoc extends ApiProvider
+case object Scaladoc2 extends ApiProvider {
+  val label = "Scaladoc2" 	
+}
+case object VScaladoc extends ApiProvider {
+  val label = "VScaladoc" 	
+}
 case object VScaladoc2 extends ApiProvider {
+  val label = "VScaladoc2" 	
   override def rurlPathOf(packageName: String, typeName: String, memberName: String, memberType64: String): Box[String] = {
     Full(packageName + "/" + typeName + "/" + memberName + "__" + memberType64 + ".json")
   }
@@ -59,6 +66,7 @@ case object VScaladoc2 extends ApiProvider {
 
 //in memberType64 use canonical type name
 case object Javadoc2 extends ApiProvider {
+  val label = "Javadoc2" 	
   //TODO add support for args of memberType64 (remove generics, remove return type)
   override def rurlPathOf(packageName: String, typeName: String, memberName: String, memberType64: String): Box[String] = {
     Full(packageName.replace('.', '/') + "/" + typeName + ".html#" + memberName + "()")
