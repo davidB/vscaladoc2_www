@@ -68,7 +68,7 @@ class Helper4Laf(baseUrl: URI) extends info.Helper {
   def labelOf(v: URI): String = "labelOf(" + v + ")" //TODO use the last fragment of the URI except for method/signature64
 }
 
-class NavigatorDisplayer4Laf(tmplDir: File = new File("/home/dwayne/work/oss/vscaladoc2_wwww/src/main/laf/navigator0")) extends ScalateDisplayer(tmplDir) with NavigatorDisplayer {
+class NavigatorDisplayer4Laf(tmplDir: File = new File("/home/dwayne/work/oss/vscaladoc2_www/src/main/laf/navigator0")) extends ScalateDisplayer(tmplDir) with NavigatorDisplayer {
   import info._
   def serveNavigator(rai: RemoteApiInfo, entityPath: List[String]): Box[LiftResponse] = renderHtml("/index.scaml") { context =>
     context.attributes("artifact") = new ArtifactInfo() {
@@ -89,7 +89,7 @@ class NavigatorDisplayer4Laf(tmplDir: File = new File("/home/dwayne/work/oss/vsc
 
 }
 
-class EntityDisplayer4Laf(tmplDir: File = new File("/home/dwayne/work/oss/vscaladoc2_wwww/src/main/laf/entity0")) extends ScalateDisplayer(tmplDir) with EntityDisplayer {
+class EntityDisplayer4Laf(tmplDir: File = new File("/home/dwayne/work/oss/vscaladoc2_www/src/main/laf/entity0")) extends ScalateDisplayer(tmplDir) with EntityDisplayer {
   import info._
 
   def serveMember(fullUrl: URL): Box[LiftResponse] = Full(NotImplementedResponse())
