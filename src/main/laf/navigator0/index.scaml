@@ -1,9 +1,14 @@
 !!! XML
 !!! Frameset
+
+-import net_alchim31_vscaladoc2_www.info._
+-@ val artifact : ArtifactInfo
+-@ val entityPath : List[String]
+
 %html
   %head
-    %title "API"
+    %title API #{artifact.artifactId + "-" + artifact.version}
   %frameset(cols="250px, *")
-    %frame(src="_gator.html" name="navFrame")
-    %frame(src="_static/overview.html" name="contentFrame")
+    %frame(src={urlOf("navigator/_browser/api/" + artifact.artifactId +"/"+ artifact.version)} name="navFrame")
+    %frame(src={urlOf("laf/api/" + artifact.artifactId +"/"+ artifact.version + entityPath.mkString("/", "/", ""))} name="contentFrame")
 

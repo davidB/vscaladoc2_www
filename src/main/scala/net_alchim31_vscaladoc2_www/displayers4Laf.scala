@@ -1,5 +1,7 @@
 package net_alchim31_vscaladoc2_www
 
+import net.liftweb.http.S
+import org.fusesource.scalate.Binding
 import org.fusesource.scalate.RenderContext
 import net_alchim31_vscaladoc2_www.model.RemoteApiInfo
 import java.net.URI
@@ -17,11 +19,14 @@ class ScalateDisplayer(tmplDir: File) {
 
   private val _engine = {
     val b = new TemplateEngine(Some(tmplDir))
+    b.bindings = List(
+      Binding("helper", classOf[info.Helper].getName, true)
+    )
+    
     //b.resourceLoader = new FileResourceLoader(Some(new File("/home/dwayne/work/oss/vscaladoc2_wwww/src/main/look1")))
-    //engine.bindings = List(Binding("helper", "MyHelper", true))
     //engine.workingDirectory = new File("/var/lib/myapp/work")  
-    //engine.allowReload =  false
-    //engine.allowCaching =  false
+    b.allowReload =  true
+    b.allowCaching =  true
     b
   }
 
@@ -36,7 +41,9 @@ class ScalateDisplayer(tmplDir: File) {
     val template = _engine.load(templatePath)
     val buffer = new StringWriter()
     val context = new DefaultRenderContext(_engine, new PrintWriter(buffer))
-    //context.attributes += "helper" -> new MyHelper    
+    context.attributes("ping") = "pong"
+    context.attributes("helper") = new  Helper4Laf(new URI(S.contextPath+ "/"))
+    //context.attributes("info") = info
     fillCtx(context)
     template.render(context)
     Full(HtmlTextResponse(buffer.toString, Nil, 200))
@@ -62,6 +69,7 @@ class ScalateDisplayer(tmplDir: File) {
 }
 
 class Helper4Laf(baseUrl: URI) extends info.Helper {
+  def urlOf(vs : String*) : String = urlOf(vs.mkString("/")) 
   def urlOf(v: String): String = baseUrl.resolve(v).toASCIIString
   def urlOf(v: URI): String = baseUrl.resolve(v).toASCIIString
   def labelOf(v: String): String = "labelOf(" + v + ")"
@@ -85,6 +93,7 @@ class NavigatorDisplayer4Laf(tmplDir: File = new File("/home/dwayne/work/oss/vsc
       override def apiUrl = Some(rai.baseUrl.toURI)
     }
     context.attributes("entityPath") = entityPath
+    context.attributes("types") =  Nil.asInstanceOf[List[TypeInfo]]
   }
 
 }

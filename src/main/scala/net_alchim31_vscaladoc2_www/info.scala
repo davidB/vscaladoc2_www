@@ -1,5 +1,8 @@
 package net_alchim31_vscaladoc2_www
 
+import net.liftweb.common.Empty
+import net.liftweb.common.Box
+import net.liftweb.json.JsonAST.JObject
 import java.net.URI
 
 object info {
@@ -35,6 +38,7 @@ object info {
     def kind: ArtifactKind = ArtifactKind.Undef
     def groups: List[ArtifactInfo] = Nil
     def dependencies: List[(ArtifactInfo, Scope)] = Nil
+    def rawjson : Box[JObject] = Empty
   }
 
   trait EntityInfo {
@@ -44,7 +48,9 @@ object info {
     def description: HtmlString
     def docTags: Seq[DocTag]
     def source: Option[URI]
+    def rawjson : Box[JObject] = Empty
   }
+  
   trait TypeInfo extends EntityInfo {
     def urlOfPackage: URI
     def urlOfArtifact: URI
