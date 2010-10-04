@@ -43,11 +43,10 @@ object RemoteApiInfo extends RemoteApiInfo with LongKeyedMetaMapper[RemoteApiInf
 
   //TODO support special version (latest, ...)
   def findApiOf(artifactId: String, version: String): Box[RemoteApiInfo] = {
-	println("findApiOf")
     //findAll().find(x => x.artifactId == artifactId && x.version == version) match {
     findAll(By(RemoteApiInfo.artifactId, artifactId), By(RemoteApiInfo.version, version)).headOption match {	
-      case Some(api) => println("f1"); Full(api)
-      case None => println("f0"); Failure("api for " + artifactId + "::" + version + " is not registered")
+      case Some(api) => Full(api)
+      case None => Failure("api for " + artifactId + "::" + version + " is not registered")
     }
   }
   
