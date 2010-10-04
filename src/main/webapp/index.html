@@ -1,15 +1,19 @@
 <lift:surround with="default" at="content">
-  <h2>Welcome to your project!</h2>
-		<p>
-      <lift:helloWorld.howdy>
-        <span>Welcome to vscaladoc2_wwww at <b:time/></span>
-      </lift:helloWorld.howdy>
-    </p>
-    <h1>Apis</h1>
-    <div>
-    <lift:listings.all>
-    <div><strong><api:artifactId /></strong> : <api:version/> : <api:format/></div>
-    </lift:listings.all>
-    </div>
+	<h2>Welcome to your project!</h2>
+	<p><lift:helloWorld.howdy>
+		<span>Welcome to vscaladoc2_wwww at <b:time /></span>
+	</lift:helloWorld.howdy></p>
+
+	<h1>Apis</h1>
+	<div><lift:listings.all>
+		<div><strong><api:artifactId /></strong> : <api:version /> : <api:format /> : <api:link/></div>
+	</lift:listings.all></div>
+	<!-- div>
+	<lift:listings.paginate>
+    <p><nav:records/></p>
+    <nav:first /> | <nav:prev/> | <nav:allpages> | </nav:allpages> | <nav:next/> | <nav:last />
+  </lift:listings.paginate>
+  </div-->
+
 </lift:surround>
 
