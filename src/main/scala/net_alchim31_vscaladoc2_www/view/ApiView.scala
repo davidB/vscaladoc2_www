@@ -39,7 +39,7 @@ object ApiView {
   //TODO should we transform entityPath to following ApiProvider way to create page ?
   private def serveOriginal(artifactId: String, version: String, entityPath: List[String]): Box[LiftResponse] = {
     for (
-      api <- RemoteApiInfo.findApiOf(artifactId, version) // ?~ "no registered api for " + artifactId + "/" + version
+      api <- RemoteApiInfo.findApiOf(artifactId, version) ?~! ("no registered api for " + artifactId + "/" + version)
     ) yield {
       RedirectResponse(api.baseUrl.toExternalForm)
     }
@@ -47,8 +47,8 @@ object ApiView {
 
   private def serveEntity(artifactId : String, version : String, entityPath : List[String])(srv : (RemoteApiInfo, String, List[String]) => Box[LiftResponse]) : Box[LiftResponse] = {
       for (
-        api <- RemoteApiInfo.findApiOf(artifactId, version); // ?~ "no registered api for " + artifactId + "/" + version ;
-        rurl <- api.provider.rurlPathOf(entityPath);
+        api <- RemoteApiInfo.findApiOf(artifactId, version) ?~! ("no registered api for " + artifactId + "/" + version) ;
+        rurl <- api.provider.rurlPathOf(entityPath) ?~! ("no rules to find the url of " + entityPath);
         resp <- srv(api, rurl, entityPath)
       ) yield resp
   }
