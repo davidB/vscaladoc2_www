@@ -1,5 +1,7 @@
 package net_alchim31_vscaladoc2_www.model
 
+import net.liftweb.mapper.MappedEnum
+import net.liftweb.mapper.Mapper
 import net.liftweb.mapper.By
 import net.liftweb.mapper.OrderBy
 import net.liftweb.mapper.LongMappedMapper
@@ -41,9 +43,10 @@ object RemoteApiInfo extends RemoteApiInfo with LongKeyedMetaMapper[RemoteApiInf
 
   //TODO support special version (latest, ...)
   def findApiOf(artifactId: String, version: String): Box[RemoteApiInfo] = {
+	println("findApiOf")
     //findAll().find(x => x.artifactId == artifactId && x.version == version) match {
     findAll(By(RemoteApiInfo.artifactId, artifactId), By(RemoteApiInfo.version, version)).headOption match {	
-      case Some(api) => Full(api)
+      case Some(api) => println("f1"); Full(api)
       case None => println("f0"); Failure("api for " + artifactId + "::" + version + " is not registered")
     }
   }
@@ -51,14 +54,15 @@ object RemoteApiInfo extends RemoteApiInfo with LongKeyedMetaMapper[RemoteApiInf
   def init() {
 	if (RemoteApiInfo.find() == Empty){
  	val data = List(
- 			("sample", "1.0.0", new URL("file://tmp/sample-api"), VScaladoc2),
- 			("scala-library", "2.8.0", new URL("http://www.scala-lang.org/api/2.8.0/index.html"), Scaladoc2),
- 			("scala-library", "2.7.7", new URL("http://www.scala-lang.org/api/2.7.7/index.html"), Scaladoc)
+ 			("sample", "1.0.0", new URL("file:///tmp/sample-api"), ApiProviders.vscaladoc2),
+ 			("scala-library", "2.8.0", new URL("http://www.scala-lang.org/api/2.8.0/index.html"), ApiProviders.scaladoc2),
+ 			("scala-library", "2.7.7", new URL("http://www.scala-lang.org/api/2.7.7/index.html"), ApiProviders.scaladoc)
     ).foreach { x =>
  		val v: RemoteApiInfo = RemoteApiInfo.create
  		v.artifactId(x._1)
  		v.version(x._2)
  		v.url(x._3.toExternalForm)
+ 		v.format(x._4)
  		v.save
 	  }
 	}
@@ -71,11 +75,25 @@ class RemoteApiInfo extends LongKeyedMapper[RemoteApiInfo] with IdPK with Create
     object artifactId extends MappedString(this, 150)
     object version extends MappedString(this, 25)
     object url extends MappedString(this, 150)
+    object format extends MappedApiProvider(this)
     //object createdBy extends LongMappedMapper(this, User)
     
-    def provider : ApiProvider = Scaladoc2
-    def provider_=( v : ApiProvider) = {}
+    def provider : ApiProvider = format.is.asInstanceOf[ApiProviders.MyValue].ap
     
     def baseUrl = new URL(url.is)
 }
 
+abstract class MappedApiProvider[T <: Mapper[T]](owner: T) extends MappedEnum(owner, ApiProviders) {  
+  override def defaultValue = ApiProviders.vscaladoc2  
+}  
+  
+
+object ApiProviders extends Enumeration {
+  val javadoc2 = new MyValue(1, Javadoc2)
+  val scaladoc = new MyValue(2, Scaladoc)	
+  val vscaladoc = new MyValue(3, VScaladoc)	
+  val scaladoc2 = new MyValue(4, Scaladoc2)	
+  val vscaladoc2 = new MyValue(5, VScaladoc2)	
+  
+  class MyValue(id : Int, val ap : ApiProvider) extends Val(id, ap.toString)
+}

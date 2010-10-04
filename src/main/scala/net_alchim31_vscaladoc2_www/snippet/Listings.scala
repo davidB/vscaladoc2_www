@@ -28,7 +28,7 @@ class Listings extends DispatchSnippet {
     Helpers.bind("api", xhtml,
       "artifactId" -> api.artifactId,
       "version" -> api.version,
-      "format" -> api.provider.label,
+      "format" -> api.format,
       "link" -%> <a href={ ApiView.urlOf(api) }>details >></a>)
   }
 

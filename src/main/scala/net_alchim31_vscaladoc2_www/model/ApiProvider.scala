@@ -1,11 +1,12 @@
 package net_alchim31_vscaladoc2_www.model
 
+import net.liftweb.mapper.MappedEnum
+import net.liftweb.mapper.Mapper
 import java.net.URL
 import net.liftweb.common._
 import _root_.net.liftweb.http._
 
 sealed trait ApiProvider {
-  def label : String	
   def rurlPathOf(packageName: String, typeName: String, memberName: String, memberType64: String): Box[String] = Failure("not supported")
   def rurlPathOf(packageName: String, typeName: String, memberName: String): Box[String] = Failure("not supported")
   def rurlPathOf(packageName: String, typeName: String): Box[String] = Failure("not supported")
@@ -34,7 +35,6 @@ sealed trait ApiProvider {
 }
 
 case object Scaladoc extends ApiProvider {
-  val label = "Scaladoc" 	
   override def rurlPathOf(packageName: String, typeName: String, memberName: String, memberType64: String): Box[String] = rurlPathOf(packageName, typeName, memberName)
 
   override def rurlPathOf(packageName: String, typeName: String, memberName: String): Box[String] = rurlPathOf(packageName, typeName)
@@ -51,8 +51,6 @@ case object Scaladoc extends ApiProvider {
 }
 
 case object Scaladoc2 extends ApiProvider {
-  val label = "Scaladoc2"
-
   override def rurlPathOf(packageName: String, typeName: String, memberName: String, memberType64: String): Box[String] = rurlPathOf(packageName, typeName, memberName)
 
   override def rurlPathOf(packageName: String, typeName: String, memberName: String): Box[String] = rurlPathOf(packageName, typeName)
@@ -67,11 +65,10 @@ case object Scaladoc2 extends ApiProvider {
     Full("/index.html")
   }
 }
-case object VScaladoc extends ApiProvider {
-  val label = "VScaladoc" 	
+case object VScaladoc extends ApiProvider{
+	
 }
 case object VScaladoc2 extends ApiProvider {
-  val label = "VScaladoc2" 	
   override def rurlPathOf(packageName: String, typeName: String, memberName: String, memberType64: String): Box[String] = {
     Full("/" + packageName + "/" + typeName + "/" + memberName + "__" + memberType64 + ".json")
   }
@@ -109,4 +106,3 @@ case object Javadoc2 extends ApiProvider {
     Full("/overview.html")
   }
 }
-
