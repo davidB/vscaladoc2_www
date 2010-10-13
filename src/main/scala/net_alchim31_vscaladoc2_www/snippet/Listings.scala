@@ -29,7 +29,9 @@ class Listings extends DispatchSnippet {
       "artifactId" -> api.artifactId,
       "version" -> api.version,
       "format" -> api.format,
-      "link" -%> <a href={ ApiView.urlOf(api) }>details >></a>)
+      //"link" -%> <a href={ ApiView.urlOf(api) }>details >></a>
+      AttrBindParam("url", ApiView.urlOf(api), "href")
+    )
   }
 
 }
