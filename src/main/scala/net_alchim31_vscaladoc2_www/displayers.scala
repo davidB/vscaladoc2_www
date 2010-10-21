@@ -9,7 +9,7 @@ import _root_.net.liftweb.http._
 import java.util.Date
 
 trait PartDisplayer {
-  def serveResource(path: List[String]): Box[LiftResponse]
+  def serveResource(path: List[String], ext : String): Box[LiftResponse]
 }
 
 trait NavigatorDisplayer extends PartDisplayer {
@@ -26,8 +26,8 @@ trait EntityDisplayer extends PartDisplayer {
 }
 
 class EntityDisplayer4Debug extends EntityDisplayer {
-  def serveResource(path: List[String]): Box[LiftResponse] = Full(XmlResponse(
-    <div>part :{ path.mkString("/") }</div>
+  def serveResource(path: List[String], ext : String): Box[LiftResponse] = Full(XmlResponse(
+    <div>part :{ path.mkString("/") + ext }</div>
     ))
   def serveMember(fullUrl: URL): Box[LiftResponse] = Full(XmlResponse(
     <div>Member1 :{ fullUrl }</div>

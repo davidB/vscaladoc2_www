@@ -1,0 +1,33 @@
+!!! XML
+!!! 5
+
+-import net_alchim31_vscaladoc2_www.info._
+-@ val artifact : ArtifactInfo
+-@ val uoa4types : List[Uoa4Type]
+
+%html
+  %head
+    %title API #{artifact.artifactId + "-" + artifact.version} : Browser
+    %meta(http-equiv="content-type" content="text/html; charset=UTF-8")
+    %meta(content="VScaladoc 2" name="generator")
+    %script(type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js")
+    %script(type="text/javascript" src={urlOf("navigator/_rsrc/cookie.js")} id="all-classes")
+    %script(type="text/javascript" src={urlOf("navigator/_rsrc/browser.js")} id="all-classes")
+    %link(href={urlOf("navigator/_rsrc/browser.css")} type="text/css" rel="stylesheet")
+  %body
+    %h2 Filters
+    %div(class="ctrl")
+      %select(multiple="true" size="6.5" id="packagesFilter")
+        - for(pkg <- uoa4types.map(_.uoaPackage).distinct.map(_.packageName).sortWith(_ < _))
+          %option(value={pkg}) #{pkg}
+      %br
+      %input(type="text" id="nameFilter" placeholder="regexp to filter by name")
+      %br
+      %a(href="#" class="btnOption" onclick="togglefilter4NameOptions('filter4NameIgnoreCase')")
+        %input(type="checkbox" class="option_filter4NameIgnoreCase_cb" checked="false")
+        Name filter ignore case
+    %h2 Types
+    %ul(id="classes")
+      - for(tpe <- uoa4types.sortWith(_.typeName < _.typeName))
+        %li(package={tpe.uoaPackage.packageName})
+          %a(href={urlOf(tpe, "laf/api")} title={fqNameOf(tpe)} target="contentFrame") #{labelOf(tpe)}
