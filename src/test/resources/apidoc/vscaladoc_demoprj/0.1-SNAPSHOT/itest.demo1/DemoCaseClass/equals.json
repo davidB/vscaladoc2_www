@@ -1,0 +1,17 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/equals",
+  "e" : [ {
+    "name" : "equals",
+    "qualifiedName" : "itest.demo1.DemoCaseClass#equals",
+    "definitionName" : "itest.demo1.DemoCaseClass#equals",
+    "description" : "<p>This method is used to compare the receiver object (<code>this</code>) with the argument object (<code>arg0</code>) for equivalence.</p><p>The default implementations of this method is an [http://en.wikipedia.org/wiki/Equivalence_relation equivalence\nrelation]:\n * It is reflexive: for any instance <code>x</code> of type <code>Any</code>, <code>x.equals(x)</code> should return <code>true</code>.\n * It is symmetric: for any instances <code>x</code> and <code>y</code> of type <code>Any</code>, <code>x.equals(y)</code> should return <code>true</code> if and\n   only if <code>y.equals(x)</code> returns <code>true</code>.\n * It is transitive: for any instances <code>x</code>, <code>y</code>, and <code>z</code> of type <code>AnyRef</code> if <code>x.equals(y)</code> returns <code>true</code> and\n   <code>y.equals(z)</code> returns <code>true</code>, then <code>x.equals(z)</code> should return <code>true</code>.</p><p>If you override this method, you should verify that your implementation remains an equivalence relation.\nAdditionally, when overriding this method it is often necessary to override <code>hashCode</code> to ensure that objects\nthat are &quot;equal&quot; (<code>o1.equals(o2)</code> returns <code>true</code>) hash to the same \nscala.Int\n(<code>o1.hashCode.equals(o2.hashCode)</code>).\n</p>",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "Boolean", "scala-library/2.8.0/scala/Boolean" ] ],
+    "isUseCase" : false,
+    "typeParams" : [ ],
+    "valueParams" : [ [ "( " ], [ "arg0 : " ], [ "Any", "scala-library/2.8.0/scala/Any" ], [ " )" ] ],
+    "kind" : "def"
+  } ]
+}

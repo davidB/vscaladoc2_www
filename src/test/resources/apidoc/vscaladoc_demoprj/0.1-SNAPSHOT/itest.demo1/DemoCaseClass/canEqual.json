@@ -1,0 +1,16 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/canEqual",
+  "e" : [ {
+    "name" : "canEqual",
+    "qualifiedName" : "itest.demo1.DemoCaseClass#canEqual",
+    "definitionName" : "itest.demo1.DemoCaseClass#canEqual",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "Boolean", "scala-library/2.8.0/scala/Boolean" ] ],
+    "isUseCase" : false,
+    "typeParams" : [ ],
+    "valueParams" : [ [ "( " ], [ "arg0 : " ], [ "Any", "scala-library/2.8.0/scala/Any" ], [ " )" ] ],
+    "kind" : "def"
+  } ]
+}

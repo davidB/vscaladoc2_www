@@ -1,0 +1,8 @@
+{
+  "title" : "",
+  "artifactId" : "vscaladoc_demoprj",
+  "version" : "0.1-SNAPSHOT",
+  "description" : "",
+  "copyright" : "",
+  "dependencies" : [ [ "scala-library", "2.8.0" ] ]
+}

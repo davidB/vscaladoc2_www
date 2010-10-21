@@ -1,0 +1,17 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoB/returnThisWithCovariantType",
+  "e" : [ {
+    "name" : "returnThisWithCovariantType",
+    "qualifiedName" : "itest.demo1.DemoB#returnThisWithCovariantType",
+    "definitionName" : "itest.demo1.DemoB#returnThisWithCovariantType",
+    "description" : "<p>return this, and define return type to this.type</p>",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "DemoB", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoB" ] ],
+    "isUseCase" : false,
+    "typeParams" : [ ],
+    "valueParams" : [ [ "( )" ] ],
+    "kind" : "def"
+  } ]
+}

@@ -1,0 +1,35 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass",
+  "e" : [ {
+    "name" : "DemoCaseClass",
+    "qualifiedName" : "itest.demo1.DemoCaseClass",
+    "definitionName" : "itest.demo1.DemoCaseClass",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "DemoCaseClass", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass" ] ],
+    "sourceStartPoint" : [ "/home/dwayne/work/oss/vscaladoc2_demoprj/src/main/scala/itest/demo1/DemoB.scala", 41 ],
+    "subClassesK" : [ ],
+    "members" : [ "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/canEqual", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/productElement", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/productArity", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/productPrefix", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/equals", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/toString", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/hashCode", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/this", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/att3", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/att2", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/att1", "scala-library/2.8.0/scala/Product/moCaseClass$hashproductElements", "scala-library/2.8.0/scala/Product/moCaseClass$hashproductIterator", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hash$asInstanceOf", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hash$isInstanceOf", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashsynchronized", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashne", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hasheq", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hash$bang$eq", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hash$eq$eq", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hash$hash$hash", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashfinalize", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashwait", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashwait", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashwait", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashnotifyAll", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashnotify", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashclone", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashgetClass", "scala-library/2.8.0/scala/Any/1.DemoCaseClass$hashasInstanceOf", "scala-library/2.8.0/scala/Any/1.DemoCaseClass$hashisInstanceOf", "scala-library/2.8.0/scala/Any/1.DemoCaseClass$hash$bang$eq", "scala-library/2.8.0/scala/Any/1.DemoCaseClass$hash$eq$eq" ],
+    "templates" : [ ],
+    "methods" : [ "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/canEqual", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/productElement", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/productArity", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/productPrefix", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/equals", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/toString", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/hashCode", "scala-library/2.8.0/scala/Product/moCaseClass$hashproductElements", "scala-library/2.8.0/scala/Product/moCaseClass$hashproductIterator", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hash$asInstanceOf", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hash$isInstanceOf", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashsynchronized", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashne", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hasheq", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hash$bang$eq", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hash$eq$eq", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hash$hash$hash", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashfinalize", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashwait", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashwait", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashwait", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashnotifyAll", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashnotify", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashclone", "scala-library/2.8.0/scala/AnyRef/emoCaseClass$hashgetClass", "scala-library/2.8.0/scala/Any/1.DemoCaseClass$hashasInstanceOf", "scala-library/2.8.0/scala/Any/1.DemoCaseClass$hashisInstanceOf", "scala-library/2.8.0/scala/Any/1.DemoCaseClass$hash$bang$eq", "scala-library/2.8.0/scala/Any/1.DemoCaseClass$hash$eq$eq" ],
+    "values" : [ "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/att3", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/att2", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/att1" ],
+    "abstractTypes" : [ ],
+    "aliasTypes" : [ ],
+    "companion" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass",
+    "parentType" : [ [ "Product", "scala-library/2.8.0/scala/Product" ] ],
+    "linearization" : [ "scala-library/2.8.0/scala/Product", "scala-library/2.8.0/scala/Equals", "scala-library/2.8.0/scala/AnyRef", "scala-library/2.8.0/scala/Any" ],
+    "typeParams" : [ ],
+    "constructors" : [ {
+      "name" : "this",
+      "qualifiedName" : "itest.demo1.DemoCaseClass#this",
+      "definitionName" : "itest.demo1.DemoCaseClass#this",
+      "flags" : "Public()",
+      "inheritedFrom" : [ ],
+      "visibility" : [ ],
+      "resultType" : [ [ "DemoCaseClass", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass" ] ],
+      "valueParams" : [ [ "( " ], [ "att1 : " ], [ "String", "jse/1.6.0_21/java.lang/String" ], [ ", " ], [ "att2 : " ], [ "String", "jse/1.6.0_21/java.lang/String" ], [ ", " ], [ "att3 : " ], [ "String", "jse/1.6.0_21/java.lang/String" ], [ " )" ] ]
+    } ],
+    "kind" : "class"
+  } ]
+}

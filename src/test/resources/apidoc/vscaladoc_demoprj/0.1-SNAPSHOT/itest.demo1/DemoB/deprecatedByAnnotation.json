@@ -1,0 +1,16 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoB/deprecatedByAnnotation",
+  "e" : [ {
+    "name" : "deprecatedByAnnotation",
+    "qualifiedName" : "itest.demo1.DemoB#deprecatedByAnnotation",
+    "definitionName" : "itest.demo1.DemoB#deprecatedByAnnotation",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "Int", "scala-library/2.8.0/scala/Int" ] ],
+    "isUseCase" : false,
+    "typeParams" : [ ],
+    "valueParams" : [ [ "( " ], [ "i : " ], [ "Int", "scala-library/2.8.0/scala/Int" ], [ " )" ] ],
+    "kind" : "def"
+  } ]
+}

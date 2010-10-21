@@ -1,0 +1,15 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/OuterClass/InnerType",
+  "e" : [ {
+    "name" : "InnerType",
+    "qualifiedName" : "itest.demo1.OuterClass#InnerType",
+    "definitionName" : "itest.demo1.OuterClass#InnerType",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "String", "jse/1.6.0_21/java.lang/String" ] ],
+    "isUseCase" : false,
+    "alias" : [ [ "String", "jse/1.6.0_21/java.lang/String" ] ],
+    "kind" : "aliasType"
+  } ]
+}

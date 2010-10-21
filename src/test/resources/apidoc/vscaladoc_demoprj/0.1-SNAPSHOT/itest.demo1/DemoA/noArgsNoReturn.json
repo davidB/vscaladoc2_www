@@ -1,0 +1,16 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoA/noArgsNoReturn",
+  "e" : [ {
+    "name" : "noArgsNoReturn",
+    "qualifiedName" : "itest.demo1.DemoA#noArgsNoReturn",
+    "definitionName" : "itest.demo1.DemoA#noArgsNoReturn",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "Unit", "scala-library/2.8.0/scala/Unit" ] ],
+    "isUseCase" : false,
+    "typeParams" : [ ],
+    "valueParams" : [ ],
+    "kind" : "def"
+  } ]
+}

@@ -1,0 +1,17 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoB/methodWithTodoByCommentsTag",
+  "e" : [ {
+    "name" : "methodWithTodoByCommentsTag",
+    "qualifiedName" : "itest.demo1.DemoB#methodWithTodoByCommentsTag",
+    "definitionName" : "itest.demo1.DemoB#methodWithTodoByCommentsTag",
+    "description" : "",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "Int", "scala-library/2.8.0/scala/Int" ] ],
+    "isUseCase" : false,
+    "typeParams" : [ ],
+    "valueParams" : [ [ "( " ], [ "i : " ], [ "Int", "scala-library/2.8.0/scala/Int" ], [ " )" ] ],
+    "kind" : "def"
+  } ]
+}

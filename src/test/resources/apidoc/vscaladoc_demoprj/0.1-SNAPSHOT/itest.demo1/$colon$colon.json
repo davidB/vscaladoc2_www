@@ -1,0 +1,35 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/$colon$colon",
+  "e" : [ {
+    "name" : "::",
+    "qualifiedName" : "itest.demo1.::",
+    "definitionName" : "itest.demo1.::",
+    "description" : "<p>Class to test class name with special character\n</p>",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "::", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/$colon$colon" ] ],
+    "sourceStartPoint" : [ "/home/dwayne/work/oss/vscaladoc2_demoprj/src/main/scala/itest/demo1/DemoA.scala", 6 ],
+    "subClassesK" : [ ],
+    "members" : [ "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/$colon$colon/this", "scala-library/2.8.0/scala/AnyRef/$colon$hash$asInstanceOf", "scala-library/2.8.0/scala/AnyRef/$colon$hash$isInstanceOf", "scala-library/2.8.0/scala/AnyRef/$colon$hashsynchronized", "scala-library/2.8.0/scala/AnyRef/$colon$hashne", "scala-library/2.8.0/scala/AnyRef/$colon$hasheq", "scala-library/2.8.0/scala/AnyRef/$colon$hash$bang$eq", "scala-library/2.8.0/scala/AnyRef/$colon$hash$eq$eq", "scala-library/2.8.0/scala/AnyRef/$colon$hash$hash$hash", "scala-library/2.8.0/scala/AnyRef/$colon$hashfinalize", "scala-library/2.8.0/scala/AnyRef/$colon$hashwait", "scala-library/2.8.0/scala/AnyRef/$colon$hashwait", "scala-library/2.8.0/scala/AnyRef/$colon$hashwait", "scala-library/2.8.0/scala/AnyRef/$colon$hashnotifyAll", "scala-library/2.8.0/scala/AnyRef/$colon$hashnotify", "scala-library/2.8.0/scala/AnyRef/$colon$hashtoString", "scala-library/2.8.0/scala/AnyRef/$colon$hashclone", "scala-library/2.8.0/scala/AnyRef/$colon$hashequals", "scala-library/2.8.0/scala/AnyRef/$colon$hashhashCode", "scala-library/2.8.0/scala/AnyRef/$colon$hashgetClass", "scala-library/2.8.0/scala/Any/1.$colon$colon$hashasInstanceOf", "scala-library/2.8.0/scala/Any/1.$colon$colon$hashisInstanceOf", "scala-library/2.8.0/scala/Any/1.$colon$colon$hash$bang$eq", "scala-library/2.8.0/scala/Any/1.$colon$colon$hash$eq$eq" ],
+    "templates" : [ ],
+    "methods" : [ "scala-library/2.8.0/scala/AnyRef/$colon$hash$asInstanceOf", "scala-library/2.8.0/scala/AnyRef/$colon$hash$isInstanceOf", "scala-library/2.8.0/scala/AnyRef/$colon$hashsynchronized", "scala-library/2.8.0/scala/AnyRef/$colon$hashne", "scala-library/2.8.0/scala/AnyRef/$colon$hasheq", "scala-library/2.8.0/scala/AnyRef/$colon$hash$bang$eq", "scala-library/2.8.0/scala/AnyRef/$colon$hash$eq$eq", "scala-library/2.8.0/scala/AnyRef/$colon$hash$hash$hash", "scala-library/2.8.0/scala/AnyRef/$colon$hashfinalize", "scala-library/2.8.0/scala/AnyRef/$colon$hashwait", "scala-library/2.8.0/scala/AnyRef/$colon$hashwait", "scala-library/2.8.0/scala/AnyRef/$colon$hashwait", "scala-library/2.8.0/scala/AnyRef/$colon$hashnotifyAll", "scala-library/2.8.0/scala/AnyRef/$colon$hashnotify", "scala-library/2.8.0/scala/AnyRef/$colon$hashtoString", "scala-library/2.8.0/scala/AnyRef/$colon$hashclone", "scala-library/2.8.0/scala/AnyRef/$colon$hashequals", "scala-library/2.8.0/scala/AnyRef/$colon$hashhashCode", "scala-library/2.8.0/scala/AnyRef/$colon$hashgetClass", "scala-library/2.8.0/scala/Any/1.$colon$colon$hashasInstanceOf", "scala-library/2.8.0/scala/Any/1.$colon$colon$hashisInstanceOf", "scala-library/2.8.0/scala/Any/1.$colon$colon$hash$bang$eq", "scala-library/2.8.0/scala/Any/1.$colon$colon$hash$eq$eq" ],
+    "values" : [ ],
+    "abstractTypes" : [ ],
+    "aliasTypes" : [ ],
+    "parentType" : [ ],
+    "linearization" : [ "scala-library/2.8.0/scala/AnyRef", "scala-library/2.8.0/scala/Any" ],
+    "typeParams" : [ ],
+    "constructors" : [ {
+      "name" : "this",
+      "qualifiedName" : "itest.demo1.::#this",
+      "definitionName" : "itest.demo1.::#this",
+      "flags" : "Public()",
+      "inheritedFrom" : [ ],
+      "visibility" : [ ],
+      "resultType" : [ [ "::", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/$colon$colon" ] ],
+      "valueParams" : [ [ "( )" ] ]
+    } ],
+    "kind" : "class"
+  } ]
+}

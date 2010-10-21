@@ -1,0 +1,17 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoB/returnThis",
+  "e" : [ {
+    "name" : "returnThis",
+    "qualifiedName" : "itest.demo1.DemoB#returnThis",
+    "definitionName" : "itest.demo1.DemoB#returnThis",
+    "description" : "<p>return this but doesn't define return type explicitly</p>",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "DemoB", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoB" ] ],
+    "isUseCase" : false,
+    "typeParams" : [ ],
+    "valueParams" : [ [ "( )" ] ],
+    "kind" : "def"
+  } ]
+}

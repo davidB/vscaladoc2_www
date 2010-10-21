@@ -1,0 +1,16 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoB/zeroArgsReturnString",
+  "e" : [ {
+    "name" : "zeroArgsReturnString",
+    "qualifiedName" : "itest.demo1.DemoB#zeroArgsReturnString",
+    "definitionName" : "itest.demo1.DemoB#zeroArgsReturnString",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "String", "jse/1.6.0_21/java.lang/String" ] ],
+    "isUseCase" : false,
+    "typeParams" : [ ],
+    "valueParams" : [ [ "( )" ] ],
+    "kind" : "def"
+  } ]
+}

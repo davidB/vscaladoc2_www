@@ -1,0 +1,22 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo2",
+  "e" : [ {
+    "name" : "demo2",
+    "qualifiedName" : "itest.demo2",
+    "definitionName" : "itest.demo2",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "demo2", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo2" ] ],
+    "subClassesK" : [ ],
+    "members" : [ "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo2/DemoB" ],
+    "templates" : [ "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo2/DemoB" ],
+    "methods" : [ ],
+    "values" : [ ],
+    "abstractTypes" : [ ],
+    "aliasTypes" : [ ],
+    "linearization" : [ ],
+    "packages" : [ ],
+    "kind" : "package"
+  } ]
+}

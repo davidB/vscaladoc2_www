@@ -1,0 +1,22 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/_root_",
+  "e" : [ {
+    "name" : "root",
+    "qualifiedName" : "_root_",
+    "definitionName" : "_root_.root",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "root", "vscaladoc_demoprj/0.1-SNAPSHOT/_root_" ] ],
+    "subClassesK" : [ ],
+    "members" : [ "vscaladoc_demoprj/0.1-SNAPSHOT/itest" ],
+    "templates" : [ "vscaladoc_demoprj/0.1-SNAPSHOT/itest" ],
+    "methods" : [ ],
+    "values" : [ ],
+    "abstractTypes" : [ ],
+    "aliasTypes" : [ ],
+    "linearization" : [ ],
+    "packages" : [ "vscaladoc_demoprj/0.1-SNAPSHOT/itest" ],
+    "kind" : "package"
+  } ]
+}

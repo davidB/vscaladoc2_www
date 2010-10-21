@@ -1,0 +1,14 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoB/variable",
+  "e" : [ {
+    "name" : "variable",
+    "qualifiedName" : "itest.demo1.DemoB#variable",
+    "definitionName" : "itest.demo1.DemoB#variable",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "String", "jse/1.6.0_21/java.lang/String" ] ],
+    "isUseCase" : false,
+    "kind" : "var"
+  } ]
+}

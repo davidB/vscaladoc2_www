@@ -1,0 +1,34 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/OuterClass.InnerClass",
+  "e" : [ {
+    "name" : "InnerClass",
+    "qualifiedName" : "itest.demo1.OuterClass.InnerClass",
+    "definitionName" : "itest.demo1.OuterClass.InnerClass",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "InnerClass", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/OuterClass.InnerClass" ] ],
+    "sourceStartPoint" : [ "/home/dwayne/work/oss/vscaladoc2_demoprj/src/main/scala/itest/demo1/outerinner.scala", 12 ],
+    "subClassesK" : [ ],
+    "members" : [ "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/OuterClass.InnerClass/this", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hash$asInstanceOf", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hash$isInstanceOf", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashsynchronized", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashne", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hasheq", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hash$bang$eq", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hash$eq$eq", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hash$hash$hash", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashfinalize", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashwait", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashwait", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashwait", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashnotifyAll", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashnotify", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashtoString", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashclone", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashequals", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashhashCode", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashgetClass", "scala-library/2.8.0/scala/Any/1.OuterClass.InnerClass$hashasInstanceOf", "scala-library/2.8.0/scala/Any/1.OuterClass.InnerClass$hashisInstanceOf", "scala-library/2.8.0/scala/Any/1.OuterClass.InnerClass$hash$bang$eq", "scala-library/2.8.0/scala/Any/1.OuterClass.InnerClass$hash$eq$eq" ],
+    "templates" : [ ],
+    "methods" : [ "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hash$asInstanceOf", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hash$isInstanceOf", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashsynchronized", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashne", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hasheq", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hash$bang$eq", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hash$eq$eq", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hash$hash$hash", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashfinalize", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashwait", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashwait", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashwait", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashnotifyAll", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashnotify", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashtoString", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashclone", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashequals", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashhashCode", "scala-library/2.8.0/scala/AnyRef/uterClass.InnerClass$hashgetClass", "scala-library/2.8.0/scala/Any/1.OuterClass.InnerClass$hashasInstanceOf", "scala-library/2.8.0/scala/Any/1.OuterClass.InnerClass$hashisInstanceOf", "scala-library/2.8.0/scala/Any/1.OuterClass.InnerClass$hash$bang$eq", "scala-library/2.8.0/scala/Any/1.OuterClass.InnerClass$hash$eq$eq" ],
+    "values" : [ ],
+    "abstractTypes" : [ ],
+    "aliasTypes" : [ ],
+    "parentType" : [ ],
+    "linearization" : [ "scala-library/2.8.0/scala/AnyRef", "scala-library/2.8.0/scala/Any" ],
+    "typeParams" : [ ],
+    "constructors" : [ {
+      "name" : "this",
+      "qualifiedName" : "itest.demo1.OuterClass.InnerClass#this",
+      "definitionName" : "itest.demo1.OuterClass.InnerClass#this",
+      "flags" : "Public()",
+      "inheritedFrom" : [ ],
+      "visibility" : [ ],
+      "resultType" : [ [ "InnerClass", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/OuterClass.InnerClass" ] ],
+      "valueParams" : [ [ "( )" ] ]
+    } ],
+    "kind" : "class"
+  } ]
+}

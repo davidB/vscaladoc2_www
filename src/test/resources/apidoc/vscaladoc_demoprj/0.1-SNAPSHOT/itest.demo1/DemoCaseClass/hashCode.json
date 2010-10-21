@@ -1,0 +1,17 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoCaseClass/hashCode",
+  "e" : [ {
+    "name" : "hashCode",
+    "qualifiedName" : "itest.demo1.DemoCaseClass#hashCode",
+    "definitionName" : "itest.demo1.DemoCaseClass#hashCode",
+    "description" : "<p>Returns a hash code value for the object.</p><p>The default hashing algorithm is platform dependent.</p><p>Note that it is allowed for two objects to have identical hash codes (<code>o1.hashCode.equals(o2.hashCode)</code>) yet\nnot be equal (<code>o1.equals(o2)</code> returns <code>false</code>).  A degenerate implementation could always return <code>0</code>.\nHowever, it is required that if two objects are equal (<code>o1.equals(o2)</code> returns <code>true</code>) that they have\nidentical hash codes (<code>o1.hashCode.equals(o2.hashCode)</code>).  Therefore, when overriding this method, be sure\nto verify that the behavior is consistent with the <code>equals</code> method.\n</p>",
+    "flags" : "Public()",
+    "inheritedFrom" : [ ],
+    "visibility" : [ ],
+    "resultType" : [ [ "Int", "scala-library/2.8.0/scala/Int" ] ],
+    "isUseCase" : false,
+    "typeParams" : [ ],
+    "valueParams" : [ [ "( )" ] ],
+    "kind" : "def"
+  } ]
+}

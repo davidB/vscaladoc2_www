@@ -1,0 +1,23 @@
+{
+  "uoa" : "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/OuterObject.InnerObject",
+  "e" : [ {
+    "name" : "InnerObject",
+    "qualifiedName" : "itest.demo1.OuterObject.InnerObject",
+    "definitionName" : "itest.demo1.OuterObject.InnerObject",
+    "flags" : "Public()",
+    "inheritedFrom" : [ "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/OuterObject" ],
+    "visibility" : [ ],
+    "resultType" : [ [ "InnerObject", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/OuterObject.InnerObject" ] ],
+    "sourceStartPoint" : [ "/home/dwayne/work/oss/vscaladoc2_demoprj/src/main/scala/itest/demo1/outerinner.scala", 5 ],
+    "subClassesK" : [ ],
+    "members" : [ "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hash$asInstanceOf", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hash$isInstanceOf", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashsynchronized", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashne", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hasheq", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hash$bang$eq", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hash$eq$eq", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hash$hash$hash", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashfinalize", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashwait", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashwait", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashwait", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashnotifyAll", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashnotify", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashtoString", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashclone", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashequals", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashhashCode", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashgetClass", "scala-library/2.8.0/scala/Any/1.OuterObject.InnerObject$hashasInstanceOf", "scala-library/2.8.0/scala/Any/1.OuterObject.InnerObject$hashisInstanceOf", "scala-library/2.8.0/scala/Any/1.OuterObject.InnerObject$hash$bang$eq", "scala-library/2.8.0/scala/Any/1.OuterObject.InnerObject$hash$eq$eq" ],
+    "templates" : [ ],
+    "methods" : [ "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hash$asInstanceOf", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hash$isInstanceOf", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashsynchronized", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashne", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hasheq", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hash$bang$eq", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hash$eq$eq", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hash$hash$hash", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashfinalize", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashwait", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashwait", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashwait", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashnotifyAll", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashnotify", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashtoString", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashclone", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashequals", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashhashCode", "scala-library/2.8.0/scala/AnyRef/uterObject.InnerObject$hashgetClass", "scala-library/2.8.0/scala/Any/1.OuterObject.InnerObject$hashasInstanceOf", "scala-library/2.8.0/scala/Any/1.OuterObject.InnerObject$hashisInstanceOf", "scala-library/2.8.0/scala/Any/1.OuterObject.InnerObject$hash$bang$eq", "scala-library/2.8.0/scala/Any/1.OuterObject.InnerObject$hash$eq$eq" ],
+    "values" : [ ],
+    "abstractTypes" : [ ],
+    "aliasTypes" : [ ],
+    "parentType" : [ ],
+    "linearization" : [ "scala-library/2.8.0/scala/AnyRef", "scala-library/2.8.0/scala/Any" ],
+    "kind" : "object"
+  } ]
+}
