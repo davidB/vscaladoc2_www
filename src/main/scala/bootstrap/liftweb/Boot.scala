@@ -23,11 +23,11 @@ class Boot extends Loggable {
     LiftRules.addToPackages("net_alchim31_vscaladoc2_www")
 
     configureRDBMS()
-    
+
     configureHttpRequest()
 
     configureUserExperience()
-    
+
     logger.debug("DEBUG MODE ENABLED!")
   }
 
@@ -43,22 +43,23 @@ class Boot extends Loggable {
 
       DB.defineConnectionManager(DefaultConnectionIdentifier, vendor)
     }
-    
+
     MapperRules.columnName = (_,name) => StringHelpers.snakify(name)
     MapperRules.tableName =  (_,name) => StringHelpers.snakify(name)
-    
+
     Schemifier.schemify(true, Schemifier.infoF _, User, RemoteApiInfo)
-    
+
     RemoteApiInfo.init()
-    
+
     S.addAround(DB.buildLoanWrapper)
   }
-  
+
   private def configureHttpRequest() {
     // Build SiteMap
     val MustBeLoggedIn = If(() => User.loggedIn_?, "")
-    def sitemap() = List( 
+    def sitemap() = List(
     		Menu("Home") / "index" >> LocGroup("public"),
+            Menu("Legal") / "legal" / ** >> Hidden,
     		Menu("Admin") / "admin" / "index" >> LocGroup("admin") >> MustBeLoggedIn,
     		Menu("Apis") / "admin" / "apis" >> LocGroup("admin") >> MustBeLoggedIn
     		  submenus(RemoteApiInfo.menus : _*)
@@ -70,7 +71,7 @@ class Boot extends Loggable {
 
     LiftRules.setSiteMap(SiteMap(sitemap : _*))
 
-    // setup the 404 handler 
+    // setup the 404 handler
 //    LiftRules.uriNotFound.prepend(NamedPF("404handler"){
 //      case (req,failure) => NotFoundAsTemplate(ParsePath(List("404"),"html",false,false))
 //    })
@@ -81,10 +82,10 @@ class Boot extends Loggable {
     LiftRules.statelessDispatchTable.append(ApiView.dispatch)
 
     // make requests utf-8, html
-    LiftRules.early.append(_.setCharacterEncoding("UTF-8"))	  
+    LiftRules.early.append(_.setCharacterEncoding("UTF-8"))
     LiftRules.useXhtmlMimeType = false // recaptcha js lib
   }
-  
+
   private def configureUserExperience() {
 
     // set the time that notices should be displayed and then fadeout
@@ -95,7 +96,7 @@ class Boot extends Loggable {
      */
     LiftRules.ajaxStart = Full(() => LiftRules.jsArtifacts.show("ajax-loader").cmd)
     LiftRules.ajaxEnd = Full(() => LiftRules.jsArtifacts.hide("ajax-loader").cmd)
-    
+
     LiftRules.loggedInTest = Full(() => User.loggedIn_?)
   }
 }
