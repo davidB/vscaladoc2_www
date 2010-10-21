@@ -26,17 +26,18 @@ object ApiView {
 
   private val _uoaHelper = new UoaHelper()
   private val _lafHelper = new  Helper4Laf(new URI(S.contextPath+ "/"), _uoaHelper)
-  private val _entityDisplayer : EntityDisplayer = new EntityDisplayer4Laf(_lafHelper)//new EntityDisplayer4Debug()
-  private val _navigatorDisplayer : NavigatorDisplayer = new NavigatorDisplayer4Laf(_lafHelper, new RawDataToInfo(new BasicRawDataProvider(), _uoaHelper))//new EntityDisplayer4Debug()
+  private val _rdti = new RawDataToInfo(new BasicRawDataProvider(), _uoaHelper)
+  private val _entityDisplayer : EntityDisplayer = new EntityDisplayer4Laf(_lafHelper, _rdti)//new EntityDisplayer4Debug()
+  private val _navigatorDisplayer : NavigatorDisplayer = new NavigatorDisplayer4Laf(_lafHelper, _rdti)//new EntityDisplayer4Debug()
 
   val dispatch: LiftRules.DispatchPF = {
     case Req("navigator" :: "api" :: artifactId :: version :: entityPath, _, GetRequest) => () => serveEntity(artifactId, version, entityPath)(serveNavigator)
     case Req("navigator" :: "_browser" :: "api" :: artifactId :: version :: Nil, _, GetRequest) => () => serveEntity(artifactId, version, Nil)(serveBrowser)
     case Req("navigator" :: "_rsrc" :: path, ext, GetRequest) => () => _navigatorDisplayer.serveResource(path, ext)
     case Req("raw" :: "api" :: artifactId :: version :: entityPath, _, GetRequest) => () => serveOriginal(artifactId, version, entityPath)
+    case Req("laf" :: "api" :: artifactId :: version :: entityPath, _, GetRequest) => () => serveEntity(artifactId, version, entityPath)(serveApi)
+    case Req("laf" :: "api" :: artifactId :: Nil, _, GetRequest) => () => _entityDisplayer.serveArtifacts(artifactId)
     case Req("laf" :: "_rsrc" :: path, ext, GetRequest) => () => _entityDisplayer.serveResource(path, ext)
-    case Req("laf" :: "api" :: artifactId :: Nil, "html", GetRequest) => () => _entityDisplayer.serveArtifacts(artifactId)
-    case Req("laf" :: "api" :: artifactId :: version :: entityPath, "html", GetRequest) => () => serveEntity(artifactId, version, entityPath)(serveApi)
     //case Req("api" :: "static" :: _, "json", GetRequest) => JString("Static")
   }
 
@@ -62,11 +63,12 @@ object ApiView {
 
   private def serveApi(api: RemoteApiInfo, rurl: String, entityPath: List[String]): Box[LiftResponse] = {
     val fullUrl = new URL(api.baseUrl, rurl)
+    println("serveApi" + entityPath + " // "+ entityPath.length)
     api.provider match {
       case VScaladoc2 => entityPath.length match {
         case 0 => _entityDisplayer.serveArtifact(api, fullUrl)
         case 1 => _entityDisplayer.servePackage(fullUrl)
-        case 2 => _entityDisplayer.serveType(fullUrl)
+        case 2 => _entityDisplayer.serveType(api, fullUrl)
         case 3 | 4 => _entityDisplayer.serveMember(fullUrl)
       }
       case _ => tryo(RedirectResponse(fullUrl.toExternalForm))

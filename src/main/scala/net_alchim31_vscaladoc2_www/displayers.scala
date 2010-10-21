@@ -19,7 +19,7 @@ trait NavigatorDisplayer extends PartDisplayer {
 
 trait EntityDisplayer extends PartDisplayer {
   def serveMember(srcUrl: URL): Box[LiftResponse]
-  def serveType(srcUrl: URL): Box[LiftResponse]
+  def serveType(rai: RemoteApiInfo, srcUrl: URL): Box[LiftResponse]
   def servePackage(srcUrl: URL): Box[LiftResponse]
   def serveArtifact(rai: RemoteApiInfo, srcUrl: URL): Box[LiftResponse]
   def serveArtifacts(artifactId: String): Box[LiftResponse]
@@ -32,7 +32,7 @@ class EntityDisplayer4Debug extends EntityDisplayer {
   def serveMember(fullUrl: URL): Box[LiftResponse] = Full(XmlResponse(
     <div>Member1 :{ fullUrl }</div>
     ))
-  def serveType(fullUrl: URL): Box[LiftResponse] = Full(XmlResponse(
+  def serveType(rai: RemoteApiInfo, fullUrl: URL): Box[LiftResponse] = Full(XmlResponse(
     <div>Type :{ fullUrl }</div>
     ))
   def servePackage(fullUrl: URL): Box[LiftResponse] = Full(XmlResponse(

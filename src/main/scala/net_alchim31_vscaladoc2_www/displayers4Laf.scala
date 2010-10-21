@@ -24,7 +24,7 @@ class ScalateDisplayer(helper : Helper, tmplDir: File) {
   }
 
   private val _engine = {
-    val b = new TemplateEngine(Some(tmplDir))
+    val b = new TemplateEngine(List(tmplDir))
     b.bindings = List(
       Binding("helper", classOf[info.Helper].getName, true)
     )
@@ -46,7 +46,7 @@ class ScalateDisplayer(helper : Helper, tmplDir: File) {
   protected def renderHtml(templatePath: String)(fillCtx: (RenderContext) => Unit): Box[LiftResponse] = {
     val template = _engine.load(templatePath)
     val buffer = new StringWriter()
-    val context = new DefaultRenderContext(_engine, new PrintWriter(buffer))
+    val context = new DefaultRenderContext(templatePath, _engine, new PrintWriter(buffer))
     context.attributes("ping") = "pong"
     context.attributes("helper") = helper
     //context.attributes("info") = info
@@ -124,10 +124,33 @@ class NavigatorDisplayer4Laf(helper : Helper, val rdti : RawDataToInfo, tmplDir:
 
 }
 
-class EntityDisplayer4Laf(helper : Helper, tmplDir: File = new File("/home/dwayne/work/oss/vscaladoc2_www/src/main/laf/entity0")) extends ScalateDisplayer(helper, tmplDir) with EntityDisplayer {
-  def serveMember(fullUrl: URL): Box[LiftResponse] = Full(NotImplementedResponse())
-  def serveType(fullUrl: URL): Box[LiftResponse] = Full(NotImplementedResponse())
+class EntityDisplayer4Laf(helper : Helper, val rdti : RawDataToInfo, tmplDir: File = new File("/home/dwayne/work/oss/vscaladoc2_www/src/main/laf/entity0")) extends ScalateDisplayer(helper, tmplDir) with EntityDisplayer {
+  def serveArtifacts(artifactId: String): Box[LiftResponse] = Full(NotImplementedResponse())
+
   def servePackage(fullUrl: URL): Box[LiftResponse] = Full(NotImplementedResponse())
+  def serveMember(fullUrl: URL): Box[LiftResponse] = Full(NotImplementedResponse())
+
+  def serveType(rai: RemoteApiInfo, fullUrl: URL): Box[LiftResponse] = renderHtml("/type.scaml") { context =>
+    println("serveType : " + fullUrl)
+    context.attributes("title") = "Title" //TODO
+    context.attributes("copyright") = "" //TODO
+    val tpe = new TypeInfo() {
+    def simpleName: String = "MyType"
+    def signature: String = "signature"
+    def description: HtmlString = "<p>Il fait beau </p>"
+    def docTags: Seq[DocTag] = Nil
+    def source: Option[URI] = None
+    def uoa: Uoa4Type = Uoa4Type("MyType", Uoa4Package("my.package", Uoa4Artifact("myArtifact", "x.y.z")))
+    def kind: String = "object"
+    def isInherited(m: FieldextInfo) = m.uoa.uoaType == uoa
+    def constructors: List[FieldextInfo] = Nil
+    def fields: List[FieldextInfo] = Nil
+    def methods: List[FieldextInfo] = Nil
+
+    }
+    //context.attributes("tpe") = tpe
+    context.attributes("tpes") = List(tpe).sortWith((a, b) => a.kind == "object" || (a.kind < b.kind))
+  }
 
   def serveArtifact(rai: RemoteApiInfo, fullUrl: URL): Box[LiftResponse] = renderHtml("/artifact.scaml") { context =>
     context.attributes("artifact") = new ArtifactInfo() {
@@ -137,5 +160,4 @@ class EntityDisplayer4Laf(helper : Helper, tmplDir: File = new File("/home/dwayn
     }
   }
 
-  def serveArtifacts(artifactId: String): Box[LiftResponse] = Full(NotImplementedResponse())
 }

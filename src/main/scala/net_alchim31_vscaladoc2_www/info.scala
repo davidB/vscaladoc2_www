@@ -54,7 +54,6 @@ object info {
   }
 
   trait EntityInfo {
-    def url: URI
     def simpleName: String
     def signature: String
     def description: HtmlString
@@ -64,18 +63,17 @@ object info {
   }
 
   trait TypeInfo extends EntityInfo {
-    def urlOfPackage: URI
-    def urlOfArtifact: URI
-    def fqName: String
+    def uoa: Uoa4Type
     def kind: String
-    def companion: Option[TypeInfo]
-    def isInherited(m: MemberInfo)
-    def constructors: List[MemberInfo]
-    def fields: List[MemberInfo]
-    def methods: List[MemberInfo]
+    def isInherited(m: FieldextInfo)
+    def constructors: List[FieldextInfo]
+    def fields: List[FieldextInfo]
+    def methods: List[FieldextInfo]
   }
 
-  trait MemberInfo extends EntityInfo {}
+  trait FieldextInfo extends EntityInfo {
+    def uoa: Uoa4Fieldext
+  }
 
   trait DocTag {
     def label: String
