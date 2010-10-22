@@ -5,6 +5,7 @@ import net.liftweb.mapper.Mapper
 import java.net.URL
 import net.liftweb.common._
 import _root_.net.liftweb.http._
+import net_alchim31_vscaladoc2_www.info._
 
 sealed trait ApiProvider {
   def rurlPathOf(packageName: String, typeName: String, memberName: String, memberType64: String): Box[String] = Failure("not supported")
@@ -32,13 +33,22 @@ sealed trait ApiProvider {
       case _ => Failure("too many section (" + entityPath.size + ") in the path : " + entityPath)
     }
   }
+
+  def rurlPathOf(uoa : Uoa): Box[String] = {
+    uoa match {
+      case x : Uoa4Fieldext => rurlPathOf(x.uoaType.uoaPackage.packageName, x.uoaType.typeName, x.fieldextName)
+      case x : Uoa4Type => rurlPathOf(x.uoaPackage.packageName, x.typeName)
+      case x : Uoa4Package => rurlPathOf(x.packageName)
+      case _ => Failure("not supported")
+    }
+  }
 }
 
 case object Scaladoc extends ApiProvider {
   override def rurlPathOf(packageName: String, typeName: String, memberName: String, memberType64: String): Box[String] = rurlPathOf(packageName, typeName, memberName)
 
   override def rurlPathOf(packageName: String, typeName: String, memberName: String): Box[String] = rurlPathOf(packageName, typeName)
-  
+
   override def rurlPathOf(packageName: String, typeName: String): Box[String] = {
     Full("/" + packageName.replace('.', '/') + "/" + typeName + ".html")
   }
@@ -54,7 +64,7 @@ case object Scaladoc2 extends ApiProvider {
   override def rurlPathOf(packageName: String, typeName: String, memberName: String, memberType64: String): Box[String] = rurlPathOf(packageName, typeName, memberName)
 
   override def rurlPathOf(packageName: String, typeName: String, memberName: String): Box[String] = rurlPathOf(packageName, typeName)
-  
+
   override def rurlPathOf(packageName: String, typeName: String): Box[String] = {
     Full("/" + packageName.replace('.', '/') + "/" + typeName + ".html")
   }
@@ -66,7 +76,7 @@ case object Scaladoc2 extends ApiProvider {
   }
 }
 case object VScaladoc extends ApiProvider{
-	
+
 }
 case object VScaladoc2 extends ApiProvider {
   override def rurlPathOf(packageName: String, typeName: String, memberName: String, memberType64: String): Box[String] = {
@@ -88,7 +98,7 @@ case object VScaladoc2 extends ApiProvider {
 
 //in memberType64 use canonical type name
 case object Javadoc2 extends ApiProvider {
-  val label = "Javadoc2" 	
+  val label = "Javadoc2"
   //TODO add support for args of memberType64 (remove generics, remove return type)
   override def rurlPathOf(packageName: String, typeName: String, memberName: String, memberType64: String): Box[String] = {
     Full("/" + packageName.replace('.', '/') + "/" + typeName + ".html#" + memberName + "()")

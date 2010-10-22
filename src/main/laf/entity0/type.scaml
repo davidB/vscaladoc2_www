@@ -2,9 +2,19 @@
 !!! 5
 
 -import net_alchim31_vscaladoc2_www.info._
+-import net.liftweb.common.{ Box, Full, Empty, Failure }
 -@ val title : String
 -@ val copyright : String
 -@ val tpes : Seq[TypeInfo]
+
+- def stringWithTypeRef(l : List[StringWithTypeRef]) =
+  %code(class="signature")
+  - for( swr <- l)
+    - swr.uoaType match
+      - case Full(uoa) =>
+        %a(href={urlOf(uoa, "laf/api")} title={fqNameOf(uoa)}) #{swr.s}
+      - case _ =>
+        #{swr.s}
 
 %html
   %head
@@ -18,18 +28,25 @@
     %div(class="header")
     - for( tpe <- tpes.headOption)
       %a(href={urlOf(tpe.uoa.uoaPackage.uoaArtifact, "laf/api")}) #{labelOf(tpe.uoa.uoaPackage.uoaArtifact)}
-      >>
+      \/
       %a(href={urlOf(tpe.uoa.uoaPackage, "laf/api")}) #{labelOf(tpe.uoa.uoaPackage)}
-      >>
+      \/
       %a(href={urlOf(tpe.uoa, "laf/api")}) #{labelOf(tpe.uoa)}
       %br
-      %h1 #{fqNameOf(tpe.uoa)}
+      %h1
+        #{fqNameOf(tpe.uoa)}
+        %sup(style="font-size: smaller;vertical-align: super")
+          - for( t <- tpes)
+            %a(href={"#" + t.kind}) #{t.kind}
+
 
     - for( tpe <- tpes)
       - import tpe._
-      %h2 #{kind}
+      %a(name={kind})
+      %h2 #{kind} #{simpleName}
       %div( id="intro")
-        %code(class="signature") #{signature}
+        =stringWithTypeRef(signature)
+
         %br
         %div(class="apiComments")
           != description

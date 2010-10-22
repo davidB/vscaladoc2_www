@@ -127,37 +127,18 @@ class NavigatorDisplayer4Laf(helper : Helper, val rdti : RawDataToInfo, tmplDir:
 class EntityDisplayer4Laf(helper : Helper, val rdti : RawDataToInfo, tmplDir: File = new File("/home/dwayne/work/oss/vscaladoc2_www/src/main/laf/entity0")) extends ScalateDisplayer(helper, tmplDir) with EntityDisplayer {
   def serveArtifacts(artifactId: String): Box[LiftResponse] = Full(NotImplementedResponse())
 
-  def servePackage(fullUrl: URL): Box[LiftResponse] = Full(NotImplementedResponse())
-  def serveMember(fullUrl: URL): Box[LiftResponse] = Full(NotImplementedResponse())
+  def servePackage(uoa: Uoa4Package): Box[LiftResponse] = Full(NotImplementedResponse())
+  def serveFieldext(uoa: Uoa4Fieldext): Box[LiftResponse] = Full(NotImplementedResponse())
 
-  def serveType(rai: RemoteApiInfo, fullUrl: URL): Box[LiftResponse] = renderHtml("/type.scaml") { context =>
-    println("serveType : " + fullUrl)
+  def serveType(uoa: Uoa4Type): Box[LiftResponse] = renderHtml("/type.scaml") { context =>
+    println("serveType : " + uoa)
     context.attributes("title") = "Title" //TODO
     context.attributes("copyright") = "" //TODO
-    val tpe = new TypeInfo() {
-    def simpleName: String = "MyType"
-    def signature: String = "signature"
-    def description: HtmlString = "<p>Il fait beau </p>"
-    def docTags: Seq[DocTag] = Nil
-    def source: Option[URI] = None
-    def uoa: Uoa4Type = Uoa4Type("MyType", Uoa4Package("my.package", Uoa4Artifact("myArtifact", "x.y.z")))
-    def kind: String = "object"
-    def isInherited(m: FieldextInfo) = m.uoa.uoaType == uoa
-    def constructors: List[FieldextInfo] = Nil
-    def fields: List[FieldextInfo] = Nil
-    def methods: List[FieldextInfo] = Nil
-
-    }
-    //context.attributes("tpe") = tpe
-    context.attributes("tpes") = List(tpe).sortWith((a, b) => a.kind == "object" || (a.kind < b.kind))
+    context.attributes("tpes") =  rdti.toTypeInfo(uoa).map(_.open_!).sortWith((a, b) => a.kind == "object" || (a.kind < b.kind))
   }
 
-  def serveArtifact(rai: RemoteApiInfo, fullUrl: URL): Box[LiftResponse] = renderHtml("/artifact.scaml") { context =>
-    context.attributes("artifact") = new ArtifactInfo() {
-      override def artifactId: String = rai.artifactId
-      override def version: String = rai.version
-      override def apiUrl = Some(rai.baseUrl.toURI)
-    }
+  def serveArtifact(uoa : Uoa4Artifact): Box[LiftResponse] = renderHtml("/artifact.scaml") { context =>
+    context.attributes("artifact") = rdti.toArtifactInfo(uoa).open_!
   }
 
 }

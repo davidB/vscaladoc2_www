@@ -13,6 +13,7 @@ object info {
   type Scope = String
   type HtmlString = String
 
+  case class StringWithTypeRef(s: String, uoaType : Box[Uoa4Type] = Empty)
 
   sealed trait Uoa
   case class Uoa4Artifact(artifactId: String, version: String) extends Uoa
@@ -55,7 +56,7 @@ object info {
 
   trait EntityInfo {
     def simpleName: String
-    def signature: String
+    def signature: List[StringWithTypeRef]
     def description: HtmlString
     def docTags: Seq[DocTag]
     def source: Option[URI]
@@ -85,15 +86,17 @@ object info {
 class UoaHelper() {
   import info._
 
-  def apply(refPath: String): Box[Uoa] = {
-    val fragments = refPath.split('/').toList
+  def apply(fragments : List[String]): Box[Uoa] = {
     fragments match {
+      case artifactId :: version :: Nil => Full(Uoa4Artifact(artifactId, version))
       case artifactId :: version :: packageName :: Nil => Full(Uoa4Package(packageName, Uoa4Artifact(artifactId, version)))
       case artifactId :: version :: packageName :: typeName :: Nil => Full(Uoa4Type(typeName,Uoa4Package(packageName, Uoa4Artifact(artifactId, version))))
       case artifactId :: version :: packageName :: typeName :: fieldextName :: Nil => Full(Uoa4Fieldext(fieldextName, Uoa4Type(typeName,Uoa4Package(packageName, Uoa4Artifact(artifactId, version)))))
-      case _ => Failure("refPath don't match the uoa format artifactId/version/packageName[/typeName[/memberName]] : " + refPath)
+      case _ => Failure("fragments don't match the uoa format artifactId, version, [packageName [, typeName[, memberName]]] : " + fragments.mkString(","))
     }
   }
+
+  def apply(refPath: String): Box[Uoa] = apply(refPath.split('/').toList)
 
   def toRefPath(uoa: Uoa): String = uoa match {
     case Uoa4Artifact(artifactId, version) => artifactId + "/" + version

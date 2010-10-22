@@ -10,6 +10,7 @@ import net_alchim31_vscaladoc2_www.EntityDisplayer
 import net_alchim31_vscaladoc2_www.BasicRawDataProvider
 import net_alchim31_vscaladoc2_www.RawDataToInfo
 import net_alchim31_vscaladoc2_www.UoaHelper
+import net_alchim31_vscaladoc2_www.info._
 import net_alchim31_vscaladoc2_www.model.Scaladoc
 import net_alchim31_vscaladoc2_www.model.Scaladoc2
 import net_alchim31_vscaladoc2_www.model.VScaladoc2
@@ -62,17 +63,20 @@ object ApiView {
   }
 
   private def serveApi(api: RemoteApiInfo, rurl: String, entityPath: List[String]): Box[LiftResponse] = {
-    val fullUrl = new URL(api.baseUrl, rurl)
     println("serveApi" + entityPath + " // "+ entityPath.length)
     api.provider match {
-      case VScaladoc2 => entityPath.length match {
-        case 0 => _entityDisplayer.serveArtifact(api, fullUrl)
-        case 1 => _entityDisplayer.servePackage(fullUrl)
-        case 2 => _entityDisplayer.serveType(api, fullUrl)
-        case 3 | 4 => _entityDisplayer.serveMember(fullUrl)
-      }
-      case _ => tryo(RedirectResponse(fullUrl.toExternalForm))
+      case VScaladoc2 => _uoaHelper(api.artifactId.is :: api.version.is :: entityPath).flatMap(uoa =>serveApi(uoa))
+      case _ => tryo(RedirectResponse(new URL(api.baseUrl, rurl).toExternalForm))
     }
+  }
+
+  private def serveApi(uoa : Uoa): Box[LiftResponse] = {
+	  uoa match {
+	    case uoa : Uoa4Artifact => _entityDisplayer.serveArtifact(uoa)
+	    case uoa : Uoa4Package => _entityDisplayer.servePackage(uoa)
+	    case uoa : Uoa4Type => _entityDisplayer.serveType(uoa)
+	    case uoa : Uoa4Fieldext => _entityDisplayer.serveFieldext(uoa)
+	  }
   }
 
   private def serveNavigator(api: RemoteApiInfo, rurl: String, entityPath: List[String]): Box[LiftResponse] = {
