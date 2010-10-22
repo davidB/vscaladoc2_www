@@ -13,7 +13,7 @@ object info {
   type Scope = String
   type HtmlString = String
 
-  case class StringWithTypeRef(s: String, uoaType : Box[Uoa4Type] = Empty)
+  case class StringWithTypeRef(s: String, uoaType : Box[Uoa] = Empty)
 
   sealed trait Uoa
   case class Uoa4Artifact(artifactId: String, version: String) extends Uoa
@@ -61,15 +61,15 @@ object info {
     def docTags: Seq[DocTag]
     def source: Option[URI]
     //def rawjson : Box[JObject] = Empty
+    def kind: String
   }
 
   trait TypeInfo extends EntityInfo {
     def uoa: Uoa4Type
-    def kind: String
     def isInherited(m: FieldextInfo)
-    def constructors: List[FieldextInfo]
-    def fields: List[FieldextInfo]
-    def methods: List[FieldextInfo]
+    def constructors: List[Box[FieldextInfo]]
+    def fields: List[Box[FieldextInfo]]
+    def methods: List[Box[FieldextInfo]]
   }
 
   trait FieldextInfo extends EntityInfo {

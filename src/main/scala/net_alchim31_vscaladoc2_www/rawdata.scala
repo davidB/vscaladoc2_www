@@ -64,7 +64,19 @@ class RawDataToInfo(val rdp: RawDataProvider, val uoaHelper: UoaHelper) {
       case Empty => Nil
       case Full(jv) => {
         val tpeFile = jv.extract[json.TpeFile]
-        for (tj <- tpeFile.e) yield { Helpers.tryo { new TypeInfo4Json(uoa, tj, uoaHelper) } }
+        for (tj <- tpeFile.e) yield { Helpers.tryo { new TypeInfo4Json(uoa, tj, this) } }
+      }
+
+    }
+  }
+
+  def toFieldextInfo(uoa: Uoa4Fieldext): List[Box[FieldextInfo]] = {
+    rdp.find(uoa) match {
+      case x: Failure => List(x)
+      case Empty => Nil
+      case Full(jv) => {
+        val file = jv.extract[json.FieldextFile]
+        for (entry <- file.e) yield { Helpers.tryo { new FieldextInfo4Json(uoa, entry, this) } }
       }
 
     }
@@ -94,9 +106,26 @@ class RawDataToInfo(val rdp: RawDataProvider, val uoaHelper: UoaHelper) {
       }
     }
   }
+
+  def toBoxUoa(v: Option[String]): Box[Uoa] = v match {
+    case None => Empty
+    case Some(v) => uoaHelper(v)
+  }
+  def toListSWTR(s: List[List[String]]): List[StringWithTypeRef] = s.map(x => StringWithTypeRef(x.head, toBoxUoa(x.tail.headOption)))
+
+  def toListFieldext(s : List[String]) : List[Box[FieldextInfo]] = {
+	val b = for(
+	    refPath <- s;
+	    uoa <- uoaHelper(refPath) //ignore failure and empty
+	  ) yield uoa match {
+		case uoa : Uoa4Fieldext => toFieldextInfo(uoa)
+		case _ => Nil
+	  }
+	b.flatten
+  }
+
+
 }
-
-
 
 object json {
 
@@ -114,7 +143,8 @@ object json {
     name: String,
     qualifiedName: String,
     description: Option[String],
-    resultType: List[List[String]], // [ "DemoB", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo2/DemoB" ] ],
+    visibility: RawSplitStringWithRef,
+    //resultType: RawSplitStringWithRef, // [ "DemoB", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo2/DemoB" ] ],
     //    sourceStartPoint : List[AnyRef], //[ "/home/dwayne/work/oss/vscaladoc2_demoprj/src/main/scala/itest/demo2/DemoB.scala", 6 ],
     methods: List[String], //[ "scala-library/2.8.0/scala/AnyRef/emoB$hash$asInstanceOf", "scala-library/2.8.0/scala/AnyRef/emoB$hash$isInstanceOf", "scala-library/2.8.0/scala/AnyRef/emoB$hashsynchronized", "scala-library/2.8.0/scala/AnyRef/emoB$hashne", "scala-library/2.8.0/scala/AnyRef/emoB$hasheq", "scala-library/2.8.0/scala/AnyRef/emoB$hash$bang$eq", "scala-library/2.8.0/scala/AnyRef/emoB$hash$eq$eq", "scala-library/2.8.0/scala/AnyRef/emoB$hash$hash$hash", "scala-library/2.8.0/scala/AnyRef/emoB$hashfinalize", "scala-library/2.8.0/scala/AnyRef/emoB$hashwait", "scala-library/2.8.0/scala/AnyRef/emoB$hashwait", "scala-library/2.8.0/scala/AnyRef/emoB$hashwait", "scala-library/2.8.0/scala/AnyRef/emoB$hashnotifyAll", "scala-library/2.8.0/scala/AnyRef/emoB$hashnotify", "scala-library/2.8.0/scala/AnyRef/emoB$hashtoString", "scala-library/2.8.0/scala/AnyRef/emoB$hashclone", "scala-library/2.8.0/scala/AnyRef/emoB$hashequals", "scala-library/2.8.0/scala/AnyRef/emoB$hashhashCode", "scala-library/2.8.0/scala/AnyRef/emoB$hashgetClass", "scala-library/2.8.0/scala/Any/2.DemoB$hashasInstanceOf", "scala-library/2.8.0/scala/Any/2.DemoB$hashisInstanceOf", "scala-library/2.8.0/scala/Any/2.DemoB$hash$bang$eq", "scala-library/2.8.0/scala/Any/2.DemoB$hash$eq$eq" ],
     values: List[String],
@@ -123,15 +153,21 @@ object json {
     parentType: RawSplitStringWithRef,
     typeParams: RawSplitStringWithRef,
     //    "linearization" : [ "scala-library/2.8.0/scala/AnyRef", "scala-library/2.8.0/scala/Any" ],
+    constructors : Option[List[Fieldext]],
+    kind: String)
+  case class FieldextFile(uoa: String, e: List[Fieldext])
+  case class Fieldext(
+    name: String,
+    qualifiedName: String,
+    description: Option[String],
+    visibility: RawSplitStringWithRef,
+    resultType: RawSplitStringWithRef,
+    valueParams: RawSplitStringWithRef,
+    typeParams: RawSplitStringWithRef,
     kind: String)
 }
 
-class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, uoaHelper : UoaHelper) extends TypeInfo {
-  def toBoxUoa(v : Option[String]) : Box[Uoa4Type] = v match {
-	  case None => Empty
-	  case Some(v) => uoaHelper(v).flatMap(x => Helpers.tryo{ x.asInstanceOf[Uoa4Type] })
-  }
-  def toListSWTR(s: List[List[String]]): List[StringWithTypeRef] = s.map(x => StringWithTypeRef(x.head, toBoxUoa(x.tail.headOption)))
+class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : RawDataToInfo) extends TypeInfo {
 
   def isCaseClass: Boolean = src.parentType.exists(x => x.head == "Product")
   def simpleName: String = src.name
@@ -140,19 +176,51 @@ class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, uoaHelper : UoaHelper)
   def source: Option[URI] = None //for (file <- src.sourceStartPoint.headOption ; line <- src.sourceStartPoint.tail.headOption) yield {new URI("src://" + file + "#" + line) }
   def kind: String = src.kind
   def isInherited(m: FieldextInfo) = m.uoa.uoaType == uoa
-  def signature : List[StringWithTypeRef] = {
+  def signature: List[StringWithTypeRef] = {
     val b = new ListBuffer[StringWithTypeRef]()
+    b ++= rdti.toListSWTR(src.visibility)
     if (isCaseClass) {
       b += StringWithTypeRef("case ")
     }
     b += StringWithTypeRef(kind + ' ')
     b += StringWithTypeRef(simpleName)
     if (!src.typeParams.isEmpty) {
-      b ++= toListSWTR(src.typeParams)
+      b ++= rdti.toListSWTR(src.typeParams)
     }
     if (!src.parentType.isEmpty) {
       b += StringWithTypeRef(" extends ")
-      b ++= toListSWTR(src.parentType)
+      b ++= rdti.toListSWTR(src.parentType)
+    }
+    b.toList
+  }
+  def constructors: List[Box[FieldextInfo]] = {
+	  src.constructors.getOrElse(Nil).map(x => Helpers.tryo{ new FieldextInfo4Json(Uoa4Fieldext(simpleName, uoa), x, rdti)})
+  }
+  def fields: List[Box[FieldextInfo]] = rdti.toListFieldext(src.values)
+  def methods: List[Box[FieldextInfo]] = rdti.toListFieldext(src.methods)
+}
+
+class FieldextInfo4Json(val uoa: Uoa4Fieldext, val src: json.Fieldext, rdti : RawDataToInfo) extends FieldextInfo {
+
+  def simpleName: String = src.name
+  def description: HtmlString = src.description.getOrElse("")
+  def docTags: Seq[DocTag] = Nil
+  def source: Option[URI] = None //for (file <- src.sourceStartPoint.headOption ; line <- src.sourceStartPoint.tail.headOption) yield {new URI("src://" + file + "#" + line) }
+  def kind: String = src.kind
+  def signature: List[StringWithTypeRef] = {
+    val b = new ListBuffer[StringWithTypeRef]()
+    b ++= rdti.toListSWTR(src.visibility)
+    b += StringWithTypeRef(kind + ' ')
+    b += StringWithTypeRef(simpleName)
+    if (!src.typeParams.isEmpty) {
+      b ++= rdti.toListSWTR(src.typeParams)
+    }
+    if (!src.valueParams.isEmpty) {
+      b ++= rdti.toListSWTR(src.valueParams)
+    }
+    if (!src.resultType.isEmpty) {
+      b += StringWithTypeRef(" : ")
+      b ++= rdti.toListSWTR(src.resultType)
     }
     b.toList
   }
@@ -169,40 +237,53 @@ class BasicRawDataProvider() extends RawDataProvider {
   private val _http = new Http
 
   def find(uoa: Uoa): Box[JValue] = {
-    for (url <- toUrl(uoa)) yield {
-      println("url : " + url)
-      url.startsWith("file:/") match {
-        case true => JsonParser.parse(new FileReader(new URI(url).getPath))
-        case false => _http(new Request(url) >- { s => JsonParser.parse(s) })
-      }
-
+    toUrl(uoa).flatMap { url =>
+    	Helpers.tryo{
+	      url.startsWith("file:/") match {
+	        case true =>   JsonParser.parse(new FileReader(new URI(url).getPath))
+	        case false => _http(new Request(url) >- { s => JsonParser.parse(s) })
+	      }
+    	}
     }
   }
 
-  def toUrl(uoa: Uoa): Box[String] = uoa match {
-    case Uoa4Artifact(artifactId, version) => {
-      for (
-        rai <- RemoteApiInfo.findApiOf(artifactId, version);
-        rpath <- rai.provider.rurlPathOf()
-      ) yield rai.baseUrl.toExternalForm + rpath
-    }
-    case Uoa4Package(packageName, Uoa4Artifact(artifactId, version)) => {
-      for (
-        rai <- RemoteApiInfo.findApiOf(artifactId, version);
-        rpath <- rai.provider.rurlPathOf(packageName)
-      ) yield rai.baseUrl.toExternalForm + rpath
-    }
-    case Uoa4Type(typeName, Uoa4Package(packageName, Uoa4Artifact(artifactId, version))) => {
-      for (
-        rai <- RemoteApiInfo.findApiOf(artifactId, version);
-        rpath <- rai.provider.rurlPathOf(packageName, typeName)
-      ) yield rai.baseUrl.toExternalForm + rpath
-    }
-    case Uoa4Fieldext(fieldextName, Uoa4Type(typeName, Uoa4Package(packageName, Uoa4Artifact(artifactId, version)))) => {
-      for (
-        rai <- RemoteApiInfo.findApiOf(artifactId, version);
-        rpath <- rai.provider.rurlPathOf(packageName, typeName, fieldextName)
-      ) yield rai.baseUrl.toExternalForm + rpath
-    }
+
+  private def toUrl(uoa: Uoa): Box[String] = {
+	  import net_alchim31_vscaladoc2_www.model.VScaladoc2
+
+	  def vscaladoc2Rai(artifactId : String, version : String) = {
+	 	  RemoteApiInfo.findApiOf(artifactId, version).flatMap { rai =>
+	 	 	rai.provider match {
+	 	 		case VScaladoc2 => Full(rai)
+	 	 		case _ => Failure("data could only be merge from VScaladoc2 source : " + uoa + " is in format " + rai.provider + " located at " + rai.baseUrl)
+	 	 	}
+	 	  }
+	  }
+	  uoa match {
+	    case Uoa4Artifact(artifactId, version) => {
+	      for (
+	        rai <- vscaladoc2Rai(artifactId, version);
+	        rpath <- rai.provider.rurlPathOf()
+	      ) yield rai.baseUrl.toExternalForm + rpath
+	    }
+	    case Uoa4Package(packageName, Uoa4Artifact(artifactId, version)) => {
+	      for (
+	        rai <- vscaladoc2Rai(artifactId, version);
+	        rpath <- rai.provider.rurlPathOf(packageName)
+	      ) yield rai.baseUrl.toExternalForm + rpath
+	    }
+	    case Uoa4Type(typeName, Uoa4Package(packageName, Uoa4Artifact(artifactId, version))) => {
+	      for (
+	        rai <- vscaladoc2Rai(artifactId, version);
+	        rpath <- rai.provider.rurlPathOf(packageName, typeName)
+	      ) yield rai.baseUrl.toExternalForm + rpath
+	    }
+	    case Uoa4Fieldext(fieldextName, Uoa4Type(typeName, Uoa4Package(packageName, Uoa4Artifact(artifactId, version)))) => {
+	      for (
+	        rai <- vscaladoc2Rai(artifactId, version);
+	        rpath <- rai.provider.rurlPathOf(packageName, typeName, fieldextName)
+	      ) yield rai.baseUrl.toExternalForm + rpath
+	    }
+	  }
   }
 }

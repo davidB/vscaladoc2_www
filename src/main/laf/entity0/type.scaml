@@ -16,6 +16,17 @@
       - case _ =>
         #{swr.s}
 
+- def displayFieldexts(l : List[Box[FieldextInfo]], label : String) =
+  - if (!l.isEmpty)
+    %h3 #{label}
+    - val (ok, failures) = l.partition(_.isInstanceOf[Full[_]])
+    - for (entry <- failures)
+      %p !! #{entry}
+    - for (entry <- ok.map(_.open_!).sortWith(_.simpleName < _.simpleName))
+      =stringWithTypeRef(entry.signature)
+      %div(class="apiComments")
+        != entry.description
+
 %html
   %head
     %title #{title}
@@ -56,6 +67,10 @@
               %dd
                 %code= docTag.key
                 != docTag.body
+
+      - displayFieldexts(constructors, "Constructors")
+      - displayFieldexts(fields, "Fields")
+      - displayFieldexts(methods, "Methods")
 
     / ======== END OF BOTTOM NAVBAR =======
     %div(class="copyright")= copyright
