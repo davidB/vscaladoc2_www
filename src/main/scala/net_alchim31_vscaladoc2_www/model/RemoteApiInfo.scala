@@ -53,10 +53,10 @@ object RemoteApiInfo extends RemoteApiInfo with LongKeyedMetaMapper[RemoteApiInf
   def init() {
 	if (RemoteApiInfo.find() == Empty){
  	val data = List(
- 			("sample", "1.0.0", new URL("file:///tmp/sample-api"), ApiProviders.vscaladoc2),
+ 			//("sample", "1.0.0", new URL("file:///tmp/sample-api"), ApiProviders.vscaladoc2),
  			("vscaladoc_demoprj", "0.1-SNAPSHOT", new URL("file:///home3/dwayne/tmp/vscaladoc_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
- 			("scala-library", "2.8.0", new URL("http://www.scala-lang.org/api/2.8.0/index.html"), ApiProviders.scaladoc2),
- 			("scala-library", "2.7.7", new URL("http://www.scala-lang.org/api/2.7.7/index.html"), ApiProviders.scaladoc)
+ 			("scala-library", "2.8.0", new URL("http://www.scala-lang.org/api/2.8.0"), ApiProviders.scaladoc2),
+ 			("scala-library", "2.7.7", new URL("http://www.scala-lang.org/api/2.7.7"), ApiProviders.scaladoc)
     ).foreach { x =>
  		val v: RemoteApiInfo = RemoteApiInfo.create
  		v.artifactId(x._1)

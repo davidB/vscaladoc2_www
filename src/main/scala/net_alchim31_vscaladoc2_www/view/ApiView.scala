@@ -66,7 +66,7 @@ object ApiView {
     println("serveApi" + entityPath + " // "+ entityPath.length)
     api.provider match {
       case VScaladoc2 => _uoaHelper(api.artifactId.is :: api.version.is :: entityPath).flatMap(uoa =>serveApi(uoa))
-      case _ => tryo(RedirectResponse(new URL(api.baseUrl, rurl).toExternalForm))
+      case _ => tryo(RedirectResponse(new URL(api.baseUrl + rurl).toExternalForm))
     }
   }
 
