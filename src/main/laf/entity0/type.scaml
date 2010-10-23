@@ -7,25 +7,42 @@
 -@ val copyright : String
 -@ val tpes : Seq[TypeInfo]
 
-- def stringWithTypeRef(l : List[StringWithTypeRef]) =
-  %code(class="signature")
-  - for( swr <- l)
-    - swr.uoaType match
-      - case Full(uoa) =>
-        %a(href={urlOf(uoa, "laf/api")} title={fqNameOf(uoa)}) #{swr.s}
-      - case _ =>
-        #{swr.s}
 
-- def displayFieldexts(l : List[Box[FieldextInfo]], label : String) =
+- def stringWithTypeRef(l : List[StringWithTypeRef], toBold : String = "") =
+  %code(class="signature")
+    - for( swr <- l)
+      - swr.uoaType match
+        - case Full(uoa) =>
+          %a(href={urlOf(uoa, "laf/api")} title={fqNameOf(uoa)}) #{swr.s}
+        - case _ if swr.s == toBold =>
+          %b #{swr.s}
+        - case _ =>
+          #{swr.s}
+
+- var failuresIdx = 0
+- def displayFieldexts(kind: String, l : List[Box[FieldextInfo]], label : String) =
   - if (!l.isEmpty)
-    %h3 #{label}
-    - val (ok, failures) = l.partition(_.isInstanceOf[Full[_]])
-    - for (entry <- failures)
-      %p !! #{entry}
-    - for (entry <- ok.map(_.open_!).sortWith(_.simpleName < _.simpleName))
-      =stringWithTypeRef(entry.signature)
-      %div(class="apiComments")
-        != entry.description
+    %h3(style="cursor: help;" onClick={"$('#"+ kind +"_" + label +"').toggle()"}) #{label}
+    %section(id={kind + "_" + label})
+      - val (ok, failures) = l.partition(_.isInstanceOf[Full[_]])
+      - if (!failures.isEmpty)
+        - failuresIdx = failuresIdx + 1
+        %div(class="failures")
+          %span(style="cursor: help; border-bottom:1px dotted black;" onClick={"$('#failures_" + failuresIdx +"').toggle()"}) error...
+          %ul(id={"failures_" + failuresIdx})
+            - for (entry <- failures)
+              %li #{entry}
+      - for (entry <- ok.map(_.open_!).sortWith(_.simpleName < _.simpleName))
+        =stringWithTypeRef(entry.signature, entry.simpleName)
+        %div(class="apiComments")
+          != entry.description
+          - if (!entry.docTags.isEmpty)
+            %dl
+              - for (docTag <- entry.docTags)
+                %dt= docTag.label
+                %dd
+                  %code= docTag.key
+                  != docTag.body
 
 %html
   %head
@@ -54,25 +71,29 @@
     - for( tpe <- tpes)
       - import tpe._
       %a(name={kind})
-      %h2 #{kind} #{simpleName}
-      %div( id="intro")
-        =stringWithTypeRef(signature)
+      %h2(style="cursor: help;" onClick={"$('#" + kind +"').toggle()"}) #{kind} #{simpleName}
+      %section(id={kind})
+        %div( id="intro")
+          =stringWithTypeRef(signature, simpleName)
 
-        %br
-        %div(class="apiComments")
-          != description
-          %dl
-            - for (docTag <- docTags)
-              %dt= docTag.label
-              %dd
-                %code= docTag.key
-                != docTag.body
+          %br
+          %div(class="apiComments")
+            != description
+            - if (!docTags.isEmpty)
+              %dl
+                - for (docTag <- docTags)
+                  %dt= docTag.label
+                  %dd
+                    %code= docTag.key
+                    != docTag.body
 
-      - displayFieldexts(constructors, "Constructors")
-      - displayFieldexts(fields, "Fields")
-      - displayFieldexts(methods, "Methods")
+        - displayFieldexts(kind, constructors, "Constructors")
+        - displayFieldexts(kind, fields, "Fields")
+        - displayFieldexts(kind, methods, "Methods")
 
     / ======== END OF BOTTOM NAVBAR =======
     %div(class="copyright")= copyright
 
+    %script
+      $(".failures ul").hide();
 
