@@ -42,21 +42,6 @@ class RawDataToInfo(val rdp: RawDataProvider, val uoaHelper: UoaHelper) {
     }
   }
 
-  //  protected def toTypeInfo(uoa: Uoa4Type, jo : JObject): Box[TypeInfo] = Helpers.tryo{
-  //	new TypeInfo() {
-  //	    val simpleName: String = (jo \ "name").extract[String]
-  //	    val signature: String = "signature"
-  //	    val description: HtmlString = (jo \ "description").extract[String]
-  //	    val docTags: Seq[DocTag] = Nil
-  //	    val source: Option[URI] = None //sourceStartPoint(0)#(1)
-  //	    val uoa: Uoa4Type = uoa
-  //	    val kind: String = (jo \ "kind").extract[String]
-  //	    def isInherited(m: FieldextInfo) = m.uoa.uoaType == uoa
-  //	    val constructors: List[FieldextInfo] = Nil
-  //	    val fields: List[FieldextInfo] = Nil
-  //	    val methods: List[FieldextInfo] = Nil
-  //	  }
-  //  }
 
   def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]] = {
     rdp.find(uoa) match {
@@ -66,7 +51,6 @@ class RawDataToInfo(val rdp: RawDataProvider, val uoaHelper: UoaHelper) {
         val tpeFile = jv.extract[json.TpeFile]
         for (tj <- tpeFile.e) yield { Helpers.tryo { new TypeInfo4Json(uoa, tj, this) } }
       }
-
     }
   }
 
@@ -82,15 +66,15 @@ class RawDataToInfo(val rdp: RawDataProvider, val uoaHelper: UoaHelper) {
     }
   }
 
+  // provide one entry for object and trait/class (remove $object entry)
+  // TODO cache ?
   def findAllTypes(uoa: Uoa4Package): List[Box[Uoa4Type]] = {
     rdp.find(uoa) match {
       case x: Failure => List(x)
       case Empty => Nil
       case Full(jv) => {
         val pkgFile = jv.extract[json.PkgFile]
-        //    		for (pkg <- ) yield { Helpers.tryo { new TypeInfo4Json(uoa, tj) } }
-        //    		val list = for (JField("members", JArray(list)) <- (jv \ "e" \ "members")) yield list
-        //println(list)
+        //.map(x => if (excludeObjectSuffix) removeObjectSuffix(x) else x)
         pkgFile.e.flatMap(_.members).distinct.flatMap { refPath =>
           uoaHelper(refPath) match {
             case Full(uoa) =>
@@ -187,13 +171,15 @@ class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : RawDataToInfo) 
     if (!src.typeParams.isEmpty) {
       b ++= rdti.toListSWTR(src.typeParams)
     }
-    if (!src.parentType.isEmpty) {
+    val parents = src.parentType.filter(_.head != "AnyRef")
+    if (!parents.isEmpty) {
       b += StringWithTypeRef(" extends ")
-      b ++= rdti.toListSWTR(src.parentType)
+      b ++= rdti.toListSWTR(parents)
     }
     b.toList
   }
   def constructors: List[Box[FieldextInfo]] = {
+	  println("ctors " + simpleName + " : " + src.constructors )
 	  src.constructors.getOrElse(Nil).map(x => Helpers.tryo{ new FieldextInfo4Json(Uoa4Fieldext(simpleName, uoa), x, rdti)})
   }
   def fields: List[Box[FieldextInfo]] = rdti.toListFieldext(src.values)
@@ -224,9 +210,6 @@ class FieldextInfo4Json(val uoa: Uoa4Fieldext, val src: json.Fieldext, rdti : Ra
     }
     b.toList
   }
-  def constructors: List[FieldextInfo] = Nil
-  def fields: List[FieldextInfo] = Nil
-  def methods: List[FieldextInfo] = Nil
 }
 //TODO cache result of remote request
 //TODO download archive, store in DB, unarchive in local FS cache
