@@ -1,32 +1,56 @@
 !!! XML
-!!!
+!!! 5
 
--@ import val artifact : net_alchim31_vscaladoc2_www.info.ArtifactInfo
--@ val helper : net_alchim31_vscaladoc2_www.info.Helper
+-import net_alchim31_vscaladoc2_www.info._
+-import net.liftweb.common.{ Box, Full, Empty, Failure }
+
+-@ import val artifact : ArtifactInfo
+
 %html
-  %head      
-    %title api : #{groupId}/{arifactId} 
-    %meta(http-equiv="content-type" content="text/html; charset=UTF-8") 
-    %meta(content="vscaladoc2" name="generator") 
-    %script(type="text/javascript" src="http://code.jquery.com/jquery-1.4.2.min.js" 
-    %link(href="#{helper.urlOf("/content.css")} type="text/css" rel="stylesheet") 
-    %script(src="#{helper.urlOf("/content.js")} language="javascript" id="content.js") 
-    %link(href="#{helper.urlOf("/highlighter/SyntaxHighlighter.css")} type="text/css" rel="stylesheet") 
-    %script(src="#{helper.urlOf("/highlighter/shAll.js")} language="javascript" id="shAll.js")
-    
-  %body 
-    %h1 Overview
+  %head
+    %title api : #{groupId}/{arifactId}
+    %meta(http-equiv="content-type" content="text/html; charset=UTF-8")
+    %meta(content="VScaladoc 2" name="generator")
+    %script(type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js")
+    %script(type="text/javascript" src={urlOf("laf/_rsrc/content.js")})
+    %link(href={urlOf("laf/_rsrc/content.css")} type="text/css" rel="stylesheet")
 
-    def groupId: String = ""
-    def artifactId: String = remoteApiInfo.artifactId
-    def version: String = remoteApiInfo.version
-    def description: HtmlString = ""
-    def homeUrl: Option[URI] = None
-    def licences: List[String] = Nil
-    def kind: ArtifactKind = ArtifactKind.Jar
-    
-    %h1 Groups
-    def groups: List[ArtifactInfo] = Nil
-  
-    %h1 Dependencies
-    def dependencies: List[(ArtifactInfo, Scope)] = Nil
+  %body
+    %h1 #{artifactId}-#{version}
+
+    %h2 Overview
+
+    != description
+
+    %table(class="overview")
+      %tr
+        %th groupId
+        %td #{groupId}
+      %tr
+        %th artifactId
+        %td #{artifactId}
+      %tr
+        %th version
+        %td #{version}
+      %tr
+        %th kind
+        %td #{kind}
+      %tr
+        %th home
+        %td
+          - for (url <- homeUrl)
+            %a(href={url.toString}) =url.toString
+      %tr
+        %th licences
+        %td
+          != licences.mkString("<br/>")
+
+    %h2 Groups
+    %ul
+      -for (ai <- groups)
+        %li #{ai}
+
+    %h2 Dependencies
+    %ul
+      -for ((ai, scope) <- dependencies)
+        %li #{ai} (#{scope})
