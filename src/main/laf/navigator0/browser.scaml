@@ -21,8 +21,6 @@
     %h2 Filters
     %div(class="ctrl")
       %select(multiple="true" size="6.5" id="packagesFilter")
-        - for(pkg <- uoa4types.map(_.uoaPackage).distinct.map(_.packageName).sortWith(_ < _))
-          %option(value={pkg}) #{pkg}
       %br
       %input(type="text" id="nameFilter" placeholder="regexp to filter by name")
       %br
@@ -37,15 +35,22 @@
       - for(tpe <- uoa4types.sortWith(_.typeName < _.typeName))
         { pkg : "#{tpe.uoaPackage.packageName}", u : "#{urlOf(tpe, "laf/api")}", t : "#{fqNameOf(tpe)}", label : "#{labelOf(tpe)}" },
       ];
-      jQuery(function() {
-      // show movies in template
-      $( "#classes" ).empty();
+      :plain
+        var displayPackages = function(data){
+          var arr = jQuery.unique(jQuery.map(data, function(n, i){
+            return (n.pkg);
+          })).sort();
 
-      // Display rendered item in the container
-      // Store a string as a compiled template for later use
-      $.template( "myTmpl", '<li><a href="${u}" title="${t}" target="contentFrame">${label}</a></li>');
-      displayTypes(data, "myTmpl", "#classes");
-      });
-    %script(id="typeTmpl" type="text/x-jquery-tmpl")
-      %li
-        %a(href="${href}" title="${title}" target="contentFrame") ${label}
+          var select = $('#packagesFilter');
+          $.each(arr, function(key, value) {
+            select.append($('<option></option>').val(value).html(value));
+          });
+
+        };
+        jQuery(function() {
+          // Display rendered item in the container
+          // Store a string as a compiled template for later use
+          $.template( "myTmpl", '<li><a href="${u}" title="${t}" target="contentFrame">${label}</a></li>');
+          displayTypes(data, "myTmpl", "#classes");
+          displayPackages(data);
+        });
