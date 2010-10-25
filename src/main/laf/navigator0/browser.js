@@ -1,8 +1,9 @@
 // manage user Options
+/*
 var cfg = {
   filter4NameIgnoreCase : false,
-  filter4NameAsRegExp : true
 };
+
 
 var togglefilter4NameOptions = function(optionName) {
   cfg[optionName] = !cfg[optionName];
@@ -18,7 +19,7 @@ $(document).ready(function(){
     $("input.option_" + optionName + "_cb").each(function(){this.checked = cfg[optionName]});
   };
 });
-
+*/
 // Filter
 
 var filter4Packages = [];
@@ -44,8 +45,19 @@ var updateFilter4NameRE = function() {
     if ((filter4Name == null) || (filter4Name.length == 0)) {
       filter4NameRE = null;
     } else {
-      var flags = (cfg.filter4NameIgnoreCase) ? "i": "";
-      var pattern = (cfg.filter4NameAsRegExp) ? filter4Name : "^" + filter4Name;
+      var flags = "";
+      var pattern = filter4Name;
+      var ignoreCase = $('input:radio[name=option_filter4NameMode]:checked').val() == "insensitive";
+      console.log("mode : " + $('input:radio[name=option_filter4NameMode]:checked').val() + " .. " + ignoreCase);
+      if (ignoreCase) {
+        flags = "i";
+        //support glob
+        pattern = pattern.replace("\*", ".*?");
+      } else {
+        // support camelcase
+        pattern = pattern.replace(/([A-Z][^A-Z]*)/g, "$1[^A-Z]*?") + ".*";
+      }
+      console.log("filter4Name pattern : " + pattern);
       filter4NameRE = new RegExp(pattern, flags);
     }
     updateClassesDisplay();
@@ -66,13 +78,14 @@ var updateClassesDisplayNow = function(requestAtTime) {
         && ((filter4Packages.length == 0) || (jQuery.inArray(n.pkg, filter4Packages) != -1))
         && ((filter4NameRE == null) || filter4NameRE.test(n.label));
     });
+    var filterEndAt = (new Date).getTime();
     console.log("nb data found :" + data.length + "/"  + dataAll.length);
     if (myUpdateClassDisplayCallId != lastUpdateClassDisplayCallId) {
       console.log("abort before update display");
     } else {
       displayTypes(data, null, null);
       var diff = (new Date).getTime() - startAtTime;
-      console.log("updateClassesDisplayNow delay :" + (startAtTime - requestAtTime) + " ms, duration :" + diff + " ms");
+      console.log("updateClassesDisplayNow delay :" + (startAtTime - requestAtTime) + " ms, filter duration :" + (filterEndAt - startAtTime) + "ms, display duration :" + diff + " ms");
     }
 };
 
@@ -110,6 +123,8 @@ $(document).ready(function(){
         ;
         $("#nameFilter").val("");
         $("#nameFilter").bind("keyup", updateFilter4Name);
+        $("input:radio[name=option_filter4NameMode]").bind("change", updateFilter4NameRE);
+
 });
 
 /**
