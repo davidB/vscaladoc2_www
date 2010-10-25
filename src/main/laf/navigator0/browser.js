@@ -33,14 +33,6 @@ var updateFilter4Packages = function(evt){
     updateClassesDisplay();
 };
 
-var checkFilter4Packages = function(jqElem) {
-    if (filter4Packages.length < 1) {
-        return true;
-    }
-    var pkg = jqElem.attr('package');
-    return  (jQuery.inArray(pkg, filter4Packages) != -1);
-}
-
 var filter4NameRE = null;
 var filter4Name = "";
 
@@ -59,31 +51,53 @@ var updateFilter4NameRE = function() {
     updateClassesDisplay();
 };
 
-var checkFilter4Name = function(jqElem) {
-    if (filter4NameRE == null)  {
-        return true;
-    }
-    var name = jqElem.children("a").text();
-    return filter4NameRE.test(name);
-};
-
 var lastUpdateClassDisplayCallId = null;
 var updateClassesDisplay = function() {
     if (lastUpdateClassDisplayCallId != null) {
         clearTimeout(lastUpdateClassDisplayCallId);
     }
-    lastUpdateClassDisplayCallId = setTimeout("updateClassesDisplayNow()", 300);
+    lastUpdateClassDisplayCallId = setTimeout("updateClassesDisplayNow("+ (new Date).getTime() +")", 300);
 };
-var updateClassesDisplayNow = function() {
-    $("#classes li").each(function() {
-            var jqElem = $(this);
-            if (checkFilter4Packages(jqElem) && checkFilter4Name(jqElem)) {
-                jqElem.show();
-            } else {
-                jqElem.hide();
-            }
+var updateClassesDisplayNow = function(requestAtTime) {
+    var myUpdateClassDisplayCallId = lastUpdateClassDisplayCallId;
+    var startAtTime = (new Date).getTime()
+    var data = jQuery.grep( dataAll, function(n, i){
+      return (myUpdateClassDisplayCallId == lastUpdateClassDisplayCallId)
+        && ((filter4Packages.length == 0) || (jQuery.inArray(n.pkg, filter4Packages) != -1))
+        && ((filter4NameRE == null) || filter4NameRE.test(n.label));
     });
+    console.log("nb data found :" + data.length + "/"  + dataAll.length);
+    if (myUpdateClassDisplayCallId != lastUpdateClassDisplayCallId) {
+      console.log("abort before update display");
+    } else {
+      displayTypes(data, null, null);
+      var diff = (new Date).getTime() - startAtTime;
+      console.log("updateClassesDisplayNow delay :" + (startAtTime - requestAtTime) + " ms, duration :" + diff + " ms");
+    }
 };
+
+var dataAll = [];
+var templateOrig = null;
+var containerSelector = null;
+
+var displayTypes = function(data, templateName, containerSelector) {
+  if (dataAll.length == 0) {
+    dataAll = data;
+    templateOrig = templateName;
+    containerSelectorOrig = containerSelector;
+  }
+  if (templateName == null) {
+    templateName = templateOrig;
+  }
+  if (containerSelector == null) {
+    containerSelector = containerSelectorOrig;
+  }
+  if (data != [] && templateName != null && containerSelector != null) {
+    $(containerSelector).empty();
+    $.tmpl(templateName, data ).appendTo( containerSelector );
+    $(containerSelector).fadeIn( "medium" );
+  }
+}
 
 $(document).ready(function(){
         $("#packagesFilter")
@@ -114,7 +128,6 @@ jQuery.fn.selectOptions = function(value) {
 
             // get number of options
             var optionsLength = this.options.length;
-
 
             for(var i = 0; i<optionsLength; i++) {
                 this.options[i].selected = (this.options[i].text == value);

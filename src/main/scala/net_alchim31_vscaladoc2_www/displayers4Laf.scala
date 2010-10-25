@@ -119,7 +119,14 @@ class NavigatorDisplayer4Laf(helper : Helper, val rdti : RawDataToInfo, tmplDir:
       override def apiUrl = Some(rai.baseUrl.toURI)
     }
     context.attributes("entityPath") = entityPath
-    context.attributes("uoa4types") =  rdti.findAllTypes(Uoa4Package("_root_", Uoa4Artifact(rai.artifactId, rai.version))).map(_.open_!)//Nil.asInstanceOf[List[Uoa4Type]]
+    context.attributes("uoa4types") =  {
+      val uaoArtifact = Uoa4Artifact(rai.artifactId, rai.version)
+      var b = rdti.findAllTypes(Uoa4Package("_root_", uaoArtifact)).map(_.open_!)//Nil.asInstanceOf[List[Uoa4Type]]
+      if (rai.artifactId.endsWith("_demoprj")) {
+        b = b ++ (for( i<- 0 until 3000) yield { Uoa4Type("ZFakeEntry_" + i, Uoa4Package("fake.package_" + i % 3, uaoArtifact)) })
+      }
+      b
+    }
   }
 
 }

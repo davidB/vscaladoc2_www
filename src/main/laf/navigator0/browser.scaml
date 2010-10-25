@@ -13,6 +13,9 @@
     %script(type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js")
     %script(type="text/javascript" src={urlOf("navigator/_rsrc/cookie.js")} id="all-classes")
     %script(type="text/javascript" src={urlOf("navigator/_rsrc/browser.js")} id="all-classes")
+    -# %script(type="text/javascript" src={urlOf("navigator/_rsrc/jquery_quicksearch.js")})
+    %script(type="text/javascript" src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js")
+    -#%script(type="text/javascript" src={urlOf("navigator/_rsrc/jquery_tmpl_min.js")})
     %link(href={urlOf("navigator/_rsrc/browser.css")} type="text/css" rel="stylesheet")
   %body
     %h2 Filters
@@ -28,6 +31,21 @@
         Name filter ignore case
     %h2 Types
     %ul(id="classes")
+
+    %script(type="text/javascript")
+      var data = [
       - for(tpe <- uoa4types.sortWith(_.typeName < _.typeName))
-        %li(package={tpe.uoaPackage.packageName})
-          %a(href={urlOf(tpe, "laf/api")} title={fqNameOf(tpe)} target="contentFrame") #{labelOf(tpe)}
+        { pkg : "#{tpe.uoaPackage.packageName}", u : "#{urlOf(tpe, "laf/api")}", t : "#{fqNameOf(tpe)}", label : "#{labelOf(tpe)}" },
+      ];
+      jQuery(function() {
+      // show movies in template
+      $( "#classes" ).empty();
+
+      // Display rendered item in the container
+      // Store a string as a compiled template for later use
+      $.template( "myTmpl", '<li><a href="${u}" title="${t}" target="contentFrame">${label}</a></li>');
+      displayTypes(data, "myTmpl", "#classes");
+      });
+    %script(id="typeTmpl" type="text/x-jquery-tmpl")
+      %li
+        %a(href="${href}" title="${title}" target="contentFrame") ${label}
