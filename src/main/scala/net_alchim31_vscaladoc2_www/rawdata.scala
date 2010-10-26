@@ -137,7 +137,7 @@ object json {
     parentType: RawSplitStringWithRef,
     typeParams: RawSplitStringWithRef,
     //    "linearization" : [ "scala-library/2.8.0/scala/AnyRef", "scala-library/2.8.0/scala/Any" ],
-    constructors : Option[List[Fieldext]],
+    constructors : List[Fieldext],
     kind: String)
   case class FieldextFile(uoa: String, e: List[Fieldext])
   case class Fieldext(
@@ -171,7 +171,7 @@ class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : RawDataToInfo) 
     if (!src.typeParams.isEmpty) {
       b ++= rdti.toListSWTR(src.typeParams)
     }
-    val parents = src.parentType.filter(_.head != "AnyRef")
+    val parents = src.parentType.filter(x => x.head != "AnyRef" && !(isCaseClass && x.head == "Product"))
     if (!parents.isEmpty) {
       b += StringWithTypeRef(" extends ")
       b ++= rdti.toListSWTR(parents)
@@ -179,8 +179,7 @@ class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : RawDataToInfo) 
     b.toList
   }
   def constructors: List[Box[FieldextInfo]] = {
-	  println("ctors " + simpleName + " : " + src.constructors )
-	  src.constructors.getOrElse(Nil).map(x => Helpers.tryo{ new FieldextInfo4Json(Uoa4Fieldext(simpleName, uoa), x, rdti)})
+	  src.constructors.map(x => Helpers.tryo{ new FieldextInfo4Json(Uoa4Fieldext(simpleName, uoa), x, rdti)})
   }
   def fields: List[Box[FieldextInfo]] = rdti.toListFieldext(src.values)
   def methods: List[Box[FieldextInfo]] = rdti.toListFieldext(src.methods)

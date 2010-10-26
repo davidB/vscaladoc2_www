@@ -10,14 +10,13 @@
 
 - def stringWithTypeRef(l : List[StringWithTypeRef], toBold : String = "") =
   %code(class="signature")
-    - for( swr <- l)
+    - val l2 = l.map{ swr =>
       - swr.uoaType match
-        - case Full(uoa) =>
-          %a(href={urlOf(uoa, "laf/api")} title={fqNameOf(uoa)}) #{swr.s}
-        - case _ if swr.s == toBold =>
-          %b #{swr.s}
-        - case _ =>
-          #{swr.s}
+        - case Full(uoa) =>   <a href={urlOf(uoa, "laf/api")} title={fqNameOf(uoa)}>{swr.s}</a>
+        - case _ if swr.s == toBold => <b>{swr.s}</b>
+        - case _ => swr.s
+      - }
+    != l2.mkString
 
 - var failuresIdx = 0
 - def displayFieldexts(kind: String, l : List[Box[FieldextInfo]], label : String) =
