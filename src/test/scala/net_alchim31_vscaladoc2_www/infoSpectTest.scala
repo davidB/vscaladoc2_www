@@ -28,10 +28,10 @@ class JsonSpecTest extends Specification with JUnit /*with ScalaCheck*/ {
   //  }
 
   "Json reader" should {
-/*
+	  
     "read allow " in {
       val uoaHelper = new UoaHelper()
-      val rdp : RawDataProvider = new TestProvider(uoaHelper)
+      val rdp : RawDataProvider = new MyDataProvider(uoaHelper)
       val rdti : RawDataToInfo = new RawDataToInfo(rdp, uoaHelper)
       uoaHelper("vscaladoc_demoprj/0.1-SNAPSHOT").map(x => rdp.find(x)) must_!= Empty
       uoaHelper("vscaladoc_demoprj/0.1-SNAPSHOT/_root_").map(x => rdp.find(x)) must_!= Empty
@@ -41,7 +41,6 @@ class JsonSpecTest extends Specification with JUnit /*with ScalaCheck*/ {
         l must_!= Nil
       }
     }
-*/
     "read Json for Type" in {
       import net.liftweb.json.JsonParser.parse
       implicit val formats = net.liftweb.json.DefaultFormats
@@ -96,19 +95,6 @@ st.demo1/DemoC/doStuff", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoC/metho
 
   } ]
 }"""
-      val str1 = """
- {
-      "name" : "this",
-      "qualifiedName" : "itest.demo1.DemoC#this",
-      "definitionName" : "itest.demo1.DemoC#this",
-      "flags" : "Public()",
-      "inheritedFrom" : [ ],
-      "visibility" : [ ],
-      "resultType" : [ [ "DemoC", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoC" ], [ "[T]" ] ],
-      "valueParams" : [ [ "( " ], [ "ctorArg1 : " ], [ "Int", "scala-library/2.8.0/scala/Int" ], [ ", " ], [ "ctorArg2 : " ], [ "String", "jse/1.6.0_21/java.lang/String" ], [ ", " ], [ "ctorArg3 : " ], [ "T" ], [ " )" ] ]
-      "kind" : "undef"
-    }
-"""
 
       val jv = parse(str1)
       val tpe = jv.extract[json.Tpe]
@@ -129,7 +115,7 @@ st.demo1/DemoC/doStuff", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoC/metho
 }
 
 
-class TestProvider(val uoaHelper: UoaHelper) extends RawDataProvider {
+class MyDataProvider(val uoaHelper: UoaHelper) extends RawDataProvider {
 
   private val _fsh = new FileSystemHelper()
   private val _cph = new ClasspathHelper()
