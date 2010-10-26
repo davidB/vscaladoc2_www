@@ -75,7 +75,7 @@ class FileSystemHelper {
     println("nb files found under ", root, b.size, includes, excludes)
     b
   }
-  
+
   def getExtension(fileName : String) : String = {
     val idx = fileName.lastIndexOf('.')
     var back = fileName.substring(idx + 1)
@@ -122,6 +122,40 @@ class FileSystemHelper {
       }
     }
     move(tmpfile, dest)
+  }
+
+  def unjar(dest : File, src : File) : Seq[File] = unjar(dest, new BufferedInputStream(new FileInputStream(src)))
+
+  def unjar(dest : File, src : InputStream) : Seq[File] = {
+    import java.util.jar.{JarInputStream}
+    import scala.collection.mutable.ListBuffer
+
+    val tmpFileSuffix = ".part-" + java.lang.Long.toHexString(System.nanoTime())
+    val files = new ListBuffer[File]()
+    using(new JarInputStream(src)){ is =>
+      var ze = is.getNextEntry()
+      while(ze != null) {
+        val destfile = new File(dest, ze.getName())
+        if (ze.isDirectory) {
+            destfile.mkdirs()
+        } else {
+          destfile.getParentFile.mkdirs()
+          val tmpfile = new File(destfile.getAbsolutePath + tmpFileSuffix)
+          //TODO optimize the exctraction of zip (how ??)
+          using(new BufferedOutputStream(new FileOutputStream(tmpfile))) { os =>
+            var b = is.read()
+            while(b != -1) {
+              os.write(b)
+              b = is.read()
+            }
+          }
+          move(tmpfile, destfile)
+          files += destfile
+        }
+        ze = is.getNextEntry()
+      }
+    }
+    files
   }
 
   def move(src : File, dest : File) {
@@ -247,7 +281,7 @@ class FileSystemHelper {
 
 
 class ClasspathHelper {
-	
+
   def findCPResourceAsStream(rpath : String, classLoader : Box[ClassLoader] = None) : Box[InputStream] = {
     //log.warn("findCPResourceAsStream '{}' on '{}'", rpath, classLoader)
     val cl = classLoader.getOrElse(Thread.currentThread.getContextClassLoader())

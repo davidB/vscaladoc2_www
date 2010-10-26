@@ -1,5 +1,7 @@
 package net_alchim31_vscaladoc2_www.view
 
+import java.io.File
+import net_alchim31_vscaladoc2_www.LafProvider
 import java.net.URI
 import net_alchim31_vscaladoc2_www.Helper4Laf
 import net_alchim31_vscaladoc2_www.NavigatorDisplayer
@@ -25,20 +27,26 @@ import _root_.net.liftweb.http._
 //TODO manage special version : latest, latest-snapshot
 object ApiView {
 
-  private val _uoaHelper = new UoaHelper()
-  private val _lafHelper = new  Helper4Laf(new URI(S.contextPath+ "/"), _uoaHelper)
-  private val _rdti = new RawDataToInfo(new BasicRawDataProvider(), _uoaHelper)
-  private val _entityDisplayer : EntityDisplayer = new EntityDisplayer4Laf(_lafHelper, _rdti)//new EntityDisplayer4Debug()
-  private val _navigatorDisplayer : NavigatorDisplayer = new NavigatorDisplayer4Laf(_lafHelper, _rdti)//new EntityDisplayer4Debug()
+  private lazy val _uoaHelper = new UoaHelper()
+  private lazy val _lafHelper = new  Helper4Laf(new URI(S.contextPath+ "/"), _uoaHelper)
+  private lazy val _rdti = new RawDataToInfo(new BasicRawDataProvider(), _uoaHelper)
+  private lazy val _lafProvider = {
+	// TODO definition of tmpDirPath sould be define in configuration and default to tempdir
+	val tmpDirPath = LiftRules.context.attribute("javax.servlet.context.tempdir").getOrElse("/home/dwayne/work/oss/vscaladoc2_www/src/main")
+	println(">>>>> tmpDir " + tmpDirPath)
+	new LafProvider(new File(tmpDirPath.toString), _lafHelper, _rdti)
+  }
+  private lazy val _entityDisplayer : Box[EntityDisplayer] = _lafProvider.newEntityDisplayer("entity0")//new EntityDisplayer4Debug()
+  private lazy val _navigatorDisplayer : Box[NavigatorDisplayer] = _lafProvider.newNavigatorDisplayer("navigator0")//new EntityDisplayer4Debug()
 
   val dispatch: LiftRules.DispatchPF = {
     case Req("navigator" :: "api" :: artifactId :: version :: entityPath, _, GetRequest) => () => serveEntity(artifactId, version, entityPath)(serveNavigator)
     case Req("navigator" :: "_browser" :: "api" :: artifactId :: version :: Nil, _, GetRequest) => () => serveEntity(artifactId, version, Nil)(serveBrowser)
-    case Req("navigator" :: "_rsrc" :: path, ext, GetRequest) => () => _navigatorDisplayer.serveResource(path, ext)
+    case Req("navigator" :: "_rsrc" :: path, ext, GetRequest) => () => _navigatorDisplayer.flatMap(_.serveResource(path, ext))
     case Req("raw" :: "api" :: artifactId :: version :: entityPath, _, GetRequest) => () => serveOriginal(artifactId, version, entityPath)
     case Req("laf" :: "api" :: artifactId :: version :: entityPath, _, GetRequest) => () => serveEntity(artifactId, version, entityPath)(serveApi)
-    case Req("laf" :: "api" :: artifactId :: Nil, _, GetRequest) => () => _entityDisplayer.serveArtifacts(artifactId)
-    case Req("laf" :: "_rsrc" :: path, ext, GetRequest) => () => _entityDisplayer.serveResource(path, ext)
+    case Req("laf" :: "api" :: artifactId :: Nil, _, GetRequest) => () => _entityDisplayer.flatMap( _.serveArtifacts(artifactId) )
+    case Req("laf" :: "_rsrc" :: path, ext, GetRequest) => () => _entityDisplayer.flatMap( _.serveResource(path, ext) )
     //case Req("api" :: "static" :: _, "json", GetRequest) => JString("Static")
   }
 
@@ -63,7 +71,6 @@ object ApiView {
   }
 
   private def serveApi(api: RemoteApiInfo, rurl: String, entityPath: List[String]): Box[LiftResponse] = {
-    println("serveApi" + entityPath + " // "+ entityPath.length)
     api.provider match {
       case VScaladoc2 => _uoaHelper(api.artifactId.is :: api.version.is :: entityPath).flatMap(uoa =>serveApi(uoa))
       case _ => tryo(RedirectResponse(new URL(api.baseUrl + rurl).toExternalForm))
@@ -71,24 +78,26 @@ object ApiView {
   }
 
   private def serveApi(uoa : Uoa): Box[LiftResponse] = {
+    _entityDisplayer.flatMap {entityDisplayer =>
 	  uoa match {
-	    case uoa : Uoa4Artifact => _entityDisplayer.serveArtifact(uoa)
-	    case uoa : Uoa4Package => _entityDisplayer.servePackage(uoa)
-	    case uoa : Uoa4Type => _entityDisplayer.serveType(uoa)
-	    case uoa : Uoa4Fieldext => _entityDisplayer.serveFieldext(uoa)
+	    case uoa : Uoa4Artifact => entityDisplayer.serveArtifact(uoa)
+	    case uoa : Uoa4Package => entityDisplayer.servePackage(uoa)
+	    case uoa : Uoa4Type => entityDisplayer.serveType(uoa)
+	    case uoa : Uoa4Fieldext => entityDisplayer.serveFieldext(uoa)
 	  }
+    }
   }
 
   private def serveNavigator(api: RemoteApiInfo, rurl: String, entityPath: List[String]): Box[LiftResponse] = {
     api.provider match {
-      case VScaladoc2 => _navigatorDisplayer.serveNavigator(api, entityPath)
+      case VScaladoc2 => _navigatorDisplayer.flatMap( _.serveNavigator(api, entityPath) )
       case _ => tryo(RedirectResponse(api.baseUrl.toExternalForm))
     }
   }
 
   private def serveBrowser(api: RemoteApiInfo, rurl: String, entityPath: List[String]): Box[LiftResponse] = {
     api.provider match {
-      case VScaladoc2 => _navigatorDisplayer.serveBrowser(api, entityPath)
+      case VScaladoc2 => _navigatorDisplayer.flatMap( _.serveBrowser(api, entityPath))
       case _ => Full(NotImplementedResponse())
     }
   }
