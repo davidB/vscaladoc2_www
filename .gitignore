@@ -26,8 +26,7 @@ TAGS
 /project/build.properties
 
 # ignore dev database :
-*.db.h2.db
-*.db.trace.db
+*.db.*.db
 
 #ignore deprecated
 TODO*.txt

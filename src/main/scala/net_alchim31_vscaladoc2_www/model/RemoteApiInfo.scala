@@ -1,5 +1,6 @@
 package net_alchim31_vscaladoc2_www.model
 
+import java.net.URI
 import net.liftweb.mapper.MappedEnum
 import net.liftweb.mapper.Mapper
 import net.liftweb.mapper.By
@@ -54,14 +55,14 @@ object RemoteApiInfo extends RemoteApiInfo with LongKeyedMetaMapper[RemoteApiInf
 	if (RemoteApiInfo.find() == Empty){
  	val data = List(
  			//("sample", "1.0.0", new URL("file:///tmp/sample-api"), ApiProviders.vscaladoc2),
- 			("vscaladoc_demoprj", "0.1-SNAPSHOT", new URL("file:///home3/dwayne/tmp/vscaladoc_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
- 			("scala-library", "2.8.0", new URL("http://www.scala-lang.org/api/2.8.0"), ApiProviders.scaladoc2),
- 			("scala-library", "2.7.7", new URL("http://www.scala-lang.org/api/2.7.7"), ApiProviders.scaladoc)
+ 			("vscaladoc_demoprj", "0.1-SNAPSHOT", new URI("local:/vscaladoc_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
+ 			("scala-library", "2.8.0", new URI("http://www.scala-lang.org/api/2.8.0"), ApiProviders.scaladoc2),
+ 			("scala-library", "2.7.7", new URI("http://www.scala-lang.org/api/2.7.7"), ApiProviders.scaladoc)
     ).foreach { x =>
  		val v: RemoteApiInfo = RemoteApiInfo.create
  		v.artifactId(x._1)
  		v.version(x._2)
- 		v.url(x._3.toExternalForm)
+ 		v.url(x._3.toASCIIString)
  		v.format(x._4)
  		v.save
 	  }
@@ -80,7 +81,7 @@ class RemoteApiInfo extends LongKeyedMapper[RemoteApiInfo] with IdPK with Create
 
     def provider : ApiProvider = format.is.asInstanceOf[ApiProviders.MyValue].ap
 
-    def baseUrl = new URL(url.is)
+    def baseUrl = new URI(url.is)
 }
 
 abstract class MappedApiProvider[T <: Mapper[T]](owner: T) extends MappedEnum(owner, ApiProviders) {

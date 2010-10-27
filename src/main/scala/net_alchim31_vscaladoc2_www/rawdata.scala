@@ -1,5 +1,7 @@
 package net_alchim31_vscaladoc2_www
 
+import java.net.MalformedURLException
+import java.io.File
 import scala.collection.mutable.ListBuffer
 import net.liftweb.util.Helpers
 import java.io.FileReader
@@ -212,25 +214,27 @@ class FieldextInfo4Json(val uoa: Uoa4Fieldext, val src: json.Fieldext, rdti : Ra
 }
 //TODO cache result of remote request
 //TODO download archive, store in DB, unarchive in local FS cache
-class BasicRawDataProvider() extends RawDataProvider {
+class BasicRawDataProvider(val workdir : File) extends RawDataProvider {
   import dispatch._
   import Http._
 
   private val _http = new Http
 
   def find(uoa: Uoa): Box[JValue] = {
-    toUrl(uoa).flatMap { url =>
+    toUrl(uoa).flatMap { uri =>
     	Helpers.tryo{
-	      url.startsWith("file:/") match {
-	        case true =>   JsonParser.parse(new FileReader(new URI(url).getPath))
-	        case false => _http(new Request(url) >- { s => JsonParser.parse(s) })
+	      uri.getScheme match {
+	     	case "file" => JsonParser.parse(new FileReader(uri.getPath))
+	        case "local" => JsonParser.parse(new FileReader(new File(workdir, "apis" + uri.getPath)))
+	        case "http" => _http(new Request(uri.toString) >- { s => JsonParser.parse(s) })
+	        case x => throw new MalformedURLException("scheme " + x + "is nor supported as source for api (" + uri +")" )
 	      }
     	}
     }
   }
 
 
-  private def toUrl(uoa: Uoa): Box[String] = {
+  private def toUrl(uoa: Uoa): Box[URI] = {
 	  import net_alchim31_vscaladoc2_www.model.VScaladoc2
 
 	  def vscaladoc2Rai(artifactId : String, version : String) = {
@@ -246,25 +250,25 @@ class BasicRawDataProvider() extends RawDataProvider {
 	      for (
 	        rai <- vscaladoc2Rai(artifactId, version);
 	        rpath <- rai.provider.rurlPathOf()
-	      ) yield rai.baseUrl.toExternalForm + rpath
+	      ) yield new URI(rai.baseUrl.toString + rpath)
 	    }
 	    case Uoa4Package(packageName, Uoa4Artifact(artifactId, version)) => {
 	      for (
 	        rai <- vscaladoc2Rai(artifactId, version);
 	        rpath <- rai.provider.rurlPathOf(packageName)
-	      ) yield rai.baseUrl.toExternalForm + rpath
+	      ) yield new URI(rai.baseUrl.toString + rpath)
 	    }
 	    case Uoa4Type(typeName, Uoa4Package(packageName, Uoa4Artifact(artifactId, version))) => {
 	      for (
 	        rai <- vscaladoc2Rai(artifactId, version);
 	        rpath <- rai.provider.rurlPathOf(packageName, typeName)
-	      ) yield rai.baseUrl.toExternalForm + rpath
+	      ) yield new URI(rai.baseUrl.toString + rpath)
 	    }
 	    case Uoa4Fieldext(fieldextName, Uoa4Type(typeName, Uoa4Package(packageName, Uoa4Artifact(artifactId, version)))) => {
 	      for (
 	        rai <- vscaladoc2Rai(artifactId, version);
 	        rpath <- rai.provider.rurlPathOf(packageName, typeName, fieldextName)
-	      ) yield rai.baseUrl.toExternalForm + rpath
+	      ) yield new URI(rai.baseUrl.toString + rpath)
 	    }
 	  }
   }

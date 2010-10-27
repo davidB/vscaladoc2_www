@@ -20,7 +20,8 @@ import net_alchim31_vscaladoc2_www.info._
 class ScalateDisplayer(helper: Helper, tmplDir: File) {
   private lazy val _mimetypesFileTypeMap = {
     val b = new MimetypesFileTypeMap()
-    //b.addMimeTypes("text/javascript   js")
+    b.addMimeTypes("text/javascript   js")
+    b.addMimeTypes("text/css          css")
     b
   }
 
@@ -43,16 +44,17 @@ class ScalateDisplayer(helper: Helper, tmplDir: File) {
     }
   }
 
-  protected def renderHtml(templatePath: String)(fillCtx: (RenderContext) => Unit): Box[LiftResponse] = {
+  protected def renderHtml(templatePath: String)(fillCtx: (RenderContext) => Box[RenderContext]): Box[LiftResponse] = {
     val template = _engine.load(templatePath)
     val buffer = new StringWriter()
     val context = new DefaultRenderContext(templatePath, _engine, new PrintWriter(buffer))
     context.attributes("ping") = "pong"
     context.attributes("helper") = helper
     //context.attributes("info") = info
-    fillCtx(context)
-    template.render(context)
-    Full(HtmlTextResponse(buffer.toString, Nil, 200))
+    for (context <- fillCtx(context)) yield {
+      template.render(context)
+      HtmlTextResponse(buffer.toString, Nil, 200)
+    }
   }
 
   def serveResource(path: List[String], ext: String): Box[LiftResponse] = {
@@ -66,8 +68,8 @@ class ScalateDisplayer(helper: Helper, tmplDir: File) {
         rsrc.toFile match {
           case None => Full(StreamingResponse(rsrc.inputStream, () => {}, -1, Nil, Nil, 200))
           case Some(f) => {
-            val mimeType = _mimetypesFileTypeMap.getContentType(f)
-            //println("mimetypes :" + mimeType)
+            val mimeType = _mimetypesFileTypeMap.getContentType(f.getName)
+            println("mimetypes :" + mimeType + " // "+ f.getName)
             val size = f.length
             Full(StreamingResponse(rsrc.inputStream, () => {}, size, List(("Content-Length", size.toString), ("Content-Type", mimeType)), Nil, 200))
           }
@@ -105,27 +107,34 @@ class Helper4Laf(baseUrl: URI, uoaHelper: UoaHelper) extends Helper {
 
 class NavigatorDisplayer4Laf(helper: Helper, val rdti: RawDataToInfo, tmplDir: File) extends ScalateDisplayer(helper, tmplDir) with NavigatorDisplayer {
   def serveNavigator(rai: RemoteApiInfo, entityPath: List[String]): Box[LiftResponse] = renderHtml("/index.scaml") { context =>
-    context.attributes("artifact") = new ArtifactInfo() {
-      override def artifactId: String = rai.artifactId
-      override def version: String = rai.version
-      override def apiUrl = Some(rai.baseUrl.toURI)
+    Helpers.tryo {
+      context.attributes("artifact") = new ArtifactInfo() {
+        override def artifactId: String = rai.artifactId
+        override def version: String = rai.version
+        override def apiUrl = Some(rai.baseUrl)
+      }
+      context.attributes("entityPath") = entityPath
+      context
     }
-    context.attributes("entityPath") = entityPath
   }
   def serveBrowser(rai: RemoteApiInfo, entityPath: List[String]): Box[LiftResponse] = renderHtml("/browser.scaml") { context =>
-    context.attributes("artifact") = new ArtifactInfo() {
-      override def artifactId: String = rai.artifactId
-      override def version: String = rai.version
-      override def apiUrl = Some(rai.baseUrl.toURI)
-    }
-    context.attributes("entityPath") = entityPath
-    context.attributes("uoa4types") = {
-      val uaoArtifact = Uoa4Artifact(rai.artifactId, rai.version)
-      var b = rdti.findAllTypes(Uoa4Package("_root_", uaoArtifact)).map(_.open_!) //Nil.asInstanceOf[List[Uoa4Type]]
-      if (rai.artifactId.endsWith("_demoprj")) {
-        b = b ++ (for (i <- 0 until 3000) yield { Uoa4Type("ZFakeEntry_" + i, Uoa4Package("fake.package_" + i % 3, uaoArtifact)) })
+    //TODO keep original failure from a List[Box[x]]
+    Helpers.tryo {
+      context.attributes("artifact") = new ArtifactInfo() {
+        override def artifactId: String = rai.artifactId
+        override def version: String = rai.version
+        override def apiUrl = Some(rai.baseUrl)
       }
-      b
+      context.attributes("entityPath") = entityPath
+      context.attributes("uoa4types") = {
+        val uaoArtifact = Uoa4Artifact(rai.artifactId, rai.version)
+        var b = rdti.findAllTypes(Uoa4Package("_root_", uaoArtifact)).map(_.open_!) //Nil.asInstanceOf[List[Uoa4Type]]
+        if (rai.artifactId.endsWith("_demoprj")) {
+          b = b ++ (for (i <- 0 until 3000) yield { Uoa4Type("ZFakeEntry_" + i, Uoa4Package("fake.package_" + i % 3, uaoArtifact)) })
+        }
+        b
+      }
+      context
     }
   }
 
@@ -138,31 +147,37 @@ class EntityDisplayer4Laf(helper: Helper, val rdti: RawDataToInfo, tmplDir: File
   def serveFieldext(uoa: Uoa4Fieldext): Box[LiftResponse] = Full(NotImplementedResponse())
 
   def serveType(uoa: Uoa4Type): Box[LiftResponse] = renderHtml("/type.scaml") { context =>
-    println("serveType : " + uoa)
-    context.attributes("title") = "Title" //TODO
-    context.attributes("copyright") = "" //TODO
-    context.attributes("tpes") = rdti.toTypeInfo(uoa).map(_.open_!).sortWith((a, b) => a.kind == "object" || (a.kind < b.kind))
+    //TODO keep original failure from a List[Box[x]]
+    Helpers.tryo {
+      context.attributes("title") = "Title" //TODO
+      context.attributes("copyright") = "" //TODO
+      context.attributes("tpes") = rdti.toTypeInfo(uoa).map(_.open_!).sortWith((a, b) => a.kind == "object" || (a.kind < b.kind))
+      context
+    }
   }
 
   def serveArtifact(uoa: Uoa4Artifact): Box[LiftResponse] = renderHtml("/artifact.scaml") { context =>
-    context.attributes("artifact") = rdti.toArtifactInfo(uoa).open_!
+    rdti.toArtifactInfo(uoa).map { a =>
+      context.attributes("artifact") = a
+      context
+    }
   }
 
 }
 
-class LafProvider(cacheDir : File, helper: Helper, rdti: RawDataToInfo) {
+class LafProvider(cacheDir: File, helper: Helper, rdti: RawDataToInfo) {
   import net_alchim31_utils.{ FileSystemHelper, ClasspathHelper }
 
   private val _fsh = new FileSystemHelper()
   private val _ch = new ClasspathHelper()
 
-  private def extractLafIfNotExist(lafName : String) : Box[File] = {
+  private def extractLafIfNotExist(lafName: String): Box[File] = {
     val dir = new File(cacheDir, "laf/" + lafName)
     dir.exists match {
       case true => Full(dir)
       case false => {
         // TODO retrieve archive from DataBase instead of classpath
-    	println("laf : try to unarchive laf-" + lafName + ".jar into " + dir)
+        println("laf : try to unarchive laf-" + lafName + ".jar into " + dir)
         _ch.findCPResourceAsStream("laf-" + lafName + ".jar").flatMap { is =>
           Helpers.tryo {
             _fsh.unjar(dir, is)
