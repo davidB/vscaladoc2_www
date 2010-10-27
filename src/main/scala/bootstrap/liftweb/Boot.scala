@@ -1,5 +1,8 @@
 package bootstrap.liftweb
 
+import javax.sql.DataSource
+import javax.naming.Context
+import javax.naming.InitialContext
 import net.liftweb.mapper.MapperRules
 import net_alchim31_vscaladoc2_www.view.ApiView
 import _root_.net.liftweb.util._
@@ -19,6 +22,11 @@ import _root_.net_alchim31_vscaladoc2_www.model._
  */
 class Boot extends Loggable {
   def boot {
+    logger.debug("LogMode : DEBUG MODE ENABLED!")
+	logger.info("cfg : RunMode : " + Props.mode)
+    logger.info("cfg : user.home = "+ System.getProperty("user.home"))
+
+
     // where to search snippet
     LiftRules.addToPackages("net_alchim31_vscaladoc2_www")
 
@@ -27,17 +35,18 @@ class Boot extends Loggable {
     configureHttpRequest()
 
     configureUserExperience()
-
-    logger.debug("DEBUG MODE ENABLED!")
   }
 
   private def configureRDBMS() {
+	DefaultConnectionIdentifier.jndiName = "jdbc/vscaladoc2"
     if (!DB.jndiJdbcConnAvailable_?) {
       val vendor =
-        new StandardDBVendor(Props.get("db.driver") openOr "org.h2.Driver",
-          Props.get("db.url") openOr
-          "jdbc:h2:lift_proto.db;AUTO_SERVER=TRUE",
-          Props.get("db.user"), Props.get("db.password"))
+        new StandardDBVendor(
+          Props.get("db.driver") openOr "org.h2.Driver",
+          Props.get("db.url") openOr "jdbc:h2:lift_proto.db;AUTO_SERVER=TRUE",
+          Props.get("db.user"),
+          Props.get("db.password")
+        )
 
       LiftRules.unloadHooks.append(vendor.closeAllConnections_! _)
 

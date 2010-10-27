@@ -1,0 +1,13 @@
+<Configure class="org.mortbay.jetty.webapp.WebAppContext">
+    <!-- <Set name="contextPath">/</Set> -->
+    <New id="DSTest" class="org.mortbay.jetty.plus.naming.Resource">
+        <Arg>jdbc/vscaladoc2</Arg>
+        <Arg>
+            <New class="org.h2.jdbcx.JdbcDataSource">
+                <Set name="URL">jdbc:h2:lift_proto.db;AUTO_SERVER=TRUE</Set>
+                <Set name="User">sa</Set>
+                <Set name="Password">sa</Set>
+            </New>
+        </Arg>
+    </New>
+</Configure>
