@@ -25,5 +25,9 @@ project/plugins/src_managed
 TAGS
 /project/build.properties
 
+# ignore dev database :
+*.db.h2.db
+*.db.trace.db
+
 #ignore deprecated
 TODO*.txt
