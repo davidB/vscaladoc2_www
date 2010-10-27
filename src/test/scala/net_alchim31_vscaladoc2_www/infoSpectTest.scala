@@ -28,7 +28,7 @@ class JsonSpecTest extends Specification with JUnit /*with ScalaCheck*/ {
   //  }
 
   "Json reader" should {
-	  
+
     "read allow " in {
       val uoaHelper = new UoaHelper()
       val rdp : RawDataProvider = new MyDataProvider(uoaHelper)
@@ -96,19 +96,18 @@ st.demo1/DemoC/doStuff", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo1/DemoC/metho
   } ]
 }"""
 
-      val jv = parse(str1)
-      val tpe = jv.extract[json.Tpe]
+//      val jv = parse(str1)
+//      val tpe = jv.extract[json.Tpe]
 //      val ctors = tpeF.e.head.constructors.getOrElse(Nil)
 //      val ctor0 = ctors.head
-      tpe.name must_== "this"
+//      tpe.name must_== "this"
 
-    	  /*
 
+      val jv = parse(str0)
       val tpeF = jv.extract[json.TpeFile]
-      val ctors = tpeF.e.head.constructors.getOrElse(Nil)
+      val ctors = tpeF.e.head.constructors
       val ctor0 = ctors.head
       ctor0.name must_== "this"
-*/
     }
 
   }
