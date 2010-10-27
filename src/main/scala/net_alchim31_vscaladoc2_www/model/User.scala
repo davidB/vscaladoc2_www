@@ -13,7 +13,7 @@ import net.liftweb.mapper.MegaProtoUser
 import net.liftweb.mapper.MetaMegaProtoUser
 import net.liftweb.common.{Box, Full, Empty, Failure}
 
-/*	
+/*
 import _root_.net.liftweb.mapper._
 import _root_.net.liftweb.util._
 import _root_.net.liftweb.common._
@@ -40,23 +40,23 @@ object User extends User with MetaMegaProtoUser[User] {
   override def fieldOrder = List(firstName, lastName, email,
     locale, timezone, password, textArea)
 
-  // comment this line out to require email validations
-  //override def skipEmailValidation = true
+  // TODO comment this line out to require email validations
+  override def skipEmailValidation = true
 
-  // add ReCaptcha  
-  // ReCaptcha js lib require  LiftRules.useXhtmlMimeType = false  
+  // add ReCaptcha
+  // ReCaptcha js lib require  LiftRules.useXhtmlMimeType = false
   // override localForm instead of signupXhtml if you want to use captcha for every user edition
-  protected def reCaptchadomainName = "alchim31.net"  
+  protected def reCaptchadomainName = "alchim31.net"
   protected def reCaptchaPublicKey = "6LeS7rwSAAAAALrSdcBKkCz5WGBMSK0PuejBdQaB"
   protected def reCaptchaPrivateKey = "6LeS7rwSAAAAAGN3R5A8QGkN5UDnVA-uIY4jFv8s"
-	  
+
   private lazy val reCaptcha = ReCaptchaFactory.newReCaptcha(reCaptchaPublicKey, reCaptchaPrivateKey, false)
 
   private def captchaXhtml() = {
 <script type="text/javascript">
 var RecaptchaOptions = {"{theme:'white',lang:'" + S.containerRequest.flatMap(_.locale).map(_.getLanguage).getOrElse("en") + "'}"};
 </script>
-<script type="text/javascript" src={"http://api.recaptcha.net/challenge?k=" + reCaptchaPublicKey}></script>	  
+<script type="text/javascript" src={"http://api.recaptcha.net/challenge?k=" + reCaptchaPublicKey}></script>
 //	val props = new Properties()
 //	props.setProperty("theme", "white")
 //	props.setProperty("lang", S.containerRequest.flatMap(_.locale).map(_.getLanguage).getOrElse("en"))
@@ -64,7 +64,7 @@ var RecaptchaOptions = {"{theme:'white',lang:'" + S.containerRequest.flatMap(_.l
 //    println(x)
 //    XML.loadString(x)
   }
-  
+
   private def validateCaptcha(): List[FieldError] = {
     val res = for (
       remoteAddr <- S.containerRequest.map(_.remoteAddress);
@@ -83,7 +83,7 @@ var RecaptchaOptions = {"{theme:'white',lang:'" + S.containerRequest.flatMap(_.l
       case Empty => Nil
     }
   }
-  
+
   override def validateSignup(user: User): List[FieldError] = validateCaptcha() ::: super.validateSignup(user)
   override def signupXhtml(user: User) = {
     (<form method="post" action={ S.uri }>
