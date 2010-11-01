@@ -2,5 +2,3 @@ db.driver=org.h2.Driver
 db.url=jdbc:h2:lift_proto.db;AUTO_SERVER=TRUE
 db.user=sa
 db.password=sa
-recaptcha.publicKey=6Le9Pb4SAAAAAOyeYBinX8uK9xVJnD3AA4ltMsI2
-recaptcha.privateKey=6Le9Pb4SAAAAADxcRw2dTQj7Jv-v_hmqPq7MLKB4

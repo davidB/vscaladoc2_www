@@ -1,6 +1,5 @@
-package net_alchim31_vscaladoc2_www.model
-
-/**
+package net_alchim31_vscaladoc2_www.model
+/**
  * To use ReCaptach (http://www.google.com/recaptcha) :
  * * add a project dependency
  *   <dependency>
@@ -61,19 +60,21 @@ trait ReCaptcha {
   import net.liftweb.json.JsonAST
   import net.liftweb.json.JsonDSL._
   import net.liftweb.util.Props
+  import scala.xml.NodeSeq
+
 
   // add ReCaptcha
   /**
    * Define the public key to used to connect to reCapcha service.
    * Default implementation retrieve value from property "recaptcha.publicKey".
    */
-  protected def reCaptchaPublicKey : String = Props.get("recaptcha.publicKey").open_!
+  protected def reCaptchaPublicKey : Box[String] = Props.get("recaptcha.publicKey")
 
   /**
    * Define the private key to used to connect to reCapcha service
    * Default implementation retrieve value from property "recaptcha.privateKey".
    */
-  protected def reCaptchaPrivateKey : String = Props.get("recaptcha.privateKey").open_!
+  protected def reCaptchaPrivateKey : Box[String] = Props.get("recaptcha.privateKey")
 
   /**
    * Define the option to configure reCaptcha widget.
@@ -84,9 +85,19 @@ trait ReCaptcha {
    */
   protected def reCaptchaOptions = ("theme" -> "white") ~ ("lang" -> S.containerRequest.flatMap(_.locale).map(_.getLanguage).getOrElse("en"))
 
-  private lazy val reCaptcha = ReCaptchaFactory.newReCaptcha(reCaptchaPublicKey, reCaptchaPrivateKey, false)
+  private lazy val reCaptcha = {
+	for (reCaptchaPublicKey <- reCaptchaPublicKey; reCaptchaPrivateKey <- reCaptchaPrivateKey) yield {
+	  ReCaptchaFactory.newReCaptcha(reCaptchaPublicKey, reCaptchaPrivateKey, false)
+	}
+  }
 
-  protected def captchaXhtml() = {
+  /**
+   * @return captchaXhtml(publicKey) if reCaptchaPublicKey is Full(publicKey) else return NodeSeq.Empty
+   * @codeAsDoc
+   */
+  protected def captchaXhtml() : NodeSeq = reCaptchaPublicKey.map( x => captchaXhtml(x)).getOrElse(NodeSeq.Empty)
+
+  protected def captchaXhtml(publicKey : String) : NodeSeq = {
     import scala.xml.Unparsed
     import net.liftweb.http.js.JE
     import net.liftweb.json.JsonAST._
@@ -96,16 +107,18 @@ trait ReCaptcha {
       <script>
         var RecaptchaOptions = {Unparsed(RecaptchaOptions)};
       </script>
-      <script type="text/javascript" src={"http://api.recaptcha.net/challenge?k=" + reCaptchaPublicKey}></script>
+      <script type="text/javascript" src={"http://api.recaptcha.net/challenge?k=" + publicKey}></script>
     </xml:group>
   }
 
   protected def validateCaptcha(): List[FieldError] = {
     def checkAnswer(remoteAddr : String, challenge : String, uresponse : String) : Box[String]= {
-      val reCaptchaResponse = reCaptcha.checkAnswer(remoteAddr, challenge, uresponse)
-      reCaptchaResponse.isValid() match {
-        case true => Empty
-        case false => Full(S.?("reCaptcha." + reCaptchaResponse.getErrorMessage))
+      reCaptcha.flatMap { x =>
+        val reCaptchaResponse = x.checkAnswer(remoteAddr, challenge, uresponse)
+        reCaptchaResponse.isValid() match {
+          case true => Empty
+          case false => Full(S.?("reCaptcha." + reCaptchaResponse.getErrorMessage))
+        }
       }
     }
     val res = for (
