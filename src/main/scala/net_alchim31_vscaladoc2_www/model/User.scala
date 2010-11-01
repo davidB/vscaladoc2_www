@@ -1,5 +1,6 @@
 package net_alchim31_vscaladoc2_www.model
 
+import java.util.Locale
 import java.util.Properties
 import net.tanesha.recaptcha.ReCaptchaImpl
 import net.tanesha.recaptcha.ReCaptchaFactory
@@ -29,7 +30,7 @@ import _root_.net.liftweb.common._
 /**
  * The singleton that has methods for accessing the database
  */
-object User extends User with MetaMegaProtoUser[User] {
+object User extends User with MetaMegaProtoUser[User] with ReCaptcha {
   override def dbTableName = "users" // define the DB table name
   override def screenWrap = Full(<lift:surround with="default" at="content">
                                    <lift:bind/>
@@ -37,52 +38,10 @@ object User extends User with MetaMegaProtoUser[User] {
   override def signupFields = fieldOrder //TODO append captcha
 
   // define the order fields will appear in forms and output
-  override def fieldOrder = List(firstName, lastName, email,
-    locale, timezone, password, textArea)
+  override def fieldOrder = List(firstName, lastName, email, locale, timezone, password)
 
   // TODO comment this line out to require email validations
   override def skipEmailValidation = true
-
-  // add ReCaptcha
-  // ReCaptcha js lib require  LiftRules.useXhtmlMimeType = false
-  // override localForm instead of signupXhtml if you want to use captcha for every user edition
-  protected def reCaptchadomainName = "alchim31.net"
-  protected def reCaptchaPublicKey = "6LeS7rwSAAAAALrSdcBKkCz5WGBMSK0PuejBdQaB"
-  protected def reCaptchaPrivateKey = "6LeS7rwSAAAAAGN3R5A8QGkN5UDnVA-uIY4jFv8s"
-
-  private lazy val reCaptcha = ReCaptchaFactory.newReCaptcha(reCaptchaPublicKey, reCaptchaPrivateKey, false)
-
-  private def captchaXhtml() = {
-<script type="text/javascript">
-var RecaptchaOptions = {"{theme:'white',lang:'" + S.containerRequest.flatMap(_.locale).map(_.getLanguage).getOrElse("en") + "'}"};
-</script>
-<script type="text/javascript" src={"http://api.recaptcha.net/challenge?k=" + reCaptchaPublicKey}></script>
-//	val props = new Properties()
-//	props.setProperty("theme", "white")
-//	props.setProperty("lang", S.containerRequest.flatMap(_.locale).map(_.getLanguage).getOrElse("en"))
-//    val x = reCaptcha.createRecaptchaHtml(null, props)
-//    println(x)
-//    XML.loadString(x)
-  }
-
-  private def validateCaptcha(): List[FieldError] = {
-    val res = for (
-      remoteAddr <- S.containerRequest.map(_.remoteAddress);
-      challenge <- S.param("recaptcha_challenge_field");
-      uresponse <- S.param("recaptcha_response_field")
-    ) yield {
-      val reCaptchaResponse = reCaptcha.checkAnswer(remoteAddr, challenge, uresponse)
-      reCaptchaResponse.isValid() match {
-        case true => Nil
-        case false => print("Answer is wrong"); Nil
-      }
-    }
-    res match {
-      case Failure(msg, _, _) => Nil
-      case Full(msg) => Nil
-      case Empty => Nil
-    }
-  }
 
   override def validateSignup(user: User): List[FieldError] = validateCaptcha() ::: super.validateSignup(user)
   override def signupXhtml(user: User) = {
@@ -104,16 +63,10 @@ var RecaptchaOptions = {"{theme:'white',lang:'" + S.containerRequest.flatMap(_.l
 class User extends MegaProtoUser[User] {
   def getSingleton = User // what's the "meta" server
 
-  //  object country extends MappedCountry(this) {
-  //	  override def defaultValue = Locale.getDefault.getDisplayCountry
-  //  }
-  //  object postalCode extends MappedPostalCode(this, this.country)
+//    object country extends MappedCountry(this) {
+//  	  override def defaultValue =  S.containerRequest.flatMap(_.locale).getOrElse(Locale.getDefault).getDisplayCountry
+//    }
+//    object postalCode extends MappedPostalCode(this, this.country)
 
-  // define an additional field for a personal essay
-  object textArea extends MappedTextarea(this, 2048) {
-    override def textareaRows = 10
-    override def textareaCols = 50
-    override def displayName = "Personal Essay"
-  }
 }
 
