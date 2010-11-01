@@ -214,11 +214,10 @@ class FieldextInfo4Json(val uoa: Uoa4Fieldext, val src: json.Fieldext, rdti : Ra
 }
 //TODO cache result of remote request
 //TODO download archive, store in DB, unarchive in local FS cache
+//TODO Http is not multi-thread, may be used a pool
 class BasicRawDataProvider(val workdir : File) extends RawDataProvider {
   import dispatch._
   import Http._
-
-  private val _http = new Http
 
   def find(uoa: Uoa): Box[JValue] = {
     toUrl(uoa).flatMap { uri =>
@@ -226,7 +225,7 @@ class BasicRawDataProvider(val workdir : File) extends RawDataProvider {
 	      uri.getScheme match {
 	     	case "file" => JsonParser.parse(new FileReader(uri.getPath))
 	        case "local" => JsonParser.parse(new FileReader(new File(workdir, "apis" + uri.getPath)))
-	        case "http" => _http(new Request(uri.toString) >- { s => JsonParser.parse(s) })
+	        case "http" => new Http()(new Request(uri.toString) >- { s => JsonParser.parse(s) })
 	        case x => throw new MalformedURLException("scheme " + x + "is nor supported as source for api (" + uri +")" )
 	      }
     	}
