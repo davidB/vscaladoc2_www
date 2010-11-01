@@ -54,10 +54,11 @@ object RemoteApiInfo extends RemoteApiInfo with LongKeyedMetaMapper[RemoteApiInf
   def init() {
 	if (RemoteApiInfo.find() == Empty){
  	val data = List(
- 			//("sample", "1.0.0", new URL("file:///tmp/sample-api"), ApiProviders.vscaladoc2),
- 			("vscaladoc_demoprj", "0.1-SNAPSHOT", new URI("local:/vscaladoc_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
- 			("scala-library", "2.8.0", new URI("http://www.scala-lang.org/api/2.8.0"), ApiProviders.scaladoc2),
- 			("scala-library", "2.7.7", new URI("http://www.scala-lang.org/api/2.7.7"), ApiProviders.scaladoc)
+ 	    //("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("local:/vscaladoc_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
+ 	    //("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("http://davidb.github.com/vscaladoc2_demoprj/vscaladoc2_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
+ 	    ("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("http://alchim31.free.fr/apis/vscaladoc2_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
+ 	    ("scala-library", "2.8.0", new URI("http://www.scala-lang.org/api/2.8.0"), ApiProviders.scaladoc2),
+ 	    ("scala-library", "2.7.7", new URI("http://www.scala-lang.org/api/2.7.7"), ApiProviders.scaladoc)
     ).foreach { x =>
  		val v: RemoteApiInfo = RemoteApiInfo.create
  		v.artifactId(x._1)
