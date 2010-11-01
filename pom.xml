@@ -225,21 +225,7 @@
           </dependency>
         </dependencies>
       </plugin>
-      <plugin>
-        <groupId>net.sf.alchim</groupId>
-        <artifactId>yuicompressor-maven-plugin</artifactId>
-        <version>0.7.1</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compress</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <nosuffix>true</nosuffix>
-        </configuration>
-      </plugin>
+
     </plugins>
   </build>
   <reporting>
@@ -249,10 +235,8 @@
         <artifactId>maven-scala-plugin</artifactId>
         <version>2.14</version>
         <configuration>
-          <charset>${project.build.sourceEncoding}</charset>
           <jvmArgs>
             <jvmArg>-Xmx1024m</jvmArg>
-            <jvmArg>-DpackageLinkDefs=file://${project.build.directory}/packageLinkDefs.properties</jvmArg>
           </jvmArgs>
         </configuration>
       </plugin>
