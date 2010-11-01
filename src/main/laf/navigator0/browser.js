@@ -31,7 +31,7 @@ var updateFilter4Packages = function(evt){
             filter4Packages.push(select.options[i].text);
         }
     }
-    updateClassesDisplay();
+    updateClassesDisplay(20);
 };
 
 var filter4NameRE = null;
@@ -60,27 +60,30 @@ var updateFilter4NameRE = function() {
       console.log("filter4Name pattern : " + pattern);
       filter4NameRE = new RegExp(pattern, flags);
     }
-    updateClassesDisplay();
+    updateClassesDisplay(150);
 };
 
 var lastUpdateClassDisplayCallId = null;
-var updateClassesDisplay = function() {
+var callCnt = 0
+var updateClassesDisplay = function(waitBefore) {
     if (lastUpdateClassDisplayCallId != null) {
         clearTimeout(lastUpdateClassDisplayCallId);
     }
-    lastUpdateClassDisplayCallId = setTimeout("updateClassesDisplayNow("+ (new Date).getTime() +")", 300);
+    if (waitBefore == null) {
+      waitBefore = 300
+    }
+    lastUpdateClassDisplayCallId = setTimeout("updateClassesDisplayNow("+ (callCnt++) + "," + (new Date).getTime() +")", waitBefore);
 };
-var updateClassesDisplayNow = function(requestAtTime) {
-    var myUpdateClassDisplayCallId = lastUpdateClassDisplayCallId;
+var updateClassesDisplayNow = function(callId, requestAtTime) {
     var startAtTime = (new Date).getTime()
     var data = jQuery.grep( dataAll, function(n, i){
-      return (myUpdateClassDisplayCallId == lastUpdateClassDisplayCallId)
+      return (callId == callCnt)
         && ((filter4Packages.length == 0) || (jQuery.inArray(n.pkg, filter4Packages) != -1))
         && ((filter4NameRE == null) || filter4NameRE.test(n.label));
     });
     var filterEndAt = (new Date).getTime();
     console.log("nb data found :" + data.length + "/"  + dataAll.length);
-    if (myUpdateClassDisplayCallId != lastUpdateClassDisplayCallId) {
+    if (callId != callCnt) {
       console.log("abort before update display");
     } else {
       displayTypes(data, null, null);
