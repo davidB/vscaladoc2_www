@@ -29,10 +29,13 @@ import _root_.net.liftweb.http._
 object ApiView extends Loggable {
 
   private val workdir = {
-    val rootdir = new File(System.getProperty("user.home"), ".config/vscaladoc2")
-    rootdir.mkdirs()
+    var rootdir = new File(System.getProperty("user.home"), ".config/vscaladoc2")
+    if (!rootdir.exists && !rootdir.mkdirs()) {
+      rootdir = new File(LiftRules.context.attribute("javax.servlet.context.tempdir").getOrElse(System.getProperty("java.io.tmp")).toString, "vscaladoc2")
+      rootdir.mkdirs()
+    }
     //val tmpDirPath = LiftRules.context.attribute("javax.servlet.context.tempdir").getOrElse("/home/dwayne/work/oss/vscaladoc2_www/src/main")
-    logger.info("workdir : " + rootdir)
+    logger.info("workdir : " + rootdir + " ... " + rootdir.exists)
     rootdir
   }
 
