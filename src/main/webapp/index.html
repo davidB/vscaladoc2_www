@@ -1,13 +1,8 @@
 <lift:surround with="default" at="content">
-	<h2>Welcome to your project!</h2>
-	<p><lift:helloWorld.howdy>
-		<span>Welcome to vscaladoc2_wwww at <b:time /></span>
-	</lift:helloWorld.howdy></p>
-
 	<h1>Apis</h1>
-	<div><lift:listings.all>
-		<div><a api:url=""><strong><api:artifactId /></strong> : <api:version /> : <api:format /></a></div>
-	</lift:listings.all></div>
+	<table><tbody><lift:listings.all>
+		<tr><td><api:artifactId /></td><td><a api:url=""><api:version /></a></td><td><api:format /></td></tr>
+	</lift:listings.all></tbody></table>
 	<!-- div>
 	<lift:listings.paginate>
     <p><nav:records/></p>
