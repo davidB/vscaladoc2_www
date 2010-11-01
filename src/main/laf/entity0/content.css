@@ -114,7 +114,8 @@ code, .signature {
 }
 
 pre, .codeAsDoc {
-    white-space:nowrap;
+    /*white-space:nowrap;*/
+    white-space: pre;
     font-family: "Inconsolata", "Bitstream Vera Sans Mono", monospace;
     border: dashed 1px #909090;
     padding: 5px;
