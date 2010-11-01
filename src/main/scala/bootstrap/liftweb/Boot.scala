@@ -66,11 +66,11 @@ class Boot extends Loggable {
   private def configureHttpRequest() {
     // Build SiteMap
     val MustBeLoggedIn = If(() => User.loggedIn_?, "")
+    val IsAdmin = If(() => { val b = User.currentUser.map( _.id.is <= 1).getOrElse(false); println("check", b, User.currentUser.map( _.id.is)); b } , "")
     def sitemap() = List(
-    		Menu("Home") / "index" >> LocGroup("public"),
+    		Menu("Home") / "index",
             Menu("Legal") / "legal" / ** >> Hidden,
-    		Menu("Admin") / "admin" / "index" >> LocGroup("admin") >> MustBeLoggedIn,
-    		Menu("Apis") / "admin" / "apis" >> LocGroup("admin") >> MustBeLoggedIn
+    		Menu("Admin") / "admin" / "index" >> IsAdmin
     		  submenus(RemoteApiInfo.menus : _*)
 //      // Menu with special Link
 //      Menu(Loc("Static", Link(List("static"), true, "/static/index"),
