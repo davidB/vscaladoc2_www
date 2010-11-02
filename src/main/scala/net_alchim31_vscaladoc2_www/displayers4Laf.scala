@@ -1,5 +1,6 @@
 package net_alchim31_vscaladoc2_www
 
+import net.liftweb.http.HeaderDefaults
 import net.liftweb.util.Helpers
 import scala.reflect.NameTransformer
 import net.liftweb.http.S
@@ -17,6 +18,7 @@ import org.fusesource.scalate.{ TemplateEngine, DefaultRenderContext }
 import javax.activation.MimetypesFileTypeMap
 import net_alchim31_vscaladoc2_www.info._
 
+//TODO add production configuration (cache client, scalate working dir, ...)
 class ScalateDisplayer(helper: Helper, tmplDir: File) {
   private lazy val _mimetypesFileTypeMap = {
     val b = new MimetypesFileTypeMap()
@@ -37,10 +39,10 @@ class ScalateDisplayer(helper: Helper, tmplDir: File) {
     b
   }
 
-  private case class HtmlTextResponse(text: String, headers: List[(String, String)], code: Int) extends LiftResponse {
+  private case class HtmlTextResponse(text: String, code: Int) extends LiftResponse with HeaderDefaults {
     def toResponse = {
       val bytes = text.getBytes("UTF-8")
-      InMemoryResponse(bytes, ("Content-Length", bytes.length.toString) :: ("Content-Type", "text/html; charset=utf-8") :: headers, Nil, code)
+      InMemoryResponse(bytes, ("Content-Length", bytes.length.toString) :: ("Content-Type", "text/html; charset=utf-8") :: headers, cookies, code)
     }
   }
 
@@ -53,7 +55,7 @@ class ScalateDisplayer(helper: Helper, tmplDir: File) {
     //context.attributes("info") = info
     for (context <- fillCtx(context)) yield {
       template.render(context)
-      HtmlTextResponse(buffer.toString, Nil, 200)
+      HtmlTextResponse(buffer.toString, 200)
     }
   }
 
@@ -71,7 +73,11 @@ class ScalateDisplayer(helper: Helper, tmplDir: File) {
             val mimeType = _mimetypesFileTypeMap.getContentType(f.getName)
             println("mimetypes :" + mimeType + " // "+ f.getName)
             val size = f.length
-            Full(StreamingResponse(rsrc.inputStream, () => {}, size, List(("Content-Length", size.toString), ("Content-Type", mimeType)), Nil, 200))
+            val httpHeaders = List(
+                ("Content-Length", size.toString),
+                ("Content-Type", mimeType)
+            )
+            Full(StreamingResponse(rsrc.inputStream, () => {}, size, httpHeaders, Nil, 200))
           }
         }
       }
