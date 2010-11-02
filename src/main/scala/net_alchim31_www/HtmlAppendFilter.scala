@@ -1,30 +1,17 @@
 package net_alchim31_www
 
-import java.io.OutputStreamWriter
-
-import java.io.PrintWriter
-import java.io.ByteArrayOutputStream
-import javax.servlet.http.HttpServletResponseWrapper
-import java.io.OutputStream
-import java.io.DataOutputStream
-import javax.servlet.ServletOutputStream
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-import javax.servlet.FilterConfig
-import javax.servlet.ServletResponse
-import javax.servlet.FilterChain
-import javax.servlet.ServletRequest
-import javax.servlet.Filter
+import javax.servlet.{FilterChain, ServletResponse, FilterConfig, ServletOutputStream}
+import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServletResponseWrapper}
+import java.io.{DataOutputStream, OutputStream, ByteArrayOutputStream, PrintWriter, OutputStreamWriter}
 
 //TODO replace the filter by a better (optimization solution) like inserting into template and scalate renderer
 //TODO use the same encoding for footer and main content
 //TODO insert footer before </body>
-class HtmlAppendFilter extends Filter {
-  private var _filterConfig : FilterConfig = _
+class HtmlAppendFilter extends HttpFilter {
   private var _footer : Array[Byte] = null
 
-  def init(filterConfig : FilterConfig) {
-    _filterConfig = filterConfig
+  override def init(filterConfig : FilterConfig) {
+    super.init(filterConfig)
     var footerStr = _filterConfig.getInitParameter("footer")
     if (footerStr != null) {
       footerStr = footerStr.trim
@@ -37,11 +24,7 @@ class HtmlAppendFilter extends Filter {
 //    }
   }
 
-  def doFilter(request : ServletRequest, response : ServletResponse, chain : FilterChain) {
-    doHttpFilter(request.asInstanceOf[HttpServletRequest], response.asInstanceOf[HttpServletResponse], chain)
-  }
-
-  private def doHttpFilter(request : HttpServletRequest, response : HttpServletResponse, chain : FilterChain) {
+  protected def doHttpFilter(request : HttpServletRequest, response : HttpServletResponse, chain : FilterChain) {
     if (_filterConfig == null) {
       return
     }
@@ -83,9 +66,6 @@ class HtmlAppendFilter extends Filter {
     }
   }
 
-  def destroy() {
-    _filterConfig = null
-  }
 }
 
 class FilterResponseWrapper(origResponse : HttpServletResponse) extends HttpServletResponseWrapper(origResponse) {
