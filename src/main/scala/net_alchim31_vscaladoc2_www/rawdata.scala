@@ -253,7 +253,10 @@ class BasicRawDataProvider(fs : FileSystemHelper, workdir : File) extends RawDat
         fs.toString(f)
       } else {
         new Http()(new Request(uri.toString) >- { s =>
-          fs.toFile(f, s)
+          val dir = f.getParentFile  
+          if (dir.exists || dir.mkdirs()) {   
+            fs.toFile(f, s)
+          }
           s 
         })
       }
