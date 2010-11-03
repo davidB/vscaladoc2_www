@@ -40,14 +40,12 @@ object info {
   }
 
   trait ArtifactInfo {
-    def logo: Option[URI] = None
     def groupId: String = ""
     def artifactId: String = ""
     def version: String = ""
     def description: HtmlString = ""
-    def homeUrl: Option[URI] = None
-    def apiUrl: Option[URI] = None
-    def licences: List[String] = Nil
+    def logo : HtmlString = ""
+    def license : HtmlString = ""
     def kind: ArtifactKind = ArtifactKind.Undef
     def groups: List[ArtifactInfo] = Nil
     def dependencies: List[(ArtifactInfo, Scope)] = Nil
@@ -66,7 +64,7 @@ object info {
 
   trait TypeInfo extends EntityInfo {
     def uoa: Uoa4Type
-    def isInherited(m: FieldextInfo)
+    def isInherited(m: FieldextInfo) : Boolean
     def constructors: List[Box[FieldextInfo]]
     def fields: List[Box[FieldextInfo]]
     def methods: List[Box[FieldextInfo]]

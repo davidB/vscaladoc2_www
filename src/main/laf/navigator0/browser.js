@@ -72,7 +72,7 @@ var updateClassesDisplay = function(waitBefore) {
     if (waitBefore == null) {
       waitBefore = 300
     }
-    lastUpdateClassDisplayCallId = setTimeout("updateClassesDisplayNow("+ (callCnt++) + "," + (new Date).getTime() +")", waitBefore);
+    lastUpdateClassDisplayCallId = setTimeout("updateClassesDisplayNow("+ (++callCnt) + "," + (new Date).getTime() +")", waitBefore);
 };
 var updateClassesDisplayNow = function(callId, requestAtTime) {
     var startAtTime = (new Date).getTime()

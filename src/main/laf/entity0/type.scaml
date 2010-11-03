@@ -3,10 +3,9 @@
 
 -import net_alchim31_vscaladoc2_www.info._
 -import net.liftweb.common.{ Box, Full, Empty, Failure }
--@ val title : String
--@ val copyright : String
+-@ val logo : String
 -@ val tpes : Seq[TypeInfo]
-
+-val tpe0 = tpes.head
 
 - def stringWithTypeRef(l : List[StringWithTypeRef], toBold : String = "") =
   %code(class="signature")
@@ -19,7 +18,7 @@
     != l2.mkString
 
 - var failuresIdx = 0
-- def displayFieldexts(kind: String, l : List[Box[FieldextInfo]], label : String) =
+- def displayFieldexts(tpe : TypeInfo, kind: String, l : List[Box[FieldextInfo]], label : String) =
   - if (!l.isEmpty)
     %h3(style="cursor: help;" onClick={"$('#"+ kind +"_" + label +"').toggle()"}) #{label}
     %section(id={kind + "_" + label})
@@ -32,39 +31,42 @@
             - for (entry <- failures)
               %li #{entry}
       - for (entry <- ok.map(_.open_!).sortWith(_.simpleName < _.simpleName))
-        =stringWithTypeRef(entry.signature, entry.simpleName)
-        %div(class="apiComments")
-          != entry.description
-          - if (!entry.docTags.isEmpty)
-            %dl
-              - for (docTag <- entry.docTags)
-                %dt= docTag.label
-                %dd
-                  %code= docTag.key
-                  != docTag.body
+        %div(class={if (tpe.isInherited(entry)) "isInherited" else ""})
+          =stringWithTypeRef(entry.signature, entry.simpleName)
+          %div(class="apiComments")
+            != entry.description
+            - if (!entry.docTags.isEmpty)
+              %dl
+                - for (docTag <- entry.docTags)
+                  %dt= docTag.label
+                  %dd
+                    %code= docTag.key
+                    != docTag.body
 
 %html
   %head
-    %title #{title}
+    %title API : #{labelOf(tpe0.uoa.uoaPackage.uoaArtifact)} / #{labelOf(tpe0.uoa.uoaPackage)} / #{labelOf(tpe0.uoa)}
     %meta(http-equiv="content-type" content="text/html; charset=UTF-8")
     %meta(content="VScaladoc 2" name="generator")
-    %script(type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js")
+    %script(type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.js")
     %script(type="text/javascript" src={urlOf("laf/_rsrc/content.js")})
     %link(href={urlOf("laf/_rsrc/content.css")} type="text/css" rel="stylesheet")
   %body
     %div(class="header")
-    - for( tpe <- tpes.headOption)
-      %a(href={urlOf(tpe.uoa.uoaPackage.uoaArtifact, "laf/api")}) #{labelOf(tpe.uoa.uoaPackage.uoaArtifact)}
+      %a(href={urlOf("")})
+        %img(src={urlOf("favicon.ico")})
+      %a(href={urlOf(tpe0.uoa.uoaPackage.uoaArtifact, "laf/api")}) #{labelOf(tpe0.uoa.uoaPackage.uoaArtifact)}
       \/
-      %a(href={urlOf(tpe.uoa.uoaPackage, "laf/api")}) #{labelOf(tpe.uoa.uoaPackage)}
+      %a(href={urlOf(tpe0.uoa.uoaPackage, "laf/api")}) #{labelOf(tpe0.uoa.uoaPackage)}
       \/
-      %a(href={urlOf(tpe.uoa, "laf/api")}) #{labelOf(tpe.uoa)}
-      %br
-      %h1
-        #{fqNameOf(tpe.uoa)}
-        %sup(style="font-size: smaller;vertical-align: super")
-          - for( t <- tpes)
-            %a(href={"#" + t.kind}) #{t.kind}
+      %a(href={urlOf(tpe0.uoa, "laf/api")}) #{labelOf(tpe0.uoa)}
+      != logo
+
+    %h1
+      #{fqNameOf(tpe0.uoa)}
+      %sup(style="font-size: smaller;vertical-align: super")
+        - for( t <- tpes)
+          %a(href={"#" + t.kind}) #{t.kind}
 
 
     - for( tpe <- tpes)
@@ -86,12 +88,11 @@
                     %code= docTag.key
                     != docTag.body
 
-        - displayFieldexts(kind, constructors, "Constructors")
-        - displayFieldexts(kind, fields, "Fields")
-        - displayFieldexts(kind, methods, "Methods")
+        - displayFieldexts(tpe, kind, constructors, "Constructors")
+        - displayFieldexts(tpe, kind, fields, "Fields")
+        - displayFieldexts(tpe, kind, methods, "Methods")
 
     / ======== END OF BOTTOM NAVBAR =======
-    %div(class="copyright")= copyright
 
     %script
       $(".failures ul").hide();

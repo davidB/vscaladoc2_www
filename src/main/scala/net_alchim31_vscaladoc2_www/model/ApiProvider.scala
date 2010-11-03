@@ -79,20 +79,18 @@ case object VScaladoc extends ApiProvider{
 
 }
 case object VScaladoc2 extends ApiProvider {
-  override def rurlPathOf(packageName: String, typeName: String, memberName: String, memberType64: String): Box[String] = {
-    Full("/" + packageName + "/" + typeName + "/" + memberName + "__" + memberType64 + ".json")
-  }
+  val _extension = "_.json"
   override def rurlPathOf(packageName: String, typeName: String, memberName: String): Box[String] = {
-    Full("/" + packageName + "/" + typeName + "/" + memberName + ".json")
+    Full("/" + packageName + "/" + typeName + "/" + memberName + _extension)
   }
   override def rurlPathOf(packageName: String, typeName: String): Box[String] = {
-    Full("/" + packageName + "/" + typeName + ".json")
+    Full("/" + packageName + "/" + typeName + _extension)
   }
   override def rurlPathOf(packageName: String): Box[String] = {
-    Full("/" + packageName + ".json")
+    Full("/" + packageName + _extension)
   }
   override def rurlPathOf(): Box[String] = {
-    Full(".json")
+    Full(_extension)
   }
 }
 

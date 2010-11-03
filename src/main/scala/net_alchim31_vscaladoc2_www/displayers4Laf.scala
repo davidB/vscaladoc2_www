@@ -117,7 +117,6 @@ class NavigatorDisplayer4Laf(helper: Helper, val rdti: RawDataToInfo, tmplDir: F
       context.attributes("artifact") = new ArtifactInfo() {
         override def artifactId: String = rai.artifactId
         override def version: String = rai.version
-        override def apiUrl = Some(rai.baseUrl)
       }
       context.attributes("entityPath") = entityPath
       context
@@ -129,7 +128,6 @@ class NavigatorDisplayer4Laf(helper: Helper, val rdti: RawDataToInfo, tmplDir: F
       context.attributes("artifact") = new ArtifactInfo() {
         override def artifactId: String = rai.artifactId
         override def version: String = rai.version
-        override def apiUrl = Some(rai.baseUrl)
       }
       context.attributes("entityPath") = entityPath
       context.attributes("uoa4types") = {
@@ -155,8 +153,7 @@ class EntityDisplayer4Laf(helper: Helper, val rdti: RawDataToInfo, tmplDir: File
   def serveType(uoa: Uoa4Type): Box[LiftResponse] = renderHtml("/type.scaml") { context =>
     //TODO keep original failure from a List[Box[x]]
     Helpers.tryo {
-      context.attributes("title") = "Title" //TODO
-      context.attributes("copyright") = "" //TODO
+      context.attributes("logo") = "" //TODO
       context.attributes("tpes") = rdti.toTypeInfo(uoa).map(_.open_!).sortWith((a, b) => a.kind == "object" || (a.kind < b.kind))
       context
     }
@@ -171,10 +168,9 @@ class EntityDisplayer4Laf(helper: Helper, val rdti: RawDataToInfo, tmplDir: File
 
 }
 
-class LafProvider(cacheDir: File, helper: Helper, rdti: RawDataToInfo) {
-  import net_alchim31_utils.{ FileSystemHelper, ClasspathHelper }
+import net_alchim31_utils.{ FileSystemHelper, ClasspathHelper }
+class LafProvider(cacheDir: File, helper: Helper, rdti: RawDataToInfo, fsh : FileSystemHelper) {
 
-  private val _fsh = new FileSystemHelper()
   private val _ch = new ClasspathHelper()
 
   private def extractLafIfNotExist(lafName: String): Box[File] = {
@@ -186,7 +182,7 @@ class LafProvider(cacheDir: File, helper: Helper, rdti: RawDataToInfo) {
         println("laf : try to unarchive laf-" + lafName + ".jar into " + dir)
         _ch.findCPResourceAsStream("laf-" + lafName + ".jar").flatMap { is =>
           Helpers.tryo {
-            _fsh.unjar(dir, is)
+            fsh.unjar(dir, is)
             dir
           }
         }

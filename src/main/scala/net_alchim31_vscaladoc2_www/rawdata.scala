@@ -1,5 +1,7 @@
 package net_alchim31_vscaladoc2_www
 
+import net_alchim31_utils.FileSystemHelper
+
 import java.net.MalformedURLException
 import java.io.File
 import scala.collection.mutable.ListBuffer
@@ -37,9 +39,12 @@ class RawDataToInfo(val rdp: RawDataProvider, val uoaHelper: UoaHelper) {
   def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo] = {
     for (jv <- rdp.find(uoa)) yield {
       new ArtifactInfo() {
+        override val groupId = (jv \ "groupId").extract[String]
         override val artifactId = (jv \ "artifactId").extract[String]
         override val version = (jv \ "version").extract[String]
         override val description = (jv \ "description").extract[String]
+        override val logo = (jv \ "logo").extract[String]
+        override val license = (jv \ "license").extract[String]
       }
     }
   }
@@ -77,7 +82,7 @@ class RawDataToInfo(val rdp: RawDataProvider, val uoaHelper: UoaHelper) {
       case Full(jv) => {
         val pkgFile = jv.extract[json.PkgFile]
         //.map(x => if (excludeObjectSuffix) removeObjectSuffix(x) else x)
-        pkgFile.e.flatMap(_.members).distinct.flatMap { refPath =>
+        pkgFile.e.flatMap(_.templates).distinct.flatMap { refPath =>
           uoaHelper(refPath) match {
             case Full(uoa) =>
               uoa match {
@@ -100,14 +105,14 @@ class RawDataToInfo(val rdp: RawDataProvider, val uoaHelper: UoaHelper) {
   def toListSWTR(s: List[List[String]]): List[StringWithTypeRef] = s.map(x => StringWithTypeRef(x.head, toBoxUoa(x.tail.headOption)))
 
   def toListFieldext(s : List[String]) : List[Box[FieldextInfo]] = {
-	val b = for(
-	    refPath <- s;
-	    uoa <- uoaHelper(refPath) //ignore failure and empty
-	  ) yield uoa match {
-		case uoa : Uoa4Fieldext => toFieldextInfo(uoa)
-		case _ => Nil
-	  }
-	b.flatten
+    val b = for(
+        refPath <- s;
+        uoa <- uoaHelper(refPath) //ignore failure and empty
+      ) yield uoa match {
+        case uoa : Uoa4Fieldext => toFieldextInfo(uoa)
+        case _ => Nil
+      }
+    b.flatten
   }
 
 
@@ -122,7 +127,7 @@ object json {
     name: String,
     qualifiedName: String,
     description: Option[String],
-    members: List[String],
+    templates: List[String],
     packages: List[String])
   case class TpeFile(uoa: String, e: List[Tpe])
   case class Tpe(
@@ -161,7 +166,7 @@ class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : RawDataToInfo) 
   def docTags: Seq[DocTag] = Nil
   def source: Option[URI] = None //for (file <- src.sourceStartPoint.headOption ; line <- src.sourceStartPoint.tail.headOption) yield {new URI("src://" + file + "#" + line) }
   def kind: String = src.kind
-  def isInherited(m: FieldextInfo) = m.uoa.uoaType == uoa
+  def isInherited(m: FieldextInfo) = m.uoa.uoaType != uoa
   def signature: List[StringWithTypeRef] = {
     val b = new ListBuffer[StringWithTypeRef]()
     b ++= rdti.toListSWTR(src.visibility)
@@ -181,7 +186,7 @@ class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : RawDataToInfo) 
     b.toList
   }
   def constructors: List[Box[FieldextInfo]] = {
-	  src.constructors.map(x => Helpers.tryo{ new FieldextInfo4Json(Uoa4Fieldext(simpleName, uoa), x, rdti)})
+      src.constructors.map(x => Helpers.tryo{ new FieldextInfo4Json(Uoa4Fieldext(simpleName, uoa), x, rdti)})
   }
   def fields: List[Box[FieldextInfo]] = rdti.toListFieldext(src.values)
   def methods: List[Box[FieldextInfo]] = rdti.toListFieldext(src.methods)
@@ -215,60 +220,116 @@ class FieldextInfo4Json(val uoa: Uoa4Fieldext, val src: json.Fieldext, rdti : Ra
 //TODO cache result of remote request
 //TODO download archive, store in DB, unarchive in local FS cache
 //TODO Http is not multi-thread, may be used a pool
-class BasicRawDataProvider(val workdir : File) extends RawDataProvider {
+//TODO simplify
+class BasicRawDataProvider(fs : FileSystemHelper, workdir : File) extends RawDataProvider {
   import dispatch._
   import Http._
 
+  private val localApisDir = new File(workdir, "apis")
+
   def find(uoa: Uoa): Box[JValue] = {
     toUrl(uoa).flatMap { uri =>
-    	Helpers.tryo{
-	      uri.getScheme match {
-	     	case "file" => JsonParser.parse(new FileReader(uri.getPath))
-	        case "local" => JsonParser.parse(new FileReader(new File(workdir, "apis" + uri.getPath)))
-	        case "http" => new Http()(new Request(uri.toString) >- { s => JsonParser.parse(s) })
-	        case x => throw new MalformedURLException("scheme " + x + "is nor supported as source for api (" + uri +")" )
-	      }
-    	}
+        Helpers.tryo{
+          uri.getScheme match {
+            case "file" => JsonParser.parse(new FileReader(uri.getPath))
+            case "local" => JsonParser.parse(new FileReader(toLocalFile(uri.getPath)))
+            case "http" => JsonParser.parse(requestFromHttp(uoa, uri))
+            case x => throw new MalformedURLException("scheme " + x + "is nor supported as source for api (" + uri +")" )
+          }
+        }
+    }
+  }
+
+  /**
+   * search from local base (use as cache), if missed then do remote request and store result in cache.
+   * 
+   * @param uoa
+   * @param uri
+   * @return
+   */
+  private def requestFromHttp(uoa : Uoa, uri : URI) : String = {
+    toLocalFile(uoa).map { f =>
+      if (f.exists) {
+        fs.toString(f)
+      } else {
+        new Http()(new Request(uri.toString) >- { s =>
+          fs.toFile(f, s)
+          s 
+        })
+      }
+    } openOr {
+        new Http()(new Request(uri.toString) >- { s =>
+          s 
+        })
     }
   }
 
 
   private def toUrl(uoa: Uoa): Box[URI] = {
-	  import net_alchim31_vscaladoc2_www.model.VScaladoc2
+      import net_alchim31_vscaladoc2_www.model.VScaladoc2
 
-	  def vscaladoc2Rai(artifactId : String, version : String) = {
-	 	  RemoteApiInfo.findApiOf(artifactId, version).flatMap { rai =>
-	 	 	rai.provider match {
-	 	 		case VScaladoc2 => Full(rai)
-	 	 		case _ => Failure("data could only be merge from VScaladoc2 source : " + uoa + " is in format " + rai.provider + " located at " + rai.baseUrl)
-	 	 	}
-	 	  }
-	  }
-	  uoa match {
-	    case Uoa4Artifact(artifactId, version) => {
-	      for (
-	        rai <- vscaladoc2Rai(artifactId, version);
-	        rpath <- rai.provider.rurlPathOf()
-	      ) yield new URI(rai.baseUrl.toString + rpath)
-	    }
-	    case Uoa4Package(packageName, Uoa4Artifact(artifactId, version)) => {
-	      for (
-	        rai <- vscaladoc2Rai(artifactId, version);
-	        rpath <- rai.provider.rurlPathOf(packageName)
-	      ) yield new URI(rai.baseUrl.toString + rpath)
-	    }
-	    case Uoa4Type(typeName, Uoa4Package(packageName, Uoa4Artifact(artifactId, version))) => {
-	      for (
-	        rai <- vscaladoc2Rai(artifactId, version);
-	        rpath <- rai.provider.rurlPathOf(packageName, typeName)
-	      ) yield new URI(rai.baseUrl.toString + rpath)
-	    }
-	    case Uoa4Fieldext(fieldextName, Uoa4Type(typeName, Uoa4Package(packageName, Uoa4Artifact(artifactId, version)))) => {
-	      for (
-	        rai <- vscaladoc2Rai(artifactId, version);
-	        rpath <- rai.provider.rurlPathOf(packageName, typeName, fieldextName)
-	      ) yield new URI(rai.baseUrl.toString + rpath)
-	    }
-	  }
+      def vscaladoc2Rai(artifactId : String, version : String) = {
+          RemoteApiInfo.findApiOf(artifactId, version).flatMap { rai =>
+            rai.provider match {
+                case VScaladoc2 => Full(rai)
+                case _ => Failure("data could only be merge from VScaladoc2 source : " + uoa + " is in format " + rai.provider + " located at " + rai.baseUrl)
+            }
+          }
+      }
+      uoa match {
+        case Uoa4Artifact(artifactId, version) => {
+          for (
+            rai <- vscaladoc2Rai(artifactId, version);
+            rpath <- rai.provider.rurlPathOf()
+          ) yield new URI(rai.baseUrl.toString + rpath)
+        }
+        case Uoa4Package(packageName, Uoa4Artifact(artifactId, version)) => {
+          for (
+            rai <- vscaladoc2Rai(artifactId, version);
+            rpath <- rai.provider.rurlPathOf(packageName)
+          ) yield new URI(rai.baseUrl.toString + rpath)
+        }
+        case Uoa4Type(typeName, Uoa4Package(packageName, Uoa4Artifact(artifactId, version))) => {
+          for (
+            rai <- vscaladoc2Rai(artifactId, version);
+            rpath <- rai.provider.rurlPathOf(packageName, typeName)
+          ) yield new URI(rai.baseUrl.toString + rpath)
+        }
+        case Uoa4Fieldext(fieldextName, Uoa4Type(typeName, Uoa4Package(packageName, Uoa4Artifact(artifactId, version)))) => {
+          for (
+            rai <- vscaladoc2Rai(artifactId, version);
+            rpath <- rai.provider.rurlPathOf(packageName, typeName, fieldextName)
+          ) yield new URI(rai.baseUrl.toString + rpath)
+        }
+      }
+  }
+
+  private def toLocalFile(rpath : String) : File = new File(localApisDir, rpath)
+
+  private def toLocalFile(uoa: Uoa): Box[File] = {
+      import net_alchim31_vscaladoc2_www.model.VScaladoc2
+      val rpath = uoa match {
+        case Uoa4Artifact(artifactId, version) => {
+          for (
+            rpath <- VScaladoc2.rurlPathOf()
+          ) yield artifactId + "/" + version + rpath
+        }
+        case Uoa4Package(packageName, Uoa4Artifact(artifactId, version)) => {
+          for (
+            rpath <- VScaladoc2.rurlPathOf(packageName)
+          ) yield artifactId + "/" + version + rpath
+        }
+        case Uoa4Type(typeName, Uoa4Package(packageName, Uoa4Artifact(artifactId, version))) => {
+          for (
+            rpath <- VScaladoc2.rurlPathOf(packageName, typeName)
+          ) yield artifactId + "/" + version + rpath
+        }
+        case Uoa4Fieldext(fieldextName, Uoa4Type(typeName, Uoa4Package(packageName, Uoa4Artifact(artifactId, version)))) => {
+          for (
+            rpath <- VScaladoc2.rurlPathOf(packageName, typeName, fieldextName)
+          ) yield artifactId + "/" + version + rpath
+        }
+      }
+      rpath.map( x => toLocalFile(x))
   }
 }

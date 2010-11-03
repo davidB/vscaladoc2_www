@@ -265,6 +265,48 @@ class FileSystemHelper {
     count
   }
 
+  def toString(file : File) : String = toString(file, "UTF-8")
+
+  def toString(file : File, encoding : String) : String = toString(new FileInputStream(file), encoding)
+
+  def toString(stream : InputStream, encoding : String) : String = {
+    import java.io.InputStreamReader
+    using(new InputStreamReader(stream, encoding)) { in =>
+      toString(in)
+    }
+  }
+
+  def toString(in : Reader) : String = {
+    val out = new java.io.StringWriter()
+    copy(in, out)
+    out.toString()
+  }
+
+  def toFile(file : File, text : String) : Unit = toFile(file, text, "UTF-8")
+
+  def toFile(file : File, text : String, encoding : String) : Unit = {
+    import java.io.OutputStreamWriter
+    using(new OutputStreamWriter(new FileOutputStream(file), encoding)) { out =>
+      toFile(out, text)
+    }
+  }
+
+  def toFile(out : Writer, text : String) {
+    val in = new java.io.StringReader(text)
+    copy(in, out)
+  }
+
+
+  def toFile(file : File, data : Array[Byte]) {
+    import java.io.ByteArrayInputStream
+
+    using(new ByteArrayInputStream(data)) {in =>
+      using(new FileOutputStream(file)) { out =>
+        copy(in, out)
+      }
+    }
+  }
+
   def using[A, R <: Closeable](r : R)(f : R => A) : A = {
     try {
       f(r)
