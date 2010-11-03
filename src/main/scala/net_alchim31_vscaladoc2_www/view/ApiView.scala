@@ -1,4 +1,5 @@
 package net_alchim31_vscaladoc2_www.view
+import net_alchim31_utils.FileSystemHelper
 
 import java.io.FileNotFoundException
 import java.io.File
@@ -39,10 +40,11 @@ object ApiView extends Loggable {
     rootdir
   }
 
+  private lazy val _fsh = new FileSystemHelper() 
   private lazy val _uoaHelper = new UoaHelper()
   private lazy val _lafHelper = new Helper4Laf(new URI(S.contextPath + "/"), _uoaHelper)
-  private lazy val _rdti = new RawDataToInfo(new BasicRawDataProvider(workdir), _uoaHelper)
-  private lazy val _lafProvider = new LafProvider(workdir, _lafHelper, _rdti)
+  private lazy val _rdti = new RawDataToInfo(new BasicRawDataProvider(_fsh, workdir), _uoaHelper)
+  private lazy val _lafProvider = new LafProvider(workdir, _lafHelper, _rdti, _fsh)
   private lazy val _entityDisplayer: Box[EntityDisplayer] = _lafProvider.newEntityDisplayer("entity0") //new EntityDisplayer4Debug()
   private lazy val _navigatorDisplayer: Box[NavigatorDisplayer] = _lafProvider.newNavigatorDisplayer("navigator0") //new EntityDisplayer4Debug()
 
