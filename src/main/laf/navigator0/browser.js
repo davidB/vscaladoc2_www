@@ -1,3 +1,4 @@
+//TODO clean and refactor (reduce number of non-function variable)
 // manage user Options
 /*
 var cfg = {
@@ -78,7 +79,7 @@ var updateClassesDisplayNow = function(callId, requestAtTime) {
     var startAtTime = (new Date).getTime()
     var data = jQuery.grep( dataAll, function(n, i){
       return (callId == callCnt)
-        && ((filter4Packages.length == 0) || (jQuery.inArray(n.pkg, filter4Packages) != -1))
+        && ((filter4Packages.length == 0) || ( filter4Packages.indexOf(n.pkg) != -1))
         && ((filter4NameRE == null) || filter4NameRE.test(n.label));
     });
     var filterEndAt = (new Date).getTime();
@@ -93,27 +94,41 @@ var updateClassesDisplayNow = function(callId, requestAtTime) {
 };
 
 var dataAll = [];
-var templateOrig = null;
-var containerSelector = null;
+var templateNameOrig = null;
+var containerSelectorOrig = null;
 
-var displayTypes = function(data, templateName, containerSelector) {
-  if (dataAll.length == 0) {
-    dataAll = data;
-    templateOrig = templateName;
-    containerSelectorOrig = containerSelector;
+var initDisplayTypes = function(data, templateName, containerSelector) {
+   dataAll = data;
+   templateNameOrig = templateName
+   containerSelectorOrig = containerSelector;
+};
+
+var displayTypes = function(data) {
+  if (data == null) {
+    data = dataAll;
   }
-  if (templateName == null) {
-    templateName = templateOrig;
+  if (data != [] && templateNameOrig != null && containerSelectorOrig != null) {
+    $(containerSelectorOrig).empty();
+    displayOffset = 0;
+    displayData = data;
+    // use a setTimeout instead of calling tmpl on every data in one shoot to avoid "stack space exhausted" on firefox
+    setTimeout("displayTypesFrag()", 1);
+//    $.tmpl(templateName, data ).appendTo( containerSelector );
+//    $(containerSelector).fadeIn( "medium" );
   }
-  if (containerSelector == null) {
-    containerSelector = containerSelectorOrig;
+};
+
+var displayData = [];
+var displayOffset = 0;
+var displayTypesFrag = function() {
+  var d = displayData.slice(displayOffset, displayOffset+100);
+  //console.log(" d :" + displayOffset + " // " + d.length + " //  " +displayData.length);
+  displayOffset = displayOffset +101;
+  $.tmpl(templateNameOrig, d).appendTo( containerSelectorOrig );
+  if (displayOffset <= displayData.length) {
+    setTimeout(displayTypesFrag, 1);
   }
-  if (data != [] && templateName != null && containerSelector != null) {
-    $(containerSelector).empty();
-    $.tmpl(templateName, data ).appendTo( containerSelector );
-    $(containerSelector).fadeIn( "medium" );
-  }
-}
+};
 
 $(document).ready(function(){
         $("#packagesFilter")
