@@ -32,11 +32,11 @@ class JsonSpecTest extends Specification with JUnit /*with ScalaCheck*/ {
     "read allow " in {
       val uoaHelper = new UoaHelper()
       val rdp : RawDataProvider = new MyDataProvider(uoaHelper)
-      val rdti : RawDataToInfo = new RawDataToInfo(rdp, uoaHelper)
+      val rdti : InfoDataProvider = new InfoDataProvider0(rdp, uoaHelper)
       uoaHelper("vscaladoc_demoprj/0.1-SNAPSHOT").map(x => rdp.find(x)) must_!= Empty
       uoaHelper("vscaladoc_demoprj/0.1-SNAPSHOT/_root_").map(x => rdp.find(x)) must_!= Empty
-      for (uoa <- uoaHelper("vscaladoc_demoprj/0.1-SNAPSHOT/_root_")) {
-        val l = rdti.findAllTypes(uoa.asInstanceOf[Uoa4Package])
+      for (uoa <- uoaHelper("vscaladoc_demoprj/0.1-SNAPSHOT")) {
+        val l = rdti.findAllTypes(uoa.asInstanceOf[Uoa4Artifact])
         l.foreach { println }
         l must_!= Nil
       }

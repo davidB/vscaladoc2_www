@@ -111,30 +111,22 @@ class Helper4Laf(baseUrl: URI, uoaHelper: UoaHelper) extends Helper {
   }
 }
 
-class NavigatorDisplayer4Laf(helper: Helper, val rdti: RawDataToInfo, tmplDir: File) extends ScalateDisplayer(helper, tmplDir) with NavigatorDisplayer {
+class NavigatorDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir: File) extends ScalateDisplayer(helper, tmplDir) with NavigatorDisplayer {
   def serveNavigator(rai: RemoteApiInfo, entityPath: List[String]): Box[LiftResponse] = renderHtml("/index.scaml") { context =>
-    Helpers.tryo {
-      context.attributes("artifact") = new ArtifactInfo() {
-        override def artifactId: String = rai.artifactId
-        override def version: String = rai.version
-      }
+    for ( artifact <- rdti.toArtifactInfo(Uoa4Artifact(rai.artifactId, rai.version))) yield {
+      context.attributes("artifact") =  artifact
       context.attributes("entityPath") = entityPath
       context
     }
   }
   def serveBrowser(rai: RemoteApiInfo, entityPath: List[String]): Box[LiftResponse] = renderHtml("/browser.scaml") { context =>
-    //TODO keep original failure from a List[Box[x]]
-    Helpers.tryo {
-      context.attributes("artifact") = new ArtifactInfo() {
-        override def artifactId: String = rai.artifactId
-        override def version: String = rai.version
-      }
+    for ( artifact <- rdti.toArtifactInfo(Uoa4Artifact(rai.artifactId, rai.version))) yield {
+      context.attributes("artifact") = artifact
       context.attributes("entityPath") = entityPath
       context.attributes("uoa4types") = {
-        val uaoArtifact = Uoa4Artifact(rai.artifactId, rai.version)
-        var b = rdti.findAllTypes(Uoa4Package("_root_", uaoArtifact)).map(_.open_!) //Nil.asInstanceOf[List[Uoa4Type]]
+        var b : List[Uoa4Type] = for(buoa <- rdti.findAllTypes(artifact.uoa); uoa <- buoa) yield uoa //Nil.asInstanceOf[List[Uoa4Type]]
         if (rai.artifactId.endsWith("_demoprj")) {
-          b = b ++ (for (i <- 0 until 3000) yield { Uoa4Type("ZFakeEntry_" + i, Uoa4Package("fake.package_" + i % 3, uaoArtifact)) })
+          b = b ++ (for (i <- 0 until 3000) yield { Uoa4Type("ZFakeEntry_" + i, Uoa4Package("fake.package_" + i % 3, artifact.uoa)) })
         }
         b
       }
@@ -144,7 +136,7 @@ class NavigatorDisplayer4Laf(helper: Helper, val rdti: RawDataToInfo, tmplDir: F
 
 }
 
-class EntityDisplayer4Laf(helper: Helper, val rdti: RawDataToInfo, tmplDir: File) extends ScalateDisplayer(helper, tmplDir) with EntityDisplayer {
+class EntityDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir: File) extends ScalateDisplayer(helper, tmplDir) with EntityDisplayer {
   def serveArtifacts(artifactId: String): Box[LiftResponse] = Full(NotImplementedResponse())
 
   def servePackage(uoa: Uoa4Package): Box[LiftResponse] = Full(NotImplementedResponse())
@@ -169,7 +161,7 @@ class EntityDisplayer4Laf(helper: Helper, val rdti: RawDataToInfo, tmplDir: File
 }
 
 import net_alchim31_utils.{ FileSystemHelper, ClasspathHelper }
-class LafProvider(cacheDir: File, helper: Helper, rdti: RawDataToInfo, fsh : FileSystemHelper) {
+class LafProvider(cacheDir: File, helper: Helper, rdti: InfoDataProvider, fsh : FileSystemHelper) {
 
   private val _ch = new ClasspathHelper()
 

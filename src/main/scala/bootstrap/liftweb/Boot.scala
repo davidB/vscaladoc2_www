@@ -58,7 +58,7 @@ class Boot extends Loggable {
 
     Schemifier.schemify(true, Schemifier.infoF _, User, RemoteApiInfo)
 
-    RemoteApiInfo.init()
+//    RemoteApiInfo.init()
 
     S.addAround(DB.buildLoanWrapper)
   }
@@ -88,6 +88,7 @@ class Boot extends Loggable {
     // lets add Scalate
     //    val scalateView = new ScalateView
     //    scalateView.register
+    ApiView.init()
     LiftRules.statelessDispatchTable.append(ApiView.dispatch)
 
     // make requests utf-8, html

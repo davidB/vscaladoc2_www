@@ -1,15 +1,15 @@
 package net_alchim31_vscaladoc2_www
 
-import net.liftweb.common.{ Box, Full, Empty, Failure }
-import net.liftweb.json.JsonAST.JObject
-import java.net.URI
-
 /**
  * Definition of all types (data and service) available from template
  *
  * @author david.bernard
  */
 object info {
+  import net.liftweb.common.{ Box, Full, Empty, Failure }
+  import net.liftweb.json.JsonAST.JObject
+  import java.net.URI
+
   type Scope = String
   type HtmlString = String
 
@@ -40,15 +40,17 @@ object info {
   }
 
   trait ArtifactInfo {
+    def uoa: Uoa4Artifact
     def groupId: String = ""
     def artifactId: String = ""
     def version: String = ""
+    def tags: String = ""
     def description: HtmlString = ""
     def logo : HtmlString = ""
     def license : HtmlString = ""
     def kind: ArtifactKind = ArtifactKind.Undef
-    def groups: List[ArtifactInfo] = Nil
-    def dependencies: List[(ArtifactInfo, Scope)] = Nil
+    def artifacts: List[Uoa4Artifact] = Nil
+    def dependencies: List[Uoa4Artifact] = Nil
     //def rawjson : Box[JObject] = Empty
   }
 
@@ -83,6 +85,7 @@ object info {
 
 class UoaHelper() {
   import info._
+  import net.liftweb.common.{ Box, Full, Empty, Failure }
 
   def apply(fragments : List[String]): Box[Uoa] = {
     fragments match {

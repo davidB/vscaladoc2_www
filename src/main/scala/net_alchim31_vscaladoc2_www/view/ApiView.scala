@@ -1,5 +1,5 @@
-package net_alchim31_vscaladoc2_www.view
-import net_alchim31_utils.FileSystemHelper
+package net_alchim31_vscaladoc2_www.view
+import net_alchim31_utils.FileSystemHelper
 
 import java.io.FileNotFoundException
 import java.io.File
@@ -12,7 +12,8 @@ import net_alchim31_vscaladoc2_www.EntityDisplayer4Laf
 import net_alchim31_vscaladoc2_www.EntityDisplayer4Debug
 import net_alchim31_vscaladoc2_www.EntityDisplayer
 import net_alchim31_vscaladoc2_www.BasicRawDataProvider
-import net_alchim31_vscaladoc2_www.RawDataToInfo
+import net_alchim31_vscaladoc2_www.{InfoDataProvider, InfoDataProvider0}
+import net_alchim31_vscaladoc2_www.ApiService
 import net_alchim31_vscaladoc2_www.UoaHelper
 import net_alchim31_vscaladoc2_www.info._
 import net_alchim31_vscaladoc2_www.model.Scaladoc
@@ -26,6 +27,7 @@ import net.liftweb.util.Helpers.tryo
 import _root_.net.liftweb.http._
 
 //TODO optimization : set expiration to never, use a cache, etag,... in front of request as content from a url should be immutable (for non SNAPSHOT version)
+//TODO use guice to manage construction (injection via setter to avoid circular dependencies)
 //TODO manage special version : latest, latest-snapshot
 object ApiView extends Loggable {
 
@@ -42,12 +44,17 @@ object ApiView extends Loggable {
 
   private lazy val _fsh = new FileSystemHelper() 
   private lazy val _uoaHelper = new UoaHelper()
+  private lazy val _apis = new ApiService({() => _rdti})
   private lazy val _lafHelper = new Helper4Laf(new URI(S.contextPath + "/"), _uoaHelper)
-  private lazy val _rdti = new RawDataToInfo(new BasicRawDataProvider(_fsh, workdir), _uoaHelper)
+  private lazy val _rdti : InfoDataProvider = new InfoDataProvider0(new BasicRawDataProvider(_fsh, workdir, _apis), _uoaHelper)
   private lazy val _lafProvider = new LafProvider(workdir, _lafHelper, _rdti, _fsh)
   private lazy val _entityDisplayer: Box[EntityDisplayer] = _lafProvider.newEntityDisplayer("entity0") //new EntityDisplayer4Debug()
   private lazy val _navigatorDisplayer: Box[NavigatorDisplayer] = _lafProvider.newNavigatorDisplayer("navigator0") //new EntityDisplayer4Debug()
 
+  def init() {
+    _apis.init()
+  }
+  
   val dispatch: LiftRules.DispatchPF = {
     case Req("navigator" :: "api" :: artifactId :: version :: entityPath, _, GetRequest) => () => failureConverter(serveEntity(artifactId, version, entityPath)(serveNavigator))
     case Req("navigator" :: "_browser" :: "api" :: artifactId :: version :: Nil, _, GetRequest) => () => failureConverter(serveEntity(artifactId, version, Nil)(serveBrowser))

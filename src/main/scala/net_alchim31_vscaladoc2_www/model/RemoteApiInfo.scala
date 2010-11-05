@@ -50,25 +50,6 @@ object RemoteApiInfo extends RemoteApiInfo with LongKeyedMetaMapper[RemoteApiInf
       case None => Failure("api for " + artifactId + "::" + version + " is not registered")
     }
   }
-
-  def init() {
-	if (RemoteApiInfo.find() == Empty){
- 	val data = List(
- 	    //("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("local:/vscaladoc_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
- 	    //("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("http://davidb.github.com/vscaladoc2_demoprj/vscaladoc2_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
- 	    ("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("http://alchim31.free.fr/apis/vscaladoc2_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
- 	    ("scala-library", "2.8.0", new URI("http://www.scala-lang.org/api/2.8.0"), ApiProviders.scaladoc2),
- 	    ("scala-library", "2.7.7", new URI("http://www.scala-lang.org/api/2.7.7"), ApiProviders.scaladoc)
-    ).foreach { x =>
- 		val v: RemoteApiInfo = RemoteApiInfo.create
- 		v.artifactId(x._1)
- 		v.version(x._2)
- 		v.url(x._3.toASCIIString)
- 		v.format(x._4)
- 		v.save
-	  }
-	}
-  }
 }
 
 class RemoteApiInfo extends LongKeyedMapper[RemoteApiInfo] with IdPK with CreatedUpdated {

@@ -21,12 +21,11 @@
       != logo
 
     %h2 Overview
-    %div(class="description")
+    %div(class="overview")
       != description
 
     %h2 Summary
-
-    %table(class="overview")
+    %table(class="summary")
       %tr
         %th groupId
         %td #{groupId}
@@ -44,12 +43,15 @@
         %td
           != license
 
-    %h2 Groups
-    %ul
-      -for (ai <- groups)
-        %li #{ai}
+    %h2 Sub-Artifacts
+    %ul(class="artifacts")
+      -for (uoa <- artifacts)
+        %li
+          %a(href={urlOf(uoa, "laf/api")}) #{labelOf(uoa)}
 
     %h2 Dependencies
-    %ul
-      -for ((ai, scope) <- dependencies)
-        %li #{ai} (#{scope})
+    %ul(class="dependencies")
+      -for (uoa <- dependencies)
+        %li
+          %a(href={urlOf(uoa, "laf/api")}) #{labelOf(uoa)}
+

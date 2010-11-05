@@ -9,7 +9,6 @@ import net.liftweb.util.Helpers
 import java.io.FileReader
 import java.net.URI
 import net.liftweb.json.JsonParser
-import net_alchim31_vscaladoc2_www.model.RemoteApiInfo
 import net_alchim31_vscaladoc2_www.info._
 import net.liftweb.common.{ Box, Full, Empty, Failure }
 import net.liftweb.json.JsonParser.parse
@@ -20,7 +19,75 @@ trait RawDataProvider {
   def find(uoa: Uoa): Box[JValue]
 }
 
-class RawDataToInfo(val rdp: RawDataProvider, val uoaHelper: UoaHelper) {
+trait InfoDataProvider {
+  def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo]
+  def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]]
+  def toFieldextInfo(uoa: Uoa4Fieldext): List[Box[FieldextInfo]]
+  def findAllTypes(uoa: Uoa4Artifact): List[Box[Uoa4Type]]
+}
+
+class ApiService(lazy_idp : () => InfoDataProvider) {
+  import net_alchim31_vscaladoc2_www.model.{RemoteApiInfo, ApiProviders, VScaladoc2} 
+
+  private lazy val idp = lazy_idp()
+  
+  def init() {
+    if (RemoteApiInfo.find() == Empty){
+    val data = List(
+        //("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("local:/"), ApiProviders.vscaladoc2),
+        //("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("http://davidb.github.com/vscaladoc2_demoprj/vscaladoc2_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
+        ("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("http://alchim31.free.fr/apis/vscaladoc2_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
+        ("scala-library", "2.8.0", new URI("http://www.scala-lang.org/api/2.8.0"), ApiProviders.scaladoc2),
+        ("scala-library", "2.7.7", new URI("http://www.scala-lang.org/api/2.7.7"), ApiProviders.scaladoc),
+        ("framework_2.8.0", "2.2-M1", new URI("local:/"), ApiProviders.vscaladoc2)
+    ).foreach { x =>
+        val v: RemoteApiInfo = RemoteApiInfo.create
+        v.artifactId(x._1)
+        v.version(x._2)
+        v.url(x._3.toASCIIString)
+        v.format(x._4)
+        register(v)
+      }
+    }
+  }
+  
+  def findApiOf(artifactId: String, version: String): Box[RemoteApiInfo] = RemoteApiInfo.findApiOf(artifactId, version)
+  def register(v : RemoteApiInfo) : List[Box[ArtifactInfo]]= {
+    // TODO check if the remote api is available or not
+    v.save
+    val bartifact = idp.toArtifactInfo(Uoa4Artifact(v.artifactId.is, v.version.is))
+    println("register : " + Uoa4Artifact(v.artifactId.is, v.version.is) + " => "+ bartifact)
+    val childrenRegistration : List[Box[ArtifactInfo]] = v.provider match {
+      case VScaladoc2 => {
+        val children = bartifact.map(_.artifacts).openOr(Nil)
+        println("children :" + children + " <- " + bartifact.map(_.artifacts.length))
+        children.flatMap { uoa =>
+          findApiOf(uoa.artifactId, uoa.version) match {
+            case x : Failure => {
+              // TODO check if Failure for not registered 
+              val v2: RemoteApiInfo = RemoteApiInfo.create
+              v2.artifactId(uoa.artifactId)
+              v2.version(uoa.version)
+              val url = v.url.is match {
+                case "local:/" => "local:/"
+                case x => x + "/../../" + uoa.artifactId + "/" + uoa.version
+              }
+              v2.url(url)
+              v2.format(v.format)
+              println("try to register :" + v2)
+              register(v2)
+            }
+            case _ => Nil //ignore
+          }
+        }
+      }
+      case _ => Nil
+    }
+    bartifact :: childrenRegistration  
+  }
+}
+
+class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) extends InfoDataProvider {
   implicit val formats = {
     //    val hints = new ShortTypeHints(classOf[StringWithRef] :: Nil) {
     //      override def serialize: PartialFunction[Any, JObject] = {
@@ -37,15 +104,8 @@ class RawDataToInfo(val rdp: RawDataProvider, val uoaHelper: UoaHelper) {
   }
 
   def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo] = {
-    for (jv <- rdp.find(uoa)) yield {
-      new ArtifactInfo() {
-        override val groupId = (jv \ "groupId").extract[String]
-        override val artifactId = (jv \ "artifactId").extract[String]
-        override val version = (jv \ "version").extract[String]
-        override val description = (jv \ "description").extract[String]
-        override val logo = (jv \ "logo").extract[String]
-        override val license = (jv \ "license").extract[String]
-      }
+    rdp.find(uoa).flatMap{ jv =>
+      Helpers.tryo { new ArtifactInfo4Json(uoa, jv.extract[json.ArtifactFile], uoaHelper) }
     }
   }
 
@@ -73,9 +133,28 @@ class RawDataToInfo(val rdp: RawDataProvider, val uoaHelper: UoaHelper) {
     }
   }
 
-  // provide one entry for object and trait/class (remove $object entry)
-  // TODO cache ?
-  def findAllTypes(uoa: Uoa4Package): List[Box[Uoa4Type]] = {
+  //TODO remove duplicate deep search (if 2 child have same non parent child)
+  private def findAllArtifacts(uoa: Uoa4Artifact, done : Set[Uoa4Artifact] = Set.empty): List[Box[ArtifactInfo]] = {
+    done.contains(uoa) match {
+      case true => Nil
+      case false => {
+        val bai = toArtifactInfo(uoa)
+        (bai :: bai.map(_.artifacts.flatMap{ x => findAllArtifacts(x,  done + uoa) }).openOr(Nil)).distinct
+      }
+    }
+  }
+
+  def findAllTypes(uoa: Uoa4Artifact): List[Box[Uoa4Type]] = {
+    val art = findAllArtifacts(uoa);
+    println("art :" + art)
+    art.flatMap( x => x match {
+      case f :Failure => List(f)
+      case Empty => Nil
+      case Full(x) => findAllTypes(Uoa4Package("_root_", x.uoa))
+    })
+  }
+  
+  private def findAllTypes(uoa: Uoa4Package): List[Box[Uoa4Type]] = {
     rdp.find(uoa) match {
       case x: Failure => List(x)
       case Empty => Nil
@@ -122,6 +201,18 @@ object json {
 
   type RawSplitStringWithRef = List[List[String]]
 
+  case class ArtifactFile(
+    artifactId : String,
+    version : String,
+    description : String,
+    groupId : Option[String],
+    logo : Option[String],
+    license : Option[String],
+    tags : Option[String],
+    artifacts : List[String],
+    dependencies : List[String]
+  )
+
   case class PkgFile(uoa: String, e: List[Pkg])
   case class Pkg(
     name: String,
@@ -158,7 +249,30 @@ object json {
     kind: String)
 }
 
-class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : RawDataToInfo) extends TypeInfo {
+//TODO provide converter to json to avoid intermediary type
+class ArtifactInfo4Json(val uoa: Uoa4Artifact, src: json.ArtifactFile, uoaHelper: UoaHelper) extends ArtifactInfo {
+  override def groupId = src.groupId.getOrElse("")
+  override def artifactId = src.artifactId
+  override def version = src.version
+  override def description = src.description
+  override def tags = src.tags.getOrElse("")
+  override def logo = src.logo.getOrElse("")
+  override def license = src.license.getOrElse("")
+  override val artifacts = src.artifacts.flatMap(x => uoaHelper(x)).map(_.asInstanceOf[Uoa4Artifact])
+  override val dependencies = src.dependencies.flatMap(x => uoaHelper(x)).map(_.asInstanceOf[Uoa4Artifact])
+  
+  override def equals(o : Any) = {
+    o match {
+      case x : ArtifactInfo => this.uoa == x.uoa
+      case _ => false
+    }
+  }
+  
+  override def hashCode() = uoa.hashCode
+
+}
+
+class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : InfoDataProvider0) extends TypeInfo {
 
   def isCaseClass: Boolean = src.parentType.exists(x => x.head == "Product")
   def simpleName: String = src.name
@@ -192,7 +306,7 @@ class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : RawDataToInfo) 
   def methods: List[Box[FieldextInfo]] = rdti.toListFieldext(src.methods)
 }
 
-class FieldextInfo4Json(val uoa: Uoa4Fieldext, val src: json.Fieldext, rdti : RawDataToInfo) extends FieldextInfo {
+class FieldextInfo4Json(val uoa: Uoa4Fieldext, val src: json.Fieldext, rdti : InfoDataProvider0) extends FieldextInfo {
 
   def simpleName: String = src.name
   def description: HtmlString = src.description.getOrElse("")
@@ -221,7 +335,7 @@ class FieldextInfo4Json(val uoa: Uoa4Fieldext, val src: json.Fieldext, rdti : Ra
 //TODO download archive, store in DB, unarchive in local FS cache
 //TODO Http is not multi-thread, may be used a pool
 //TODO simplify
-class BasicRawDataProvider(fs : FileSystemHelper, workdir : File) extends RawDataProvider {
+class BasicRawDataProvider(fs : FileSystemHelper, workdir : File, apis : ApiService) extends RawDataProvider {
   import dispatch._
   import Http._
 
@@ -232,7 +346,7 @@ class BasicRawDataProvider(fs : FileSystemHelper, workdir : File) extends RawDat
         Helpers.tryo{
           uri.getScheme match {
             case "file" => JsonParser.parse(new FileReader(uri.getPath))
-            case "local" => JsonParser.parse(new FileReader(toLocalFile(uri.getPath)))
+            case "local" => JsonParser.parse(new FileReader(toLocalFile(uoa).open_!))
             case "http" => JsonParser.parse(requestFromHttp(uoa, uri))
             case x => throw new MalformedURLException("scheme " + x + "is nor supported as source for api (" + uri +")" )
           }
@@ -272,7 +386,7 @@ class BasicRawDataProvider(fs : FileSystemHelper, workdir : File) extends RawDat
       import net_alchim31_vscaladoc2_www.model.VScaladoc2
 
       def vscaladoc2Rai(artifactId : String, version : String) = {
-          RemoteApiInfo.findApiOf(artifactId, version).flatMap { rai =>
+          apis.findApiOf(artifactId, version).flatMap { rai =>
             rai.provider match {
                 case VScaladoc2 => Full(rai)
                 case _ => Failure("data could only be merge from VScaladoc2 source : " + uoa + " is in format " + rai.provider + " located at " + rai.baseUrl)
