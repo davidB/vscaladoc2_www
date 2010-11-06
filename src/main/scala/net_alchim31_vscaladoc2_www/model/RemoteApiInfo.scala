@@ -59,7 +59,7 @@ class RemoteApiInfo extends LongKeyedMapper[RemoteApiInfo] with IdPK with Create
     object version extends MappedString(this, 25)
     object url extends MappedString(this, 150)
     object format extends MappedApiProvider(this)
-    //object createdBy extends LongMappedMapper(this, User)
+    object createdBy extends LongMappedMapper(this, User)
 
     def provider : ApiProvider = format.is.asInstanceOf[ApiProviders.MyValue].ap
 
