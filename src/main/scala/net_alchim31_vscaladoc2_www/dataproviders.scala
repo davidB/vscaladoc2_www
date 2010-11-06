@@ -37,9 +37,9 @@ class ApiService(lazy_idp : () => InfoDataProvider) {
         //("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("local:/"), ApiProviders.vscaladoc2),
         //("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("http://davidb.github.com/vscaladoc2_demoprj/vscaladoc2_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
         ("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("http://alchim31.free.fr/apis/vscaladoc2_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
+        //("framework_2.8.0", "2.2-M1", new URI("local:/"), ApiProviders.vscaladoc2)
         ("scala-library", "2.8.0", new URI("http://www.scala-lang.org/api/2.8.0"), ApiProviders.scaladoc2),
-        ("scala-library", "2.7.7", new URI("http://www.scala-lang.org/api/2.7.7"), ApiProviders.scaladoc),
-        ("framework_2.8.0", "2.2-M1", new URI("local:/"), ApiProviders.vscaladoc2)
+        ("scala-library", "2.7.7", new URI("http://www.scala-lang.org/api/2.7.7"), ApiProviders.scaladoc)
     ).foreach { x =>
         val v: RemoteApiInfo = RemoteApiInfo.create
         v.artifactId(x._1)
@@ -133,15 +133,24 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
     }
   }
 
-  //TODO remove duplicate deep search (if 2 child have same non parent child)
-  private def findAllArtifacts(uoa: Uoa4Artifact, done : Set[Uoa4Artifact] = Set.empty): List[Box[ArtifactInfo]] = {
-    done.contains(uoa) match {
-      case true => Nil
-      case false => {
-        val bai = toArtifactInfo(uoa)
-        (bai :: bai.map(_.artifacts.flatMap{ x => findAllArtifacts(x,  done + uoa) }).openOr(Nil)).distinct
+  /**
+   * find all artifacts from uoa (including uoa), recursivly, without duplicate.
+   * @param uoa root uoa to scan
+   * @return the list of result about ArtifactInfo searched
+   */
+  private def findAllArtifacts(uoa: Uoa4Artifact): List[Box[ArtifactInfo]] = {
+    // recursiv collect (manage cycle, avoid double deep search,....)
+    def collectRecursiv(uoa: Uoa4Artifact , done : (Set[Uoa4Artifact], List[Box[ArtifactInfo]])) : (Set[Uoa4Artifact], List[Box[ArtifactInfo]]) = {
+      done._1.contains(uoa) match {
+        case true => done
+        case false => {
+          val bai = toArtifactInfo(uoa)
+          val newDone = (done._1 + uoa, done._2 :+ bai)
+          bai.map(_.artifacts.foldLeft(newDone){ (result, u) => collectRecursiv(u,  result) }).openOr(newDone)
+        }
       }
     }
+    collectRecursiv(uoa, (Set.empty, Nil))._2
   }
 
   def findAllTypes(uoa: Uoa4Artifact): List[Box[Uoa4Type]] = {
