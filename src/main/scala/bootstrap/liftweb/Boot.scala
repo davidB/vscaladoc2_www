@@ -5,6 +5,7 @@ import javax.naming.Context
 import javax.naming.InitialContext
 import net.liftweb.mapper.MapperRules
 import net_alchim31_vscaladoc2_www.view.ApiView
+import net_alchim31_vscaladoc2_www.AppServices
 import _root_.net.liftweb.util._
 import _root_.net.liftweb.common._
 import _root_.net.liftweb.http._
@@ -23,7 +24,7 @@ import _root_.net_alchim31_vscaladoc2_www.model._
 class Boot extends Loggable {
   def boot {
     logger.debug("LogMode : DEBUG MODE ENABLED!")
-	logger.info("cfg : RunMode : " + Props.mode)
+    logger.info("cfg : RunMode : " + Props.mode)
     logger.info("cfg : user.home = "+ System.getProperty("user.home"))
 
 
@@ -38,7 +39,7 @@ class Boot extends Loggable {
   }
 
   private def configureRDBMS() {
-	DefaultConnectionIdentifier.jndiName = "jdbc/vscaladoc2"
+    DefaultConnectionIdentifier.jndiName = "jdbc/vscaladoc2"
     if (!DB.jndiJdbcConnAvailable_?) {
       val vendor =
         new StandardDBVendor(
@@ -68,10 +69,10 @@ class Boot extends Loggable {
     val MustBeLoggedIn = If(() => User.loggedIn_?, "")
     val IsAdmin = If(() => { val b = User.currentUser.map( _.id.is <= 1).getOrElse(false); println("check", b, User.currentUser.map( _.id.is)); b } , "")
     def sitemap() = List(
-    		Menu("Home") / "index",
+            Menu("Home") / "index",
             Menu("Legal") / "legal" / ** >> Hidden,
-    		Menu("Admin") / "admin" / "index" >> IsAdmin
-    		  submenus(RemoteApiInfo.menus : _*)
+            Menu("Admin") / "admin" / "index" >> IsAdmin
+              submenus(RemoteApiInfo.menus : _*)
 //      // Menu with special Link
 //      Menu(Loc("Static", Link(List("static"), true, "/static/index"),
 //        "Static Content")) ::
@@ -88,7 +89,7 @@ class Boot extends Loggable {
     // lets add Scalate
     //    val scalateView = new ScalateView
     //    scalateView.register
-    ApiView.init()
+    AppServices.init()
     LiftRules.statelessDispatchTable.append(ApiView.dispatch)
 
     // make requests utf-8, html
