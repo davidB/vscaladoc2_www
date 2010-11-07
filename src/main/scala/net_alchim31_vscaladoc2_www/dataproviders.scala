@@ -203,7 +203,9 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
     b.flatten
   }
 
-
+  def toDocTags(l : List[(String, List[String], Option[String])]) : Seq[DocTag] = {
+    l.map{ e => DocTag4Json(e._1, e._2, e._3) }
+  }
 }
 
 object json {
@@ -227,6 +229,7 @@ object json {
     name: String,
     qualifiedName: String,
     description: Option[String],
+    docTags : List[(String, List[String], Option[String])],
     templates: List[String],
     packages: List[String])
   case class TpeFile(uoa: String, e: List[Tpe])
@@ -234,6 +237,7 @@ object json {
     name: String,
     qualifiedName: String,
     description: Option[String],
+    docTags : List[(String, List[String], Option[String])],
     visibility: RawSplitStringWithRef,
     //resultType: RawSplitStringWithRef, // [ "DemoB", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo2/DemoB" ] ],
     //    sourceStartPoint : List[AnyRef], //[ "/home/dwayne/work/oss/vscaladoc2_demoprj/src/main/scala/itest/demo2/DemoB.scala", 6 ],
@@ -251,6 +255,7 @@ object json {
     name: String,
     qualifiedName: String,
     description: Option[String],
+    docTags : List[(String, List[String], Option[String])],
     visibility: RawSplitStringWithRef,
     resultType: RawSplitStringWithRef,
     valueParams: RawSplitStringWithRef,
@@ -280,13 +285,13 @@ class ArtifactInfo4Json(val uoa: Uoa4Artifact, src: json.ArtifactFile, uoaHelper
   override def hashCode() = uoa.hashCode
 
 }
-
+case class DocTag4Json(name : String, override val bodies : List[String], override val variant : Option[String]) extends DocTag
 class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : InfoDataProvider0) extends TypeInfo {
 
   def isCaseClass: Boolean = src.parentType.exists(x => x.head == "Product")
   def simpleName: String = src.name
   def description: HtmlString = src.description.getOrElse("")
-  def docTags: Seq[DocTag] = Nil
+  val docTags: Seq[DocTag] = rdti.toDocTags(src.docTags)
   def source: Option[URI] = None //for (file <- src.sourceStartPoint.headOption ; line <- src.sourceStartPoint.tail.headOption) yield {new URI("src://" + file + "#" + line) }
   def kind: String = src.kind
   def isInherited(m: FieldextInfo) = m.uoa.uoaType != uoa
