@@ -77,7 +77,7 @@ object info {
   }
 
   trait DocTag {
-    def name : String
+    def key : String
     def variant : Option[String] = None
     def bodies : List[String] = Nil
   }

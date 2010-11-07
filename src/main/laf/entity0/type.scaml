@@ -18,6 +18,15 @@
     != l2.mkString
 
 - var failuresIdx = 0
+- def displayDocTags(docTags : Seq[DocTag]) =
+  - if (!docTags.isEmpty)
+    %dl
+      - for (docTag <- docTags)
+        %dt= docTag.key
+        %dd
+          %code= docTag.variant.getOrElse("")
+          != docTag.bodies.mkString("<br/>")
+
 - def displayFieldexts(tpe : TypeInfo, kind: String, l : List[Box[FieldextInfo]], label : String) =
   - if (!l.isEmpty)
     %h3(style="cursor: help;" onClick={"$('#"+ kind +"_" + label +"').toggle()"}) #{label}
@@ -35,14 +44,7 @@
           =stringWithTypeRef(entry.signature, entry.simpleName)
           %div(class="apiComments")
             != entry.description
-            - if (!entry.docTags.isEmpty)
-              %dl
-                - for (docTag <- entry.docTags)
-                  %dt= docTag.label
-                  %dd
-                    %code= docTag.key
-                    != docTag.body
-
+            - displayDocTags(entry.docTags) 
 %html
   %head
     %title API : #{labelOf(tpe0.uoa.uoaPackage.uoaArtifact)} / #{labelOf(tpe0.uoa.uoaPackage)} / #{labelOf(tpe0.uoa)}
@@ -80,13 +82,7 @@
           %br
           %div(class="apiComments")
             != description
-            - if (!docTags.isEmpty)
-              %dl
-                - for (docTag <- docTags)
-                  %dt= docTag.label
-                  %dd
-                    %code= docTag.key
-                    != docTag.body
+            - displayDocTags(docTags)
 
         - displayFieldexts(tpe, kind, constructors, "Constructors")
         - displayFieldexts(tpe, kind, fields, "Fields")

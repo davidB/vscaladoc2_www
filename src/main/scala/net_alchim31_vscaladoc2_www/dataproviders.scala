@@ -27,7 +27,7 @@ trait InfoDataProvider {
 }
 
 class ApiService(lazy_idp : () => InfoDataProvider) {
-  import net_alchim31_vscaladoc2_www.model.{RemoteApiInfo, ApiProviders, VScaladoc2} 
+  import net_alchim31_vscaladoc2_www.model.{RemoteApiInfo, ApiProviders, VScaladoc2}
 
   private lazy val idp = lazy_idp()
   
@@ -224,12 +224,13 @@ object json {
     dependencies : List[String]
   )
 
+  case class DocTag(k : String, b : List[String], v : Option[String])
   case class PkgFile(uoa: String, e: List[Pkg])
   case class Pkg(
     name: String,
     qualifiedName: String,
     description: Option[String],
-    docTags : List[(String, List[String], Option[String])],
+    docTags : List[DocTag],
     templates: List[String],
     packages: List[String])
   case class TpeFile(uoa: String, e: List[Tpe])
@@ -237,7 +238,7 @@ object json {
     name: String,
     qualifiedName: String,
     description: Option[String],
-    docTags : List[(String, List[String], Option[String])],
+    docTags : List[DocTag],
     visibility: RawSplitStringWithRef,
     //resultType: RawSplitStringWithRef, // [ "DemoB", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo2/DemoB" ] ],
     //    sourceStartPoint : List[AnyRef], //[ "/home/dwayne/work/oss/vscaladoc2_demoprj/src/main/scala/itest/demo2/DemoB.scala", 6 ],
@@ -255,7 +256,7 @@ object json {
     name: String,
     qualifiedName: String,
     description: Option[String],
-    docTags : List[(String, List[String], Option[String])],
+    docTags : List[DocTag],
     visibility: RawSplitStringWithRef,
     resultType: RawSplitStringWithRef,
     valueParams: RawSplitStringWithRef,
@@ -285,13 +286,17 @@ class ArtifactInfo4Json(val uoa: Uoa4Artifact, src: json.ArtifactFile, uoaHelper
   override def hashCode() = uoa.hashCode
 
 }
-case class DocTag4Json(name : String, override val bodies : List[String], override val variant : Option[String]) extends DocTag
+
+case class DocTag4Json(key : String, override val bodies : List[String], override val variant : Option[String]) extends DocTag {
+  def this(src : json.DocTag) = this(src.k, src.b, src.v)
+}
+
 class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : InfoDataProvider0) extends TypeInfo {
 
   def isCaseClass: Boolean = src.parentType.exists(x => x.head == "Product")
   def simpleName: String = src.name
   def description: HtmlString = src.description.getOrElse("")
-  val docTags: Seq[DocTag] = rdti.toDocTags(src.docTags)
+  val docTags: Seq[DocTag] = src.docTags.map(x => new DocTag4Json(x))
   def source: Option[URI] = None //for (file <- src.sourceStartPoint.headOption ; line <- src.sourceStartPoint.tail.headOption) yield {new URI("src://" + file + "#" + line) }
   def kind: String = src.kind
   def isInherited(m: FieldextInfo) = m.uoa.uoaType != uoa
@@ -324,7 +329,7 @@ class FieldextInfo4Json(val uoa: Uoa4Fieldext, val src: json.Fieldext, rdti : In
 
   def simpleName: String = src.name
   def description: HtmlString = src.description.getOrElse("")
-  def docTags: Seq[DocTag] = Nil
+  def docTags: Seq[DocTag] = src.docTags.map(x => new DocTag4Json(x))
   def source: Option[URI] = None //for (file <- src.sourceStartPoint.headOption ; line <- src.sourceStartPoint.tail.headOption) yield {new URI("src://" + file + "#" + line) }
   def kind: String = src.kind
   def signature: List[StringWithTypeRef] = {
