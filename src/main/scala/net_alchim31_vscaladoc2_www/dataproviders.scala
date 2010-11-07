@@ -10,7 +10,7 @@ import java.io.FileReader
 import java.net.URI
 import net.liftweb.json.JsonParser
 import net_alchim31_vscaladoc2_www.info._
-import net.liftweb.common.{ Box, Full, Empty, Failure }
+import net.liftweb.common.{ Box, Full, Empty, Failure, Loggable }
 import net.liftweb.json.JsonParser.parse
 import net.liftweb.json.JsonAST._
 
@@ -52,6 +52,7 @@ class ApiService(lazy_idp : () => InfoDataProvider) {
   }
   
   def findApiOf(artifactId: String, version: String): Box[RemoteApiInfo] = RemoteApiInfo.findApiOf(artifactId, version)
+
   def register(v : RemoteApiInfo) : List[Box[ArtifactInfo]]= {
     // TODO check if the remote api is available or not
     v.save
@@ -108,7 +109,6 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
       Helpers.tryo { new ArtifactInfo4Json(uoa, jv.extract[json.ArtifactFile], uoaHelper) }
     }
   }
-
 
   def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]] = {
     rdp.find(uoa) match {
@@ -190,6 +190,7 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
     case None => Empty
     case Some(v) => uoaHelper(v)
   }
+  
   def toListSWTR(s: List[List[String]]): List[StringWithTypeRef] = s.map(x => StringWithTypeRef(x.head, toBoxUoa(x.tail.headOption)))
 
   def toListFieldext(s : List[String]) : List[Box[FieldextInfo]] = {
@@ -354,7 +355,7 @@ class FieldextInfo4Json(val uoa: Uoa4Fieldext, val src: json.Fieldext, rdti : In
 //TODO download archive, store in DB, unarchive in local FS cache
 //TODO Http is not multi-thread, may be used a pool
 //TODO simplify
-class BasicRawDataProvider(fs : FileSystemHelper, workdir : File, apis : ApiService) extends RawDataProvider {
+class RawDataProvider0(workdir : File, apis : ApiService, uoaHelper : UoaHelper) extends RawDataProvider {
   import dispatch._
   import Http._
 
@@ -366,83 +367,56 @@ class BasicRawDataProvider(fs : FileSystemHelper, workdir : File, apis : ApiServ
           uri.getScheme match {
             case "file" => JsonParser.parse(new FileReader(uri.getPath))
             case "local" => JsonParser.parse(new FileReader(toLocalFile(uoa).open_!))
-            case "http" => JsonParser.parse(requestFromHttp(uoa, uri))
+            case "http" => new Http()(new Request(uri.toString) >- { s => JsonParser.parse(s)})
             case x => throw new MalformedURLException("scheme " + x + "is nor supported as source for api (" + uri +")" )
           }
         }
     }
   }
 
-  /**
-   * search from local base (use as cache), if missed then do remote request and store result in cache.
-   * 
-   * @param uoa
-   * @param uri
-   * @return
-   */
-  private def requestFromHttp(uoa : Uoa, uri : URI) : String = {
-    toLocalFile(uoa).map { f =>
-      if (f.exists) {
-        fs.toString(f)
-      } else {
-        new Http()(new Request(uri.toString) >- { s =>
-          val dir = f.getParentFile  
-          if (dir.exists || dir.mkdirs()) {   
-            fs.toFile(f, s)
-          }
-          s 
-        })
+  protected def vscaladoc2Rai(uoa : Uoa) = {
+    import net_alchim31_vscaladoc2_www.model.VScaladoc2
+    val art = uoaHelper.toUoa4Artifact(uoa)
+    apis.findApiOf(art.artifactId, art.version).flatMap { rai =>
+        rai.provider match {
+            case VScaladoc2 => Full(rai)
+            case _ => Failure("data could only be merge from VScaladoc2 source : " + uoa + " is in format " + rai.provider + " located at " + rai.baseUrl)
+        }
       }
-    } openOr {
-        new Http()(new Request(uri.toString) >- { s =>
-          s 
-        })
-    }
   }
-
-
-  private def toUrl(uoa: Uoa): Box[URI] = {
-      import net_alchim31_vscaladoc2_www.model.VScaladoc2
-
-      def vscaladoc2Rai(artifactId : String, version : String) = {
-          apis.findApiOf(artifactId, version).flatMap { rai =>
-            rai.provider match {
-                case VScaladoc2 => Full(rai)
-                case _ => Failure("data could only be merge from VScaladoc2 source : " + uoa + " is in format " + rai.provider + " located at " + rai.baseUrl)
-            }
-          }
-      }
+  
+  protected def toUrl(uoa: Uoa): Box[URI] = {
       uoa match {
         case Uoa4Artifact(artifactId, version) => {
           for (
-            rai <- vscaladoc2Rai(artifactId, version);
+            rai <- vscaladoc2Rai(uoa);
             rpath <- rai.provider.rurlPathOf()
           ) yield new URI(rai.baseUrl.toString + rpath)
         }
         case Uoa4Package(packageName, Uoa4Artifact(artifactId, version)) => {
           for (
-            rai <- vscaladoc2Rai(artifactId, version);
+            rai <- vscaladoc2Rai(uoa);
             rpath <- rai.provider.rurlPathOf(packageName)
           ) yield new URI(rai.baseUrl.toString + rpath)
         }
         case Uoa4Type(typeName, Uoa4Package(packageName, Uoa4Artifact(artifactId, version))) => {
           for (
-            rai <- vscaladoc2Rai(artifactId, version);
+            rai <- vscaladoc2Rai(uoa);
             rpath <- rai.provider.rurlPathOf(packageName, typeName)
           ) yield new URI(rai.baseUrl.toString + rpath)
         }
         case Uoa4Fieldext(fieldextName, Uoa4Type(typeName, Uoa4Package(packageName, Uoa4Artifact(artifactId, version)))) => {
           for (
-            rai <- vscaladoc2Rai(artifactId, version);
+            rai <- vscaladoc2Rai(uoa);
             rpath <- rai.provider.rurlPathOf(packageName, typeName, fieldextName)
           ) yield new URI(rai.baseUrl.toString + rpath)
         }
       }
   }
 
-  private def toLocalFile(rpath : String) : File = new File(localApisDir, rpath)
+  protected def toLocalFile(rpath : String) : File = new File(localApisDir, rpath).getCanonicalFile
 
-  private def toLocalFile(uoa: Uoa): Box[File] = {
+  protected def toLocalFile(uoa: Uoa): Box[File] = {
       import net_alchim31_vscaladoc2_www.model.VScaladoc2
       val rpath = uoa match {
         case Uoa4Artifact(artifactId, version) => {
@@ -469,3 +443,109 @@ class BasicRawDataProvider(fs : FileSystemHelper, workdir : File, apis : ApiServ
       rpath.map( x => toLocalFile(x))
   }
 }
+
+class RawDataProviderWithLocalFSCache(fs : FileSystemHelper, workdir : File, apis : ApiService, uoaHelper : UoaHelper) extends RawDataProvider0(workdir, apis, uoaHelper) with Loggable {
+  import dispatch._
+  import Http._
+  import net.liftweb.actor._
+  import java.io.FileOutputStream
+  
+  private lazy val _archiveDownloader = new ArchiveDownloader()
+  
+  override def find(uoa: Uoa): Box[JValue] = {
+    toUrl(uoa).flatMap { uri =>
+        Helpers.tryo{
+          uri.getScheme match {
+            case "file" => JsonParser.parse(new FileReader(uri.getPath))
+            case "local" => JsonParser.parse(new FileReader(toLocalFile(uoa).open_!))
+            case "http" => JsonParser.parse(requestFromHttp(uoa, uri))
+            case x => throw new MalformedURLException("scheme " + x + "is nor supported as source for api (" + uri +")" )
+          }
+        }
+    }
+  }
+
+  /**
+   * search from local base (use as cache), if missed then do remote request and store result in cache.
+   * 
+   * @param uoa
+   * @param uri
+   * @return
+   */
+  private def requestFromHttp(uoa : Uoa, uri : URI) : String = {
+    toLocalFile(uoa).map { f =>
+      if (f.exists) {
+        fs.toString(f)
+      } else {
+        val archive = localArchiveOf(uoa)
+        if (archive._2.exists) {
+          throw new Exception_UoaNotAvailable(uoa, "not in archives")
+        } else {
+          _archiveDownloader ! archive._1
+          new Http()(new Request(uri.toString) >- { s =>
+            val dir = f.getParentFile  
+            if (dir.exists || dir.mkdirs()) {   
+              fs.toFile(f, s)
+            }
+            s 
+          })
+        }
+      }
+    } openOr {
+        new Http()(new Request(uri.toString) as_str)
+    }
+  }
+  
+    
+  private def localArchiveOf(uoa : Uoa) : (Uoa4Artifact, File) = {
+    val artifact = uoaHelper.toUoa4Artifact(uoa)
+    (artifact, toLocalFile(rpathOfArchive(artifact)))
+  }
+
+  protected def rpathOfArchive(uoa : Uoa4Artifact) = uoa.artifactId + "/" + uoa.artifactId + "-apidoc.jar.gz" 
+  /**
+   * Using one actor to download in background and sequentially required archives of api
+   */
+  class ArchiveDownloader extends LiftActor {
+    protected def messageHandler = {
+      case artifact : Uoa4Artifact => {
+        val archiveRPath = rpathOfArchive(artifact)
+        val dest = toLocalFile(archiveRPath)
+        if (dest.exists) {
+          //already downloaded by previous request (probably done when file didn't exists)
+        } else {
+          val tmpdir = toLocalFile("tmp-downloading-" + System.currentTimeMillis)
+          val f = new File(tmpdir, archiveRPath)
+          f.getParentFile.mkdirs
+          // download to the final directory
+          val uri = vscaladoc2Rai(artifact) + "-apidoc.jar.gz"
+          fs.using(new FileOutputStream(f)) { is =>
+            new Http()(new Request(uri) >>> is)
+          }
+          // unarch
+          fs.unjar0gz(tmpdir, f)
+          //move only files related to the version
+          commit(tmpdir, toLocalFile("."), archiveRPath, (artifact.artifactId + "/" + artifact.version), (artifact.artifactId + "/" + artifact.version + "_.json"))
+        }
+      }
+      case _ => () //ignore
+    }
+    
+    private def commit(srcdir : File, destdir : File, filenames : String*) {
+      for (fname <- filenames) {
+        val dest = new File(destdir, fname)
+        if (dest.exists) {
+          fs.deleteRecursively(dest)
+        }
+        fs.move(new File(srcdir, fname), dest)
+      }
+      fs.deleteRecursively(srcdir)
+      if (srcdir.exists) {
+        logger.info("can't delete workingd dir : " + srcdir)
+      }
+    }
+  }
+  
+}
+
+class Exception_UoaNotAvailable(val uoa : Uoa, msg2 : String = "") extends Exception("not available ( " + msg2 + " ) : " + uoa)

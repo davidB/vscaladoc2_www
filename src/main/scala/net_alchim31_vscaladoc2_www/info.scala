@@ -105,4 +105,11 @@ class UoaHelper() {
     case Uoa4Type(typeName, uoaPackage) => toRefPath(uoaPackage) + "/" + typeName
     case Uoa4Fieldext(fieldextName, uoaType) => toRefPath(uoaType) + "/" + fieldextName
   }
+  
+  def toUoa4Artifact(uoa : Uoa) : Uoa4Artifact = uoa match {
+    case x : Uoa4Artifact => x
+    case Uoa4Package(packageName, uoaArtifact) => uoaArtifact
+    case Uoa4Type(typeName, uoaPackage) => uoaPackage.uoaArtifact
+    case Uoa4Fieldext(fieldextName, uoaType) => uoaType.uoaPackage.uoaArtifact
+  }
 }

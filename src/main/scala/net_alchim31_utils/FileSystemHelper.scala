@@ -1,5 +1,7 @@
 package net_alchim31_utils
 
+import java.util.zip.GZIPInputStream
+
 import net.liftweb.common.Empty
 import net.liftweb.util.Helpers
 import net.liftweb.common.Box
@@ -158,6 +160,8 @@ class FileSystemHelper {
     files
   }
 
+  def unjar0gz(dest : File, src : File) : Seq[File] = unjar(dest, new BufferedInputStream(new GZIPInputStream(new FileInputStream(src))))
+  
   def move(src : File, dest : File) {
     if (src.equals(dest)) return
     if (!src.exists) {
