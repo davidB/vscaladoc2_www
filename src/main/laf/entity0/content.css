@@ -1,10 +1,5 @@
 @import "reset.css";
 
-/* Javadoc style sheet */
-
-/* Define colors, fonts and other style attributes here to override the defaults  */
-
-/* Page background color */
 body {
    background-color: #FFFFFF;
    font-family: "Bitstream Vera Sans", "Arial", "Helvetica", sans-serif;
@@ -62,15 +57,17 @@ h3 {
     padding:0.2em;
 }
 
-
+dl {
+  clear : left;
+}
 dt {
-    font-size: 10pt;
-    color:#990000;
-    font-weight: bold;
+  color:#AAAAEE;
+  font-weight: bold;
+  float : left;
+  clear : left;
 }
 
 dd {
-    font-size:10pt;
     margin-top:4px;
     margin-bottom:4px;
 }
@@ -92,10 +89,14 @@ li, dd {
 }
 
 .isInherited {
-    background-color: #ede1e1;
+    border-left: 3px solid #ede1e1;
 }
 
-.isDeprecated td.name {
+.notInherited {
+    border-left: 3px solid #fff;
+}
+
+.isDeprecated .signature {
     text-decoration: line-through;
 }
 .apiComments {
@@ -103,6 +104,7 @@ li, dd {
     margin-bottom: .5em;
     margin-left: 2em;
     font-size: 80%;
+    font-style: italic;
 }
 
 #intro .apiComments {
@@ -111,6 +113,19 @@ li, dd {
 
 code, .signature {
   font-family: "Inconsolata", "Bitstream Vera Sans Mono", monospace;
+  font-style: normal;
+}
+
+.signature b {
+  color: #111;
+}
+.signature b {
+  color: #000;
+}
+
+.deprecationMsg {
+  border-left: 1px solid #EDEF7D;
+  padding-left : 1em;
 }
 
 pre, .codeAsDoc {
@@ -118,10 +133,35 @@ pre, .codeAsDoc {
     font-family: "Inconsolata", "Bitstream Vera Sans Mono", monospace;
     border: dashed 1px #909090;
     padding: 5px;
+    font-style: normal;
 }
 
 .failures {
   background :#EDEF7D;
-  border:1px solid #FFFF00;
+  border: 1px solid #FFFF0000;
   padding: 10px;
 }
+
+#logo {
+  float: right;
+}
+
+.overview h1, .overview h2, .overview h3 {
+ font-family: "Bitstream Vera Sans", "Arial", "Helvetica", sans-serif;
+ font-weight: bold;
+ text-align: left;
+ padding: 1em;
+ border: none;
+ background: #FFF;
+ color:#999999;
+}
+.overview h1 {
+  font-size : 125%;
+}
+.overview h2 {
+  font-size : 120%;
+}
+.overview h3 {
+  font-size : 110%;
+}
+

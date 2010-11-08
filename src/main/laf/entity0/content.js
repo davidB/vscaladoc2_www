@@ -4,7 +4,7 @@ var toggleInherited= function() {
   showInherited = !showInherited;
   $.cookie('showInherited', showInherited);
   updateInherited();
-}
+};
 
 var updateInherited = function() {
   $("input.filter_inherited_cb").each(function(){this.checked = showInherited});
@@ -13,20 +13,33 @@ var updateInherited = function() {
   } else {
       $("tr.isInherited").hide();
   }
-}
+};
+
+var logoMaxW=100;
+var logoMaxH=50;
+var imageResize = function(image) {
+  alert(image);
+  var h = image.height;
+  var w = image.width;
+  if ( h > logoMaxH ) {
+    w = Math.floor( w * logoMaxH / h );
+    h = logoMaxH;
+  }
+  if ( w > logoMaxW ) {
+    h = Math.floor( h * logoMaxW / w );
+    w = logoMaxW;
+  }
+  image.height = h;
+  image.width = w;
+};
 
 $(document).ready(function(){
   parent.document.title=document.title;
   showInherited = $.cookie('showInherited');
   updateInherited();
-  $("div.apiCommentsDetails").hide();
+  ${"#logo img").onload(resizeImage(this));
 });
 
-var selectPackage = function(name) {
-    if(parent.navFrame) {
-        parent.navFrame.selectPackage(name);
-    }
-}
 
 /**
  * Cookie plugin

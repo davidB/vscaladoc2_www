@@ -21,13 +21,21 @@
 - def displayDocTags(docTags : Seq[DocTag]) =
   - if (!docTags.isEmpty)
     %dl
-      - for (docTag <- docTags)
-        %dt= docTag.key
-        %dd
-          %code= docTag.variant.getOrElse("")
-          != docTag.bodies.mkString("<br/>")
+      - for ((k , subDocTags) <- docTags.groupBy(t => t.key) ; if k != "deprecated")
+        %dt= k
+        - for (docTag <- subDocTags)
+          %dd
+            %code= docTag.variant.map(x => x + " - ").getOrElse("")
+            != docTag.bodies.mkString("<br/>")
 
-- def displayFieldexts(tpe : TypeInfo, kind: String, l : List[Box[FieldextInfo]], label : String) =
+- def findDeprecation(docTags : Seq[DocTag]) =
+  - docTags.find{_.key == "deprecated"}.flatMap{ _.bodies.headOption }            
+
+- def displayFieldexts1(tpe : TypeInfo, kind: String, l : List[Uoa4Fieldext], label : String) =
+  - val l2 = l.filter(x => x.uoaType.typeName != "Any"  && x.uoaType.typeName != "AnyRef").flatMap(x => toFieldextInfo(x).asInstanceOf[List[Box[FieldextInfo]]]) 
+  - displayFieldexts0(tpe, kind, l2, label)
+
+- def displayFieldexts0(tpe : TypeInfo, kind: String, l : List[Box[FieldextInfo]], label : String) =
   - if (!l.isEmpty)
     %h3(style="cursor: help;" onClick={"$('#"+ kind +"_" + label +"').toggle()"}) #{label}
     %section(id={kind + "_" + label})
@@ -40,9 +48,13 @@
             - for (entry <- failures)
               %li #{entry}
       - for (entry <- ok.map(_.open_!).sortWith(_.simpleName < _.simpleName))
-        %div(class={if (tpe.isInherited(entry)) "isInherited" else ""})
+        -val deprecation = findDeprecation(entry.docTags)
+        %div(class={(if (tpe.isInherited(entry)) "isInherited" else "notInherited") + (if (!deprecation.isEmpty) " isDeprecated" else "")})
           =stringWithTypeRef(entry.signature, entry.simpleName)
           %div(class="apiComments")
+            -for (deprecationMsg <- deprecation)
+              %div(class="deprecationMsg")
+                != deprecationMsg
             != entry.description
             - displayDocTags(entry.docTags) 
 %html
@@ -55,14 +67,16 @@
     %link(href={urlOf("laf/_rsrc/content.css")} type="text/css" rel="stylesheet")
   %body
     %div(class="header")
-      %a(href={urlOf("")})
-        %img(src={urlOf("favicon.ico")})
-      %a(href={urlOf(tpe0.uoa.uoaPackage.uoaArtifact, "laf/api")}) #{labelOf(tpe0.uoa.uoaPackage.uoaArtifact)}
-      \/
-      %a(href={urlOf(tpe0.uoa.uoaPackage, "laf/api")}) #{labelOf(tpe0.uoa.uoaPackage)}
-      \/
-      %a(href={urlOf(tpe0.uoa, "laf/api")}) #{labelOf(tpe0.uoa)}
-      != logo
+      %div(id="path")
+        %a(href={urlOf("")})
+          %img(src={urlOf("favicon.ico")})
+        %a(href={urlOf(tpe0.uoa.uoaPackage.uoaArtifact, "laf/api")}) #{labelOf(tpe0.uoa.uoaPackage.uoaArtifact)}
+        \/
+        %a(href={urlOf(tpe0.uoa.uoaPackage, "laf/api")}) #{labelOf(tpe0.uoa.uoaPackage)}
+        \/
+        %a(href={urlOf(tpe0.uoa, "laf/api")}) #{labelOf(tpe0.uoa)}
+      %div(id="logo")
+        != logo
 
     %h1
       #{fqNameOf(tpe0.uoa)}
@@ -84,9 +98,9 @@
             != description
             - displayDocTags(docTags)
 
-        - displayFieldexts(tpe, kind, constructors, "Constructors")
-        - displayFieldexts(tpe, kind, fields, "Fields")
-        - displayFieldexts(tpe, kind, methods, "Methods")
+        - displayFieldexts0(tpe, kind, constructors, "Constructors")
+        - displayFieldexts1(tpe, kind, fields, "Fields")
+        - displayFieldexts1(tpe, kind, methods, "Methods")
 
     / ======== END OF BOTTOM NAVBAR =======
 
