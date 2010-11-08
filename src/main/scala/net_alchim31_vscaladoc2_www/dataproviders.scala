@@ -38,7 +38,7 @@ class ApiService(lazy_idp : () => InfoDataProvider) {
         //("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("http://davidb.github.com/vscaladoc2_demoprj/vscaladoc2_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
         ("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("http://alchim31.free.fr/apis/vscaladoc2_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
         //("framework_2.8.0", "2.2-M1", new URI("local:/"), ApiProviders.vscaladoc2)
-        ("scala-library", "2.8.0", new URI("http://www.scala-lang.org/api/2.8.0"), ApiProviders.scaladoc2),
+        ("scala-library", "2.8.0", new URI("http://alchim31.free.fr/apis/scala-library/2.8.0"), ApiProviders.vscaladoc2),
         ("scala-library", "2.7.7", new URI("http://www.scala-lang.org/api/2.7.7"), ApiProviders.scaladoc)
     ).foreach { x =>
         val v: RemoteApiInfo = RemoteApiInfo.create
@@ -218,6 +218,7 @@ object json {
     version : String,
     description : String,
     groupId : Option[String],
+    kind : Option[String],
     logo : Option[String],
     license : Option[String],
     tags : Option[String],
@@ -273,6 +274,7 @@ class ArtifactInfo4Json(val uoa: Uoa4Artifact, src: json.ArtifactFile, uoaHelper
   override def description = src.description
   override def tags = src.tags.getOrElse("")
   override def logo = src.logo.getOrElse("")
+  override def kind = src.kind.getOrElse("")
   override def license = src.license.getOrElse("")
   override val artifacts = src.artifacts.flatMap(x => uoaHelper(x)).map(_.asInstanceOf[Uoa4Artifact])
   override val dependencies = src.dependencies.flatMap(x => uoaHelper(x)).map(_.asInstanceOf[Uoa4Artifact])
@@ -502,7 +504,8 @@ class RawDataProviderWithLocalFSCache(fs : FileSystemHelper, workdir : File, api
     (artifact, toLocalFile(rpathOfArchive(artifact)))
   }
 
-  protected def rpathOfArchive(uoa : Uoa4Artifact) = uoa.artifactId + "/" + uoa.artifactId + "-apidoc.jar.gz" 
+  protected def rpathOfArchive(uoa : Uoa4Artifact) = uoa.artifactId + "/" + uoa.version+ "-apidoc.jar.gz"
+  
   /**
    * Using one actor to download in background and sequentially required archives of api
    */
@@ -518,14 +521,20 @@ class RawDataProviderWithLocalFSCache(fs : FileSystemHelper, workdir : File, api
           val f = new File(tmpdir, archiveRPath)
           f.getParentFile.mkdirs
           // download to the final directory
-          val uri = vscaladoc2Rai(artifact) + "-apidoc.jar.gz"
-          fs.using(new FileOutputStream(f)) { is =>
-            new Http()(new Request(uri) >>> is)
+          vscaladoc2Rai(artifact) match {
+            case Full(rai) => {
+              val uri = rai.baseUrl.toString + "-apidoc.jar.gz"
+              logger.info("download : " + uri)
+              fs.using(new FileOutputStream(f)) { is =>
+                new Http()(new Request(uri) >>> is)
+              }
+              // unarch
+              fs.unjar0gz(tmpdir, f)
+              //move only files related to the version
+              commit(tmpdir, toLocalFile("."), archiveRPath, (artifact.artifactId + "/" + artifact.version), (artifact.artifactId + "/" + artifact.version + "_.json"))
+            }
+            case _ => commit(tmpdir, toLocalFile("."))
           }
-          // unarch
-          fs.unjar0gz(tmpdir, f)
-          //move only files related to the version
-          commit(tmpdir, toLocalFile("."), archiveRPath, (artifact.artifactId + "/" + artifact.version), (artifact.artifactId + "/" + artifact.version + "_.json"))
         }
       }
       case _ => () //ignore
