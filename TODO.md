@@ -136,12 +136,16 @@ CHANGES :
   * rss feed : comments, new/update about api entry, news
   * support api registration by archive upload
   * if user try to access unknow api, provide a form to register the api
+  * generate Sitemap and submit updates to google [doc](http://www.google.com/support/webmasters/bin/answer.py?answer=183668)
+  
 ## inspirations (to review)
 
 * user's comments
   * http://www.scala-lang.org/node/7738
+  * http://www.scala-lang.org/node/7097
 * similar tools
   * doxygen
   * javadoc, scaladoc, extradoc
-  * http://jdocs.com , http://www.jdocs.com/httpclient/3.0.1/api-index.html?m=class&p=org.apache.commons.httpclient&c=ChunkedOutputStream&render=classic
-  * http://www.gotapi.com/contribute/index.html
+  * [JDocs](http://jdocs.com) , http://www.jdocs.com/httpclient/3.0.1/api-index.html?m=class&p=org.apache.commons.httpclient&c=ChunkedOutputStream&render=classic
+  * [gotAPI](http://www.gotapi.com/contribute/index.html)
+  * [colladoc](http://code.google.com/p/collaborative-scaladoc)
