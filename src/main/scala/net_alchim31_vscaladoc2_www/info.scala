@@ -12,7 +12,8 @@ object info {
 
   type Scope = String
   type HtmlString = String
-
+  type ArtifactKind = String
+  
   case class StringWithTypeRef(s: String, uoaType : Box[Uoa] = Empty)
 
   sealed trait Uoa
@@ -29,15 +30,15 @@ object info {
     def fqNameOf(v : Uoa) : String
   }
 
-  trait ArtifactKind
-  object ArtifactKind {
-    case object Undef extends ArtifactKind
-    case object Group extends ArtifactKind
-    case object Jar extends ArtifactKind
-    case class Plugin(platform: String) extends ArtifactKind
-    case object War extends ArtifactKind
-    case object OSGiBundle extends ArtifactKind
-  }
+//  trait ArtifactKind
+//  object ArtifactKind {
+//    case object Undef extends ArtifactKind
+//    case object Group extends ArtifactKind
+//    case object Jar extends ArtifactKind
+//    case class Plugin(platform: String) extends ArtifactKind
+//    case object War extends ArtifactKind
+//    case object OSGiBundle extends ArtifactKind
+//  }
 
   trait ArtifactInfo {
     def uoa: Uoa4Artifact
@@ -48,7 +49,7 @@ object info {
     def description: HtmlString = ""
     def logo : HtmlString = ""
     def license : HtmlString = ""
-    def kind: ArtifactKind = ArtifactKind.Undef
+    def kind: ArtifactKind = ""
     def artifacts: List[Uoa4Artifact] = Nil
     def dependencies: List[Uoa4Artifact] = Nil
     //def rawjson : Box[JObject] = Empty
