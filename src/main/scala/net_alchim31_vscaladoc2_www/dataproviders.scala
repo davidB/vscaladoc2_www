@@ -159,11 +159,11 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
     art.flatMap( x => x match {
       case f :Failure => List(f)
       case Empty => Nil
-      case Full(x) => findAllTypes(Uoa4Package("_root_", x.uoa))
+      case Full(x) => findAllInnerTypes(Uoa4Package("_root_", x.uoa))
     })
   }
   
-  private def findAllTypes(uoa: Uoa4Package): List[Box[Uoa4Type]] = {
+  private def findAllInnerTypes(uoa: Uoa4Package): List[Box[Uoa4Type]] = {
     rdp.find(uoa) match {
       case x: Failure => List(x)
       case Empty => Nil
@@ -174,8 +174,29 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
           uoaHelper(refPath) match {
             case Full(uoa) =>
               uoa match {
-                case u: Uoa4Package => findAllTypes(u)
-                case u: Uoa4Type => List(Full(u))
+                case u: Uoa4Package => findAllInnerTypes(u)
+                case u: Uoa4Type => Full(u) :: findAllInnerTypes(u)
+                case x => println("found :" + x); Nil //ignore
+              }
+            case x: Failure => List(x)
+            case Empty => List(Empty)
+          }
+        }
+      }
+    }
+  }
+  private def findAllInnerTypes(uoa: Uoa4Type): List[Box[Uoa4Type]] = {
+    rdp.find(uoa) match {
+      case x: Failure => List(x)
+      case Empty => Nil
+      case Full(jv) => {
+        val pkgFile = jv.extract[json.TpeFile]
+        //.map(x => if (excludeObjectSuffix) removeObjectSuffix(x) else x)
+        pkgFile.e.flatMap(_.templates).distinct.flatMap { refPath =>
+          uoaHelper(refPath) match {
+            case Full(uoa) =>
+              uoa match {
+                case u: Uoa4Type => Full(u) :: findAllInnerTypes(u)
                 case x => println("found :" + x); Nil //ignore
               }
             case x: Failure => List(x)
@@ -242,6 +263,7 @@ object json {
     description: Option[String],
     docTags : List[DocTag],
     visibility: RawSplitStringWithRef,
+    templates: List[String],
     //resultType: RawSplitStringWithRef, // [ "DemoB", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo2/DemoB" ] ],
     //    sourceStartPoint : List[AnyRef], //[ "/home/dwayne/work/oss/vscaladoc2_demoprj/src/main/scala/itest/demo2/DemoB.scala", 6 ],
     methods: List[String], //[ "scala-library/2.8.0/scala/AnyRef/emoB$hash$asInstanceOf", "scala-library/2.8.0/scala/AnyRef/emoB$hash$isInstanceOf", "scala-library/2.8.0/scala/AnyRef/emoB$hashsynchronized", "scala-library/2.8.0/scala/AnyRef/emoB$hashne", "scala-library/2.8.0/scala/AnyRef/emoB$hasheq", "scala-library/2.8.0/scala/AnyRef/emoB$hash$bang$eq", "scala-library/2.8.0/scala/AnyRef/emoB$hash$eq$eq", "scala-library/2.8.0/scala/AnyRef/emoB$hash$hash$hash", "scala-library/2.8.0/scala/AnyRef/emoB$hashfinalize", "scala-library/2.8.0/scala/AnyRef/emoB$hashwait", "scala-library/2.8.0/scala/AnyRef/emoB$hashwait", "scala-library/2.8.0/scala/AnyRef/emoB$hashwait", "scala-library/2.8.0/scala/AnyRef/emoB$hashnotifyAll", "scala-library/2.8.0/scala/AnyRef/emoB$hashnotify", "scala-library/2.8.0/scala/AnyRef/emoB$hashtoString", "scala-library/2.8.0/scala/AnyRef/emoB$hashclone", "scala-library/2.8.0/scala/AnyRef/emoB$hashequals", "scala-library/2.8.0/scala/AnyRef/emoB$hashhashCode", "scala-library/2.8.0/scala/AnyRef/emoB$hashgetClass", "scala-library/2.8.0/scala/Any/2.DemoB$hashasInstanceOf", "scala-library/2.8.0/scala/Any/2.DemoB$hashisInstanceOf", "scala-library/2.8.0/scala/Any/2.DemoB$hash$bang$eq", "scala-library/2.8.0/scala/Any/2.DemoB$hash$eq$eq" ],

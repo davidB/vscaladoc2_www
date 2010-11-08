@@ -99,7 +99,7 @@ class Helper4Laf(baseUrl: URI, uoaHelper: UoaHelper) extends Helper {
   def labelOf(uoa: Uoa): String = uoa match {
     case Uoa4Artifact(artifactId, version) => artifactId + "-" + version
     case Uoa4Package(packageName, uoaArtifact) => packageName
-    case Uoa4Type(typeName, uoaPackage) => NameTransformer.decode(typeName).split('.').reverse.head
+    case Uoa4Type(typeName, uoaPackage) => NameTransformer.decode(typeName)//.split('.').reverse.head
     case Uoa4Fieldext(fieldextName, uoaType) => fieldextName
   }
 
