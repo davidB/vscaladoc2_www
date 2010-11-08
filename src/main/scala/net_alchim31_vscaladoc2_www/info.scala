@@ -68,6 +68,15 @@ object info {
     def kind: String
   }
 
+  trait PackageInfo extends EntityInfo {
+    def uoa: Uoa4Package
+    def signature: List[StringWithTypeRef] = Nil
+    def kind: String = "package"
+    def source: Option[URI]
+    def packages: List[Uoa4Package]
+    def types: List[Uoa4Type]
+  }
+  
   trait TypeInfo extends EntityInfo {
     def uoa: Uoa4Type
     def isInherited(m: FieldextInfo) : Boolean

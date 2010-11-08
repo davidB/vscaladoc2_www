@@ -21,6 +21,7 @@ trait RawDataProvider {
 
 trait InfoDataProvider {
   def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo]
+  def toPackageInfo(uoa: Uoa4Package): List[Box[PackageInfo]]
   def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]]
   def toFieldextInfo(uoa: Uoa4Fieldext): List[Box[FieldextInfo]]
   def findAllTypes(uoa: Uoa4Artifact): List[Box[Uoa4Type]]
@@ -109,7 +110,18 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
       Helpers.tryo { new ArtifactInfo4Json(uoa, jv.extract[json.ArtifactFile], uoaHelper) }
     }
   }
-
+  
+  def toPackageInfo(uoa: Uoa4Package): List[Box[PackageInfo]] = {
+    rdp.find(uoa) match {
+      case x: Failure => List(x)
+      case Empty => Nil
+      case Full(jv) => {
+        val pkgFile = jv.extract[json.PkgFile]
+        for (tj <- pkgFile.e) yield { Helpers.tryo { new PackageInfo4Json(uoa, tj, this) } }
+      }
+    }
+  }
+  
   def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]] = {
     rdp.find(uoa) match {
       case x: Failure => List(x)
@@ -233,6 +245,14 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
         if (uoa.isInstanceOf[Uoa4Type])
       ) yield uoa.asInstanceOf[Uoa4Type]
   }
+
+  def toListPackage(s : List[String]) : List[Uoa4Package] = {
+    for(
+        refPath <- s;
+        uoa <- uoaHelper(refPath) //ignore failure and empty
+        if (uoa.isInstanceOf[Uoa4Package])
+      ) yield uoa.asInstanceOf[Uoa4Package]
+  }
 //  def toDocTags(l : List[(String, List[String], Option[String])]) : Seq[DocTag] = {
 //    l.map{ e => DocTag4Json(e._1, e._2, e._3) }
 //  }
@@ -323,6 +343,15 @@ class ArtifactInfo4Json(val uoa: Uoa4Artifact, src: json.ArtifactFile, uoaHelper
 
 case class DocTag4Json(key : String, override val bodies : List[String], override val variant : Option[String]) extends DocTag {
   def this(src : json.DocTag) = this(src.k, src.b, src.v)
+}
+
+class PackageInfo4Json(val uoa : Uoa4Package, val src : json.Pkg, rdti : InfoDataProvider0) extends PackageInfo {
+  def simpleName: String = src.name
+  def description: HtmlString = src.description.getOrElse("")
+  val docTags: Seq[DocTag] = src.docTags.map(x => new DocTag4Json(x))
+  def source: Option[URI] = None //for (file <- src.sourceStartPoint.headOption ; line <- src.sourceStartPoint.tail.headOption) yield {new URI("src://" + file + "#" + line) }
+  def packages: List[Uoa4Package] = rdti.toListPackage(src.packages)
+  def types: List[Uoa4Type] = rdti.toListType(src.templates)
 }
 
 class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : InfoDataProvider0) extends TypeInfo {

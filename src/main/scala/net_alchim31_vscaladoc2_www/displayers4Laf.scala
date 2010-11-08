@@ -143,7 +143,6 @@ class NavigatorDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir
 class EntityDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir: File) extends ScalateDisplayer(helper, tmplDir) with EntityDisplayer {
   def serveArtifacts(artifactId: String): Box[LiftResponse] = Full(NotImplementedResponse())
 
-  def servePackage(uoa: Uoa4Package): Box[LiftResponse] = Full(NotImplementedResponse())
   def serveFieldext(uoa: Uoa4Fieldext): Box[LiftResponse] = Full(NotImplementedResponse())
 
   def serveType(uoa: Uoa4Type): Box[LiftResponse] = renderHtml("/type.scaml") { context =>
@@ -151,6 +150,15 @@ class EntityDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir: F
     Helpers.tryo {
       context.attributes("logo") = rdti.toArtifactInfo(uoa.uoaPackage.uoaArtifact).map(_.logo).getOrElse("") //TODO
       context.attributes("tpes") = rdti.toTypeInfo(uoa).map(_.open_!).sortWith((a, b) => a.kind == "object" || (a.kind < b.kind))
+      context
+    }
+  }
+
+  def servePackage(uoa: Uoa4Package): Box[LiftResponse] = renderHtml("/package.scaml") { context =>
+    //TODO keep original failure from a List[Box[x]]
+    Helpers.tryo {
+      context.attributes("logo") = rdti.toArtifactInfo(uoa.uoaArtifact).map(_.logo).getOrElse("") //TODO
+      context.attributes("pkgs") = rdti.toPackageInfo(uoa).map(_.open_!)
       context
     }
   }
