@@ -86,7 +86,7 @@ class ScalateDisplayer(helper: Helper, tmplDir: File) {
 
 }
 
-class Helper4Laf(baseUrl: URI, uoaHelper: UoaHelper) extends Helper {
+class Helper4Laf(baseUrl: URI, uoaHelper: UoaHelper, idp : InfoDataProvider) extends Helper {
   def urlOf(vs: String*): String = urlOf(vs.filter(_ != "").mkString("/"))
   def urlOf(v: String): String = baseUrl.resolve(v).toASCIIString
   def urlOf(uoa: Uoa, subContext: String = ""): String = urlOf(subContext, uoaHelper.toRefPath(uoa))
@@ -109,6 +109,10 @@ class Helper4Laf(baseUrl: URI, uoaHelper: UoaHelper) extends Helper {
     case Uoa4Type(typeName, uoaPackage) => fqNameOf(uoaPackage) + "." + NameTransformer.decode(typeName)
     case Uoa4Fieldext(fieldextName, uoaType) => fqNameOf(uoaType) + "." + fieldextName
   }
+  
+  def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo] = idp.toArtifactInfo(uoa)
+  def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]] = idp.toTypeInfo(uoa)
+  def toFieldextInfo(uoa: Uoa4Fieldext): List[Box[FieldextInfo]] = idp.toFieldextInfo(uoa)
 }
 
 class NavigatorDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir: File) extends ScalateDisplayer(helper, tmplDir) with NavigatorDisplayer {
@@ -145,7 +149,7 @@ class EntityDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir: F
   def serveType(uoa: Uoa4Type): Box[LiftResponse] = renderHtml("/type.scaml") { context =>
     //TODO keep original failure from a List[Box[x]]
     Helpers.tryo {
-      context.attributes("logo") = "" //TODO
+      context.attributes("logo") = rdti.toArtifactInfo(uoa.uoaPackage.uoaArtifact).map(_.logo).getOrElse("") //TODO
       context.attributes("tpes") = rdti.toTypeInfo(uoa).map(_.open_!).sortWith((a, b) => a.kind == "object" || (a.kind < b.kind))
       context
     }

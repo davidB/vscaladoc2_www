@@ -24,11 +24,11 @@ object AppServices extends Loggable {
 
   lazy val fsh = new FileSystemHelper() 
   lazy val uoaHelper = new UoaHelper()
-  lazy val apis = new ApiService({() => rdti})
-  lazy val lafHelper = new Helper4Laf(new URI(S.contextPath + "/"), uoaHelper)
+  lazy val apis = new ApiService({() => idp})
+  lazy val lafHelper = new Helper4Laf(new URI(S.contextPath + "/"), uoaHelper, idp)
   lazy val rawDataProvider : RawDataProvider = new RawDataProviderWithLocalFSCache(fsh, workdir, apis, uoaHelper)//new RawDataProvider0(workdir, apis, uoaHelper)
-  lazy val rdti : InfoDataProvider = new InfoDataProvider0(rawDataProvider, uoaHelper)
-  lazy val lafProvider = new LafProvider(workdir, lafHelper, rdti, fsh)
+  lazy val idp : InfoDataProvider = new InfoDataProvider0(rawDataProvider, uoaHelper)
+  lazy val lafProvider = new LafProvider(workdir, lafHelper, idp, fsh)
   lazy val entityDisplayer: Box[EntityDisplayer] = lafProvider.newEntityDisplayer("entity0") //new EntityDisplayer4Debug()
   lazy val navigatorDisplayer: Box[NavigatorDisplayer] = lafProvider.newNavigatorDisplayer("navigator0") //new EntityDisplayer4Debug()
 

@@ -28,6 +28,9 @@ object info {
     def labelOf(v: String): String
     def labelOf(v: Uoa): String
     def fqNameOf(v : Uoa) : String
+    def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo]
+    def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]]
+    def toFieldextInfo(uoa: Uoa4Fieldext): List[Box[FieldextInfo]]    
   }
 
 //  trait ArtifactKind
@@ -69,8 +72,9 @@ object info {
     def uoa: Uoa4Type
     def isInherited(m: FieldextInfo) : Boolean
     def constructors: List[Box[FieldextInfo]]
-    def fields: List[Box[FieldextInfo]]
-    def methods: List[Box[FieldextInfo]]
+    def fields: List[Uoa4Fieldext]
+    def methods: List[Uoa4Fieldext]
+    def types: List[Uoa4Type]
   }
 
   trait FieldextInfo extends EntityInfo {

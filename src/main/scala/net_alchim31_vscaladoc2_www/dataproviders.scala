@@ -185,22 +185,26 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
       }
     }
   }
-  private def findAllInnerTypes(uoa: Uoa4Type): List[Box[Uoa4Type]] = {
-    rdp.find(uoa) match {
-      case x: Failure => List(x)
-      case Empty => Nil
-      case Full(jv) => {
-        val pkgFile = jv.extract[json.TpeFile]
-        //.map(x => if (excludeObjectSuffix) removeObjectSuffix(x) else x)
-        pkgFile.e.flatMap(_.templates).distinct.flatMap { refPath =>
-          uoaHelper(refPath) match {
-            case Full(uoa) =>
-              uoa match {
-                case u: Uoa4Type => Full(u) :: findAllInnerTypes(u)
-                case x => println("found :" + x); Nil //ignore
-              }
-            case x: Failure => List(x)
-            case Empty => List(Empty)
+  private def findAllInnerTypes(uoa: Uoa4Type, deep : Int = 2): List[Box[Uoa4Type]] = {
+    if (deep <= 0) {
+      Nil
+    } else {
+      rdp.find(uoa) match {
+        case x: Failure => List(x)
+        case Empty => Nil
+        case Full(jv) => {
+          val tpeFile = jv.extract[json.TpeFile]
+          //.map(x => if (excludeObjectSuffix) removeObjectSuffix(x) else x)
+          tpeFile.e.flatMap(_.templates).distinct.flatMap { refPath =>
+            uoaHelper(refPath) match {
+              case Full(uoa) =>
+                uoa match {
+                  case u: Uoa4Type => Full(u) :: findAllInnerTypes(u, deep - 1)
+                  case x => println("found :" + x); Nil //ignore
+                }
+              case x: Failure => List(x)
+              case Empty => List(Empty)
+            }
           }
         }
       }
@@ -214,20 +218,24 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
   
   def toListSWTR(s: List[List[String]]): List[StringWithTypeRef] = s.map(x => StringWithTypeRef(x.head, toBoxUoa(x.tail.headOption)))
 
-  def toListFieldext(s : List[String]) : List[Box[FieldextInfo]] = {
-    val b = for(
+  def toListFieldext(s : List[String]) : List[Uoa4Fieldext] = {
+    for(
         refPath <- s;
         uoa <- uoaHelper(refPath) //ignore failure and empty
-      ) yield uoa match {
-        case uoa : Uoa4Fieldext => toFieldextInfo(uoa)
-        case _ => Nil
-      }
-    b.flatten
+        if (uoa.isInstanceOf[Uoa4Fieldext])
+      ) yield uoa.asInstanceOf[Uoa4Fieldext]
   }
 
-  def toDocTags(l : List[(String, List[String], Option[String])]) : Seq[DocTag] = {
-    l.map{ e => DocTag4Json(e._1, e._2, e._3) }
+  def toListType(s : List[String]) : List[Uoa4Type] = {
+    for(
+        refPath <- s;
+        uoa <- uoaHelper(refPath) //ignore failure and empty
+        if (uoa.isInstanceOf[Uoa4Type])
+      ) yield uoa.asInstanceOf[Uoa4Type]
   }
+//  def toDocTags(l : List[(String, List[String], Option[String])]) : Seq[DocTag] = {
+//    l.map{ e => DocTag4Json(e._1, e._2, e._3) }
+//  }
 }
 
 object json {
@@ -264,6 +272,7 @@ object json {
     docTags : List[DocTag],
     visibility: RawSplitStringWithRef,
     templates: List[String],
+    aliasTypes: List[String],
     //resultType: RawSplitStringWithRef, // [ "DemoB", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo2/DemoB" ] ],
     //    sourceStartPoint : List[AnyRef], //[ "/home/dwayne/work/oss/vscaladoc2_demoprj/src/main/scala/itest/demo2/DemoB.scala", 6 ],
     methods: List[String], //[ "scala-library/2.8.0/scala/AnyRef/emoB$hash$asInstanceOf", "scala-library/2.8.0/scala/AnyRef/emoB$hash$isInstanceOf", "scala-library/2.8.0/scala/AnyRef/emoB$hashsynchronized", "scala-library/2.8.0/scala/AnyRef/emoB$hashne", "scala-library/2.8.0/scala/AnyRef/emoB$hasheq", "scala-library/2.8.0/scala/AnyRef/emoB$hash$bang$eq", "scala-library/2.8.0/scala/AnyRef/emoB$hash$eq$eq", "scala-library/2.8.0/scala/AnyRef/emoB$hash$hash$hash", "scala-library/2.8.0/scala/AnyRef/emoB$hashfinalize", "scala-library/2.8.0/scala/AnyRef/emoB$hashwait", "scala-library/2.8.0/scala/AnyRef/emoB$hashwait", "scala-library/2.8.0/scala/AnyRef/emoB$hashwait", "scala-library/2.8.0/scala/AnyRef/emoB$hashnotifyAll", "scala-library/2.8.0/scala/AnyRef/emoB$hashnotify", "scala-library/2.8.0/scala/AnyRef/emoB$hashtoString", "scala-library/2.8.0/scala/AnyRef/emoB$hashclone", "scala-library/2.8.0/scala/AnyRef/emoB$hashequals", "scala-library/2.8.0/scala/AnyRef/emoB$hashhashCode", "scala-library/2.8.0/scala/AnyRef/emoB$hashgetClass", "scala-library/2.8.0/scala/Any/2.DemoB$hashasInstanceOf", "scala-library/2.8.0/scala/Any/2.DemoB$hashisInstanceOf", "scala-library/2.8.0/scala/Any/2.DemoB$hash$bang$eq", "scala-library/2.8.0/scala/Any/2.DemoB$hash$eq$eq" ],
@@ -346,8 +355,9 @@ class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : InfoDataProvide
   def constructors: List[Box[FieldextInfo]] = {
       src.constructors.map(x => Helpers.tryo{ new FieldextInfo4Json(Uoa4Fieldext(simpleName, uoa), x, rdti)})
   }
-  def fields: List[Box[FieldextInfo]] = rdti.toListFieldext(src.values)
-  def methods: List[Box[FieldextInfo]] = rdti.toListFieldext(src.methods)
+  def fields: List[Uoa4Fieldext] = rdti.toListFieldext(src.values) // TODO includes object (instead of being into types)
+  def methods: List[Uoa4Fieldext] = rdti.toListFieldext(src.methods)
+  def types: List[Uoa4Type] = rdti.toListType(src.templates)
 }
 
 class FieldextInfo4Json(val uoa: Uoa4Fieldext, val src: json.Fieldext, rdti : InfoDataProvider0) extends FieldextInfo {
