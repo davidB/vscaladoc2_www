@@ -55,3 +55,8 @@
         %li
           %a(href={urlOf(uoa, "laf/api")}) #{labelOf(uoa)}
 
+    %h2 Packages
+    %ul(class="packages")
+      -for (uoa <- packages)
+        %li
+          %a(href={urlOf(uoa, "laf/api")}) #{labelOf(uoa)}

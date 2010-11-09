@@ -55,6 +55,7 @@ object info {
     def kind: ArtifactKind = ""
     def artifacts: List[Uoa4Artifact] = Nil
     def dependencies: List[Uoa4Artifact] = Nil
+    def packages: List[Uoa4Package] = Nil
     //def rawjson : Box[JObject] = Empty
   }
 

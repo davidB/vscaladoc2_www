@@ -24,6 +24,7 @@ trait InfoDataProvider {
   def toPackageInfo(uoa: Uoa4Package): List[Box[PackageInfo]]
   def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]]
   def toFieldextInfo(uoa: Uoa4Fieldext): List[Box[FieldextInfo]]
+  def findAllNonEmptyPackages(uoa: Uoa4Artifact): List[Box[Uoa4Package]]
   def findAllTypes(uoa: Uoa4Artifact): List[Box[Uoa4Type]]
 }
 
@@ -107,7 +108,7 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
 
   def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo] = {
     rdp.find(uoa).flatMap{ jv =>
-      Helpers.tryo { new ArtifactInfo4Json(uoa, jv.extract[json.ArtifactFile], uoaHelper) }
+      Helpers.tryo { new ArtifactInfo4Json(uoa, jv.extract[json.ArtifactFile], uoaHelper, this) }
     }
   }
   
@@ -165,16 +166,52 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
     collectRecursiv(uoa, (Set.empty, Nil))._2
   }
 
+  def findAllNonEmptyPackages(uoa: Uoa4Artifact): List[Box[Uoa4Package]] = {
+    val art = findAllArtifacts(uoa);
+    art.flatMap( x => x match {
+      case f :Failure => List(f)
+      case Empty => Nil
+      case Full(x) => findAllInnerNonEmptyPackages(Uoa4Package("_root_", x.uoa))
+    })
+  }
+  
+  def findAllInnerNonEmptyPackages(ruoa: Uoa4Package, includeItself : Boolean = true): List[Box[Uoa4Package]] = {
+    rdp.find(ruoa) match {
+      case x: Failure => List(x)
+      case Empty => Nil
+      case Full(jv) => {
+        val pkgFile = jv.extract[json.PkgFile]
+        //.map(x => if (excludeObjectSuffix) removeObjectSuffix(x) else x)
+        pkgFile.e.flatMap { pkg =>
+          val children = pkg.packages.flatMap { refPath =>
+            uoaHelper(refPath) match {
+              case Full(uoa) =>
+                uoa match {
+                  case u: Uoa4Package => findAllInnerNonEmptyPackages(u)
+                  case x => Nil //ignore
+                }
+              case x: Failure => List(x)
+              case Empty => Nil//List(Empty)
+            }
+          }
+          (includeItself && (pkg.templates.length != pkg.packages.length)) match {
+            case false => children
+            case true => Full(ruoa) :: children
+          }
+        }
+      }
+    }
+  }
+  
   def findAllTypes(uoa: Uoa4Artifact): List[Box[Uoa4Type]] = {
     val art = findAllArtifacts(uoa);
-    println("art :" + art)
     art.flatMap( x => x match {
       case f :Failure => List(f)
       case Empty => Nil
       case Full(x) => findAllInnerTypes(Uoa4Package("_root_", x.uoa))
     })
   }
-  
+
   private def findAllInnerTypes(uoa: Uoa4Package): List[Box[Uoa4Type]] = {
     rdp.find(uoa) match {
       case x: Failure => List(x)
@@ -197,6 +234,7 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
       }
     }
   }
+  
   private def findAllInnerTypes(uoa: Uoa4Type, deep : Int = 2): List[Box[Uoa4Type]] = {
     if (deep <= 0) {
       Nil
@@ -318,7 +356,7 @@ object json {
 }
 
 //TODO provide converter to json to avoid intermediary type
-class ArtifactInfo4Json(val uoa: Uoa4Artifact, src: json.ArtifactFile, uoaHelper: UoaHelper) extends ArtifactInfo {
+class ArtifactInfo4Json(val uoa: Uoa4Artifact, src: json.ArtifactFile, uoaHelper: UoaHelper, rdti : InfoDataProvider) extends ArtifactInfo {
   override def groupId = src.groupId.getOrElse("")
   override def artifactId = src.artifactId
   override def version = src.version
@@ -327,9 +365,9 @@ class ArtifactInfo4Json(val uoa: Uoa4Artifact, src: json.ArtifactFile, uoaHelper
   override def logo = src.logo.getOrElse("")
   override def kind = src.kind.getOrElse("")
   override def license = src.license.getOrElse("")
-  override val artifacts = src.artifacts.flatMap(x => uoaHelper(x)).map(_.asInstanceOf[Uoa4Artifact])
-  override val dependencies = src.dependencies.flatMap(x => uoaHelper(x)).map(_.asInstanceOf[Uoa4Artifact])
-  
+  override lazy val artifacts = src.artifacts.flatMap(x => uoaHelper(x)).map(_.asInstanceOf[Uoa4Artifact])
+  override lazy val dependencies = src.dependencies.flatMap(x => uoaHelper(x)).map(_.asInstanceOf[Uoa4Artifact])
+  override lazy val packages = for(buoa <- rdti.findAllNonEmptyPackages(uoa); uoa <- buoa) yield uoa // TODO not ignore error
   override def equals(o : Any) = {
     o match {
       case x : ArtifactInfo => this.uoa == x.uoa
@@ -348,10 +386,10 @@ case class DocTag4Json(key : String, override val bodies : List[String], overrid
 class PackageInfo4Json(val uoa : Uoa4Package, val src : json.Pkg, rdti : InfoDataProvider0) extends PackageInfo {
   def simpleName: String = src.name
   def description: HtmlString = src.description.getOrElse("")
-  val docTags: Seq[DocTag] = src.docTags.map(x => new DocTag4Json(x))
+  lazy val docTags: Seq[DocTag] = src.docTags.map(x => new DocTag4Json(x))
   def source: Option[URI] = None //for (file <- src.sourceStartPoint.headOption ; line <- src.sourceStartPoint.tail.headOption) yield {new URI("src://" + file + "#" + line) }
-  def packages: List[Uoa4Package] = rdti.toListPackage(src.packages)
-  def types: List[Uoa4Type] = rdti.toListType(src.templates)
+  lazy val packages: List[Uoa4Package] = for(buoa <- rdti.findAllInnerNonEmptyPackages(uoa, false); uoa <- buoa) yield uoa // TODO not ignore error //rdti.toListPackage(src.packages)
+  lazy val types: List[Uoa4Type] = rdti.toListType(src.templates)
 }
 
 class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : InfoDataProvider0) extends TypeInfo {
@@ -359,7 +397,7 @@ class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : InfoDataProvide
   def isCaseClass: Boolean = src.parentType.exists(x => x.head == "Product")
   def simpleName: String = src.name
   def description: HtmlString = src.description.getOrElse("")
-  val docTags: Seq[DocTag] = src.docTags.map(x => new DocTag4Json(x))
+  lazy val docTags: Seq[DocTag] = src.docTags.map(x => new DocTag4Json(x))
   def source: Option[URI] = None //for (file <- src.sourceStartPoint.headOption ; line <- src.sourceStartPoint.tail.headOption) yield {new URI("src://" + file + "#" + line) }
   def kind: String = src.kind
   def isInherited(m: FieldextInfo) = m.uoa.uoaType != uoa
