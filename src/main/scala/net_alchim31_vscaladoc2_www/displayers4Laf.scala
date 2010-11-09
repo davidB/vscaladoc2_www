@@ -71,7 +71,7 @@ class ScalateDisplayer(helper: Helper, tmplDir: File) {
           case None => Full(StreamingResponse(rsrc.inputStream, () => {}, -1, Nil, Nil, 200))
           case Some(f) => {
             val mimeType = _mimetypesFileTypeMap.getContentType(f.getName)
-            println("mimetypes :" + mimeType + " // "+ f.getName)
+            //println("mimetypes :" + mimeType + " // "+ f.getName)
             val size = f.length
             val httpHeaders = List(
                 ("Content-Length", size.toString),
