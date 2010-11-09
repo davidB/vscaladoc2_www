@@ -41,6 +41,10 @@ h1 {
  text-align: center;
 }
 
+h1 sup {
+ font-size: 50%;
+ vertical-align: super;
+}
 h2 {
     border:solid 1px #999999;
     padding:10px;
@@ -146,7 +150,7 @@ pre, .codeAsDoc {
   float: right;
 }
 
-.overview h1, .overview h2, .overview h3 {
+.overview h1, .overview h2, .overview h3, .apiComments h1, .apiComments h2, .apiComments h3 {
  font-family: "Bitstream Vera Sans", "Arial", "Helvetica", sans-serif;
  font-weight: bold;
  text-align: left;
@@ -155,13 +159,13 @@ pre, .codeAsDoc {
  background: #FFF;
  color:#999999;
 }
-.overview h1 {
+.overview h1, .apiComments h1 {
   font-size : 125%;
 }
-.overview h2 {
+.overview h2, .apiComments h2 {
   font-size : 120%;
 }
-.overview h3 {
+.overview h3, .apiComments h3 {
   font-size : 110%;
 }
 

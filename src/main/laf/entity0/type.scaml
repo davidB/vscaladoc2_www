@@ -80,7 +80,7 @@
 
     %h1
       #{fqNameOf(tpe0.uoa)}
-      %sup(style="font-size: smaller;vertical-align: super")
+      %sup
         - for( t <- tpes)
           %a(href={"#" + t.kind}) #{t.kind}
 
@@ -89,7 +89,7 @@
       - import tpe._
       %a(name={kind})
       %h2(style="cursor: help;" onClick={"$('#" + kind +"').toggle()"}) #{kind} #{simpleName}
-      %section(id={kind})
+      %div(id={kind})
         %div( id="intro")
           =stringWithTypeRef(signature, simpleName)
 
