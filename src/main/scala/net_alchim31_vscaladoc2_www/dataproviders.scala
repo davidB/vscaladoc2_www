@@ -448,6 +448,7 @@ class RawDataProvider0(workdir : File, apis : ApiService, uoaHelper : UoaHelper)
       }
   }
   
+  //TODO handle rai.baseUrl that point to archive instead of directory
   protected def toUrl(uoa: Uoa): Box[URI] = {
       uoa match {
         case Uoa4Artifact(artifactId, version) => {
@@ -534,6 +535,7 @@ class RawDataProviderWithLocalFSCache(fs : FileSystemHelper, workdir : File, api
    * @param uoa
    * @param uri
    * @return
+   * @todo handle case when base url point to archive
    */
   private def requestFromHttp(uoa : Uoa, uri : URI) : String = {
     toLocalFile(uoa).map { f =>
@@ -584,7 +586,10 @@ class RawDataProviderWithLocalFSCache(fs : FileSystemHelper, workdir : File, api
           // download to the final directory
           vscaladoc2Rai(artifact) match {
             case Full(rai) => {
-              val uri = rai.baseUrl.toString + "-apidoc.jar.gz"
+              val uri = rai.baseUrl.toString match {
+                case x if x.endsWith("-apidoc.jar.gz") => x
+                case x => x + "-apidoc.jar.gz"
+              }
               logger.info("download : " + uri)
               fs.using(new FileOutputStream(f)) { is =>
                 new Http()(new Request(uri) >>> is)
