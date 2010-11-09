@@ -1,5 +1,10 @@
 package net_alchim31_vscaladoc2_www.view
 
+import net_alchim31_vscaladoc2_www.model.ApiProviders
+
+
+import net.liftweb.mapper.{By, OrderBy, Descending}
+
 import java.net.URL
 import java.io.FileNotFoundException
 import java.io.File
@@ -28,6 +33,7 @@ object ApiView extends Loggable {
   lazy val _navigatorDisplayer: Box[NavigatorDisplayer] = AppServices.navigatorDisplayer
   
   val dispatch: LiftRules.DispatchPF = {
+    case Req("sitemap" :: Nil, "txt", GetRequest) => () => failureConverter(serveSitemapTxt())
     case Req("navigator" :: "api" :: artifactId :: version :: entityPath, _, GetRequest) => () => failureConverter(serveEntity(artifactId, version, entityPath)(serveNavigator))
     case Req("navigator" :: "_browser" :: "api" :: artifactId :: version :: Nil, _, GetRequest) => () => failureConverter(serveEntity(artifactId, version, Nil)(serveBrowser))
     case Req("navigator" :: "_rsrc" :: path, ext, GetRequest) => () => failureConverter(_navigatorDisplayer.flatMap(_.serveResource(path, ext)))
@@ -47,6 +53,17 @@ object ApiView extends Loggable {
     ) yield {
       RedirectResponse(api.baseUrl.toASCIIString)
     }
+  }
+
+  private def serveSitemapTxt() : Box[LiftResponse] = tryo {
+//    var baseUrl = S.hostAndPath
+//    println("url", S.request, baseUrl, S.contextPath)
+//    baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf("/")) + "/laf/api/"
+    var baseUrl = "http//vscaladoc.alchim31.net/laf/api/"
+    val str = RemoteApiInfo.findAll(By(RemoteApiInfo.format, ApiProviders.vscaladoc2), OrderBy(RemoteApiInfo.id, Descending)).map{ rai =>
+      baseUrl + rai.artifactId + "/" + rai.version //+ ".html"
+    }.mkString("\n")
+    PlainTextResponse(str)
   }
 
   private def serveEntity(artifactId: String, version: String, entityPath: List[String])(srv: (RemoteApiInfo, String, List[String]) => Box[LiftResponse]): Box[LiftResponse] = {
