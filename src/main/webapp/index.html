@@ -11,6 +11,16 @@
     </ul>
   </div> 
 	<h2>Apis</h2>
+	<lift:Util.loggedIn>  
+    <lift:ApiAdd.add form="POST">
+      <fieldset>
+        <legend>Add</legend>
+        <form:artifactId placeholder="artifactId"/><form:version  placeholder="version" width="100%"/><form:format width="100%"/><br/>
+        <form:url  placeholder="url of api" size="120"/><br/>
+        <form:submit/>
+      </fieldset>
+    </lift:ApiAdd.add>
+  </lift:Util.loggedIn>
   <div>
   <lift:Listings.paginate>
     <p><nav:records/></p>
@@ -24,15 +34,6 @@
       </lift:Listings.all>
     </tbody>
   </table>
-  <lift:Util.loggedIn>  
-    <lift:ApiAdd.add form="POST">
-      <fieldset>
-        <legend>Add</legend>
-        <form:artifactId placeholder="artifactId"/><form:version  placeholder="version" width="100%"/><form:format width="100%"/><br/>
-        <form:url  placeholder="url of api" size="120"/><br/>
-        <form:submit/>
-      </fieldset>
-    </lift:ApiAdd.add>
-  </lift:Util.loggedIn>
+
 </lift:surround>
 
