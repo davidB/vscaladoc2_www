@@ -43,7 +43,7 @@ class ApiAdd extends Loggable {
         "artifactId" -%> holder.artifactId.toForm,
         "version" -%> holder.version.toForm,
         "format" -%> holder.format.toForm,
-        "url" -%>  holder.url.toForm ,
+        "url" -%>  holder.url.toForm,
         "submit" -> SHtml.submit("Add", checkAndSave _))  ++ SHtml.hidden(checkAndSave _)
    }
    

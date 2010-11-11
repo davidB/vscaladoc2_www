@@ -1,5 +1,7 @@
 package net_alchim31_vscaladoc2_www.model
 
+import java.util.regex.Pattern
+
 import java.net.URI
 import net.liftweb.mapper.MappedEnum
 import net.liftweb.mapper.Mapper
@@ -19,6 +21,7 @@ import net.liftweb.mapper.LongKeyedMapper
 import net.liftweb.common.{ Box, Full, Empty, Failure }
 import java.net.URL
 import java.util.Date
+import _root_.net.liftweb.util.Helpers._
 
 //case class Made(by: String, at: Date)
 //case class RemoteApiInfo(artifactId: String, version: String, baseUrl: URL, provider: ApiProvider, made: Made)
@@ -54,10 +57,20 @@ object RemoteApiInfo extends RemoteApiInfo with LongKeyedMetaMapper[RemoteApiInf
 
 class RemoteApiInfo extends LongKeyedMapper[RemoteApiInfo] with IdPK with CreatedUpdated {
     def getSingleton = RemoteApiInfo
+    
+    private val txtFieldPattern = Pattern.compile("[A-Za-z0-9\\.-_]*")
     // fields
-    object artifactId extends MappedString(this, 150)
-    object version extends MappedString(this, 25)
-    object url extends MappedString(this, 150)
+    object artifactId extends MappedString(this, 150) {
+      override def validations = valMaxLen(maxLen, "too long : 150 max") _ :: valMinLen(3, "too short : 3 min") _:: valRegex(txtFieldPattern, "doesn't match pattern : " + txtFieldPattern.pattern) _ :: super.validations
+      override def toForm = super.toForm.map( _ % ("required" -> "true") % ("pattern" -> txtFieldPattern.pattern))
+    }
+    object version extends MappedString(this, 25) {
+      override def validations = valMaxLen(maxLen, "too long : 25 max") _ :: valMinLen(1, "too short : 1 min") _:: valRegex(txtFieldPattern, "doesn't match pattern : " + txtFieldPattern.pattern) _ :: super.validations
+      override def toForm = super.toForm.map( _ % ("required" -> "true") % ("pattern" -> txtFieldPattern.pattern))
+    }
+    object url extends MappedString(this, 150) {
+      override def toForm = super.toForm.map( _ % ("required" -> "true") % ("type" -> "url")) 
+    }
     object format extends MappedApiProvider(this)
     object createdBy extends LongMappedMapper(this, User)
 
