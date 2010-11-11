@@ -2,7 +2,7 @@ CHANGES :
 =========
 
 ## DONE
-* admins can register api (create/update/delete) from several source/format : javadoc2, scaladoc, scaladoc2, vscaladoc2 (json)
+* form to register api (create/update/delete) from several source/format : javadoc2, scaladoc, scaladoc2, vscaladoc2 (json)
 * user can list api
 * user can browse vscaladoc2 api (json) in html
 
@@ -123,7 +123,7 @@ CHANGES :
       * http://grepcode.com/file/repo1.maven.org/maven2/org.springframework/spring-web/3.0.1.RELEASE/org/springframework/web/filter/ShallowEtagHeaderFilter.java?av=f
       * http://code.google.com/p/remote-intent-architecture/source/browse/#svn/trunk/atom-server/src/servlet/etag	
       * http://www.caucho.com/resin/admin/http-proxy-cache.xtp	
-    * cache (LFU) for instances  of uoa -> Box[info._]	
+    * cache (LFU) for instances  of uoa -> Box[info._]	(one cache per type)
     * cache (LFU) for final web page (TTL 24H si version -SNAPSHOT) (may be use ehcache webfilter)	
     * scalate renderer could store already generated page (compressed + Etag)	
   * use compression filter gz [see](http://onjava.com/pub/a/onjava/2003/11/19/filters.html) @prod
@@ -149,3 +149,4 @@ CHANGES :
   * [JDocs](http://jdocs.com) , http://www.jdocs.com/httpclient/3.0.1/api-index.html?m=class&p=org.apache.commons.httpclient&c=ChunkedOutputStream&render=classic
   * [gotAPI](http://www.gotapi.com/contribute/index.html)
   * [colladoc](http://code.google.com/p/collaborative-scaladoc)
+  * [Rails Searchable API Doc](http://railsapi.com/)
