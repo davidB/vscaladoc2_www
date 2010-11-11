@@ -553,6 +553,7 @@ class RawDataProviderWithLocalFSCache(fs : FileSystemHelper, workdir : File, api
   import java.io.FileOutputStream
   
   private lazy val _archiveDownloader = new ArchiveDownloader()
+  private val _archiveSuffix = "-apidoc.jar.gz"
   
   override def find(uoa: Uoa): Box[JValue] = {
     toUrl(uoa).flatMap { uri =>
@@ -561,7 +562,8 @@ class RawDataProviderWithLocalFSCache(fs : FileSystemHelper, workdir : File, api
             case "file" => JsonParser.parse(new FileReader(uri.getPath))
             case "local" => JsonParser.parse(new FileReader(toLocalFile(uoa).open_!))
             case "http" => JsonParser.parse(requestFromHttp(uoa, uri))
-            case x => throw new MalformedURLException("scheme " + x + "is nor supported as source for api (" + uri +")" )
+            case "https" => JsonParser.parse(requestFromHttp(uoa, uri))
+            case x => throw new MalformedURLException("scheme " + x + " is nor supported as source for api (" + uri +")" )
           }
         }
     }
@@ -583,6 +585,15 @@ class RawDataProviderWithLocalFSCache(fs : FileSystemHelper, workdir : File, api
         val archive = localArchiveOf(uoa)
         if (archive._2.exists) {
           throw new Exception_UoaNotAvailable(uoa, "not in archives")
+        } else if (uri.getPath.indexOf(_archiveSuffix) > -1) {
+          (_archiveDownloader !?(10*1000, archive._1)).asInstanceOf[Box[Box[Any]]].flatMap(x => x) match {
+            case Full(true) => f.exists match {
+              case true => fs.toString(f)
+              case false => throw new Exception_UoaNotAvailable(uoa, "not in archives")
+            }
+            case x : Failure => throw (x.exception openOr new Exception(x.msg))
+            case Empty => throw new Exception("empty reply to download request")
+          }
         } else {
           _archiveDownloader ! archive._1
           new Http()(new Request(uri.toString) >- { s =>
@@ -605,7 +616,7 @@ class RawDataProviderWithLocalFSCache(fs : FileSystemHelper, workdir : File, api
     (artifact, toLocalFile(rpathOfArchive(artifact)))
   }
 
-  protected def rpathOfArchive(uoa : Uoa4Artifact) = uoa.artifactId + "/" + uoa.version+ "-apidoc.jar.gz"
+  protected def rpathOfArchive(uoa : Uoa4Artifact) = uoa.artifactId + "/" + uoa.version + _archiveSuffix
   
   /**
    * Using one actor to download in background and sequentially required archives of api
@@ -617,39 +628,40 @@ class RawDataProviderWithLocalFSCache(fs : FileSystemHelper, workdir : File, api
         val dest = toLocalFile(archiveRPath)
         if (dest.exists) {
           //already downloaded by previous request (probably done when file didn't exists)
+          Full(true)
         } else {
           val tmpdir = toLocalFile("tmp-downloading-" + System.currentTimeMillis)
           val f = new File(tmpdir, archiveRPath)
           f.getParentFile.mkdirs
           // download to the final directory
-          vscaladoc2Rai(artifact) match {
-            case Full(rai) => {
-              val uri = rai.baseUrl.toString match {
-                case x if x.endsWith("-apidoc.jar.gz") => x
-                case x => x + "-apidoc.jar.gz"
-              }
-              logger.info("download : " + uri)
-              fs.using(new FileOutputStream(f)) { is =>
-                new Http()(new Request(uri) >>> is)
-              }
-              // unarch
-              fs.unjar0gz(tmpdir, f)
-              //move only files related to the version
-              commit(tmpdir, toLocalFile("."), archiveRPath, (artifact.artifactId + "/" + artifact.version), (artifact.artifactId + "/" + artifact.version + "_.json"))
+          vscaladoc2Rai(artifact).map { rai =>
+            val uri = rai.baseUrl.toString match {
+              case x if x.endsWith("-apidoc.jar.gz") => x
+              case x => x + "-apidoc.jar.gz"
             }
-            case _ => commit(tmpdir, toLocalFile("."))
+            logger.info("download : " + uri)
+            fs.using(new FileOutputStream(f)) { is =>
+              new Http()(new Request(uri) >>> is)
+            }
+            // unarch
+            fs.unjar0gz(tmpdir, f)
+            //move only files related to the version
+            commit(tmpdir, toLocalFile("."), archiveRPath, (artifact.artifactId + "/" + artifact.version), (artifact.artifactId + "/" + artifact.version + "_.json"))
+            reply(f.exists)
           }
         }
       }
-      case _ => () //ignore
+      case _ => Empty //ignore
     }
     
     private def commit(srcdir : File, destdir : File, filenames : String*) {
+      destdir.mkdirs
       for (fname <- filenames) {
         val dest = new File(destdir, fname)
         if (dest.exists) {
           fs.deleteRecursively(dest)
         }
+        dest.getParentFile.mkdir
         fs.move(new File(srcdir, fname), dest)
       }
       fs.deleteRecursively(srcdir)
