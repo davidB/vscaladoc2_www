@@ -1,0 +1,49 @@
+<html>
+<body>
+<ul>
+<a href="comment0.html" target="commentFrame">comment0</a>
+<a href="http://groups.google.com/group/vscaladoc/post" target="commentFramePost">google</a>
+<a href="http://groups.google.com/group/vscaladoc/browse_thread/thread/7d7cfa9fb9ace2fd" target="commentFrame">test0</a>
+<a href="http://flowplayer.org/tools/demos/overlay/external-content2.htm"  target="commentFrame">external2</a>
+<a href="mailto:vscaladoc@googlegroups.com?subject=[API][Discuss]%20xxx/x.y.z&body=xxx/x.y.z"  target="commentFrame">mailto</a>
+
+<iframe igsrc="http://www.google.com/ig/images/no_image/no_image_gadget_thm.png" src="http://groups.google.com/group/vscaladoc" frameborder="0" class="igm" width="800" height="800"></iframe>
+
+ <script src="http://cdn.jquerytools.org/1.2.5/full/jquery.tools.min.js"></script>
+ <script>
+var i = 0;
+$(function() {
+ 
+  // if the function argument is given to overlay,
+  // it is assumed to be the onBeforeLoad event listener
+  $("a[target='commentFrame']").click(function(){
+    i++;
+//      var targetFrame = window.parent.frames[1].frames[0].scrollHeight;
+//console.log("size " + targetFrame);
+    console.log("rows :" +   $('#contentFrameSet', window.parent.document).attr("rows"));
+    console.log("rows :" +   $('#commentFrame', window.parent.document).attr("scrollHeight"));
+    console.log("rows :" +   parent.document.getElementById("contentFrameSet").scrollHeight);
+    console.log("rows :" +   parent.document.getElementById("commentFrame").scrollHeight);
+    parent.document.getElementById("commentFrame").scrollHeight = parent.document.getElementById("commentFrame").scrollHeight + 10;
+    if ($('#commentFrame', window.parent.document).attr("scrollHeight") < $('#contentFrameSet', window.parent.document).attr("scrollHeight")*0.3) {
+      $('#contentFrameSet', window.parent.document).attr("rows", "*,0");
+      setTimeout(
+        '$("#contentFrameSet", window.parent.document).attr("rows", "*," + $("#contentFrameSet", window.parent.document).attr("scrollHeight")*0.3 + "px")', 1000);
+      //parent.document.getElementById("commentFrame").scrollHeight = parent.document.getElementById("commentFrame").scrollHeight + 10;
+    }
+    //console.log("rows :" +   window.parent.frames[1].scrollHeight);
+    //parent.document.getElementById('contentFrameSet').setAttribute('rows', '*,0', 0);      
+    //parent.document.getElementById('contentFrameSet').setAttribute('rows', '75%,25%', 0);      
+    //$('#contentFrameSet', window.parent.document).attr("rows", "*,1px");
+    /*
+    if (i%2 == 0) {
+      $('#contentFrameSet', window.parent.document).attr("rows", "*,30%");
+    } else {
+      $('#contentFrameSet', window.parent.document).attr("rows", "*,1px");
+    }
+    */
+  });
+}); 
+ </script>
+</body>
+</html>
