@@ -1,5 +1,9 @@
 package net_alchim31_vscaladoc2_www.model
 
+import net.liftweb.mapper.CreatedUpdated
+import net.liftweb.sitemap.Loc.LocGroup
+import scala.xml.NodeSeq
+import net.liftweb.mapper.CRUDify
 import java.util.Locale
 import java.util.Properties
 import net.tanesha.recaptcha.ReCaptchaImpl
@@ -30,7 +34,22 @@ import _root_.net.liftweb.common._
 /**
  * The singleton that has methods for accessing the database
  */
-object User extends User with MetaMegaProtoUser[User] with ReCaptcha {
+object User extends User with MetaMegaProtoUser[User] with ReCaptcha /* with CRUDify[Long, User]*/ {
+//
+//  // crudify
+//  override def pageWrapper(body: NodeSeq) = <lift:surround with="admin" at="content">{body}</lift:surround>
+//  override def calcPrefix = List("admin",_dbTableNameLC)
+//  override def displayName = "Api"
+//  override def showAllMenuLocParams = LocGroup("admin") :: Nil
+//  override def createMenuLocParams = LocGroup("admin") :: Nil
+//  override def viewMenuLocParams = LocGroup("admin") :: Nil
+//  override def editMenuLocParams = LocGroup("admin") :: Nil
+//  override def deleteMenuLocParams = LocGroup("admin") :: Nil
+//
+//  override lazy val editPath : List[String] = super.asInstanceOf[MetaMegaProtoUser[User]].editPath
+//  override def menus  = super.asInstanceOf[MetaMegaProtoUser[User]].menus
+//  def menusCrud = super.asInstanceOf[CRUDify[Long, User]].menus
+  
   override def dbTableName = "users" // define the DB table name
   override def screenWrap = Full(<lift:surround with="default" at="content">
                                    <lift:bind/>
@@ -60,7 +79,7 @@ object User extends User with MetaMegaProtoUser[User] with ReCaptcha {
 /**
  * An O-R mapped "User" class that includes first name, last name, password and we add a "Personal Essay" to it
  */
-class User extends MegaProtoUser[User] {
+class User extends MegaProtoUser[User] with CreatedUpdated {
   def getSingleton = User // what's the "meta" server
 
 //    object country extends MappedCountry(this) {
