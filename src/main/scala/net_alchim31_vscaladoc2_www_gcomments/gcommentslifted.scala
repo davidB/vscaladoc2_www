@@ -54,25 +54,19 @@ class GCommentsService(urlMaker : UrlMaker4GComments, uoaHelper : UoaHelper) ext
         back += ((refPathMapping(found.refPath.is), Info(found.nb.is, urlMaker.messages(found.ggroupId.is, found.threadId.is, found.firstId.is))))
       }
     }
-    logger.info("in : " + refPaths)
-    logger.info("return : " + back)
+    logger.debug("in : " + refPaths)
+    logger.debug("return : " + back)
     back.toMap
   }
   
   def findGroupIdOf(refPath : String) : Box[String] = {
     //TODO add cache
     uoaHelper.toUoa4Artifact(refPath).flatMap{ uoa =>
-      val b = RemoteApiInfo.findApiOf(uoa.artifactId, uoa.version).map(_.ggroupId.is)
-      println("search ", uoa, b)
-      b
+      RemoteApiInfo.findApiOf(uoa.artifactId, uoa.version).map(_.ggroupId.is)
     }
   }
   
-  def findAllGGroupId() : List[String] = {
-    val b = RemoteApiInfo.findAllGGroupId()
-    println("all groupId :", b.mkString(","))
-    b
-  }
+  def findAllGGroupId() : List[String] = RemoteApiInfo.findAllGGroupId()
   
   def findByRefPath(refPath : String) : Box[GCommentsInfo] = {
     GCommentsInfoMapped.findAll(By(GCommentsInfoMapped.refPath, refPath)).headOption match {
@@ -84,7 +78,6 @@ class GCommentsService(urlMaker : UrlMaker4GComments, uoaHelper : UoaHelper) ext
   def save(v : Iterable[GCommentsInfo]) : Int = {
     var b = 0
     for (e <- v) {
-      println("save", e)
       e match {
         case view : GCommentsInfoView => view.v.save()
         case _ => {

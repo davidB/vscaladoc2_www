@@ -20,15 +20,6 @@ object CommentsView extends RestHelper {
     //case "comments" :: _ JsonPost _ => {
     //case "comments" :: _ JsonGet _ => {
     case r @ Req("comments" :: Nil, "json", _) => { 
-      println("refPaths in :", S.params("refPaths"))
-      println("refPaths in :", S.param("refPaths"))
-      println("refPaths[] in :", S.params("refPaths[]"))
-      println("ggroupId in :", S.param("ggroupId"))
-      println("queryString", S.queryString)
-      //println("r.requ", r.request.param("refPaths"))
-      //println("json in :", json)
-      println("r.paramNames", r.paramNames)
-      println("r.body", r.body)
       JObject(
         AppServices.commentSystem.findByRefPaths(S.params("refPaths[]")).toList.map{ kv =>
           val u = if (kv._2.nb > -1)  JString(kv._2.u.toString) else JNull

@@ -169,9 +169,7 @@ class GCommentsFeedExtractor(val urlMaker : UrlMaker4GComments) {
     httpClient.client.getParams.setParameter("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)")
     val savedCnt = for (ggroupId <- store.findAllGGroupId()) yield {
       val url = urlMaker.feed(ggroupId).toURL
-      println("search to update " + ggroupId + " from " + url)
       val xml = new Http()(new Request(url.toString) >> {is => XML.load(is) })
-      println("update info with ", xml)
       updateData(xml, store.findByRefPath, store.save, previous)
     }
     store.lastBatchUpdate = now
