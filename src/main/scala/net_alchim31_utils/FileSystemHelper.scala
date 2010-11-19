@@ -206,7 +206,7 @@ class FileSystemHelper {
 
   def copy(input : FileChannel, output : FileChannel, length : Long ) : Long = {
     var offset = 0L
-    val copyCnt = Math.min(65536, length)
+    val copyCnt = math.min(65536, length)
     while (offset < length) {
       offset += input.transferTo(offset, copyCnt, output)
     }
@@ -255,7 +255,7 @@ class FileSystemHelper {
     val bufferSize = 1024 * 4
     val buffer = new Array[Byte]( bufferSize )
     var count = 0
-    var n = input.read(buffer , 0 , Math.min( bufferSize , length ) )
+    var n = input.read(buffer , 0 , math.min( bufferSize , length ) )
     while (n != -1) {
       output.write(buffer , 0 , n )
       count += n
@@ -263,7 +263,7 @@ class FileSystemHelper {
         -1
       }
       else {
-        input.read( buffer , 0 , Math.min( length - count , bufferSize ) )
+        input.read( buffer , 0 , math.min( length - count , bufferSize ) )
       }
     }
     count
