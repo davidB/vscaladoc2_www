@@ -154,7 +154,7 @@ pre, .codeAsDoc {
   float: right;
 }
 
-div.discuss {
+div.discuss, div.nodiscuss {
   float: right;
   background : url('empty.png') no-repeat center;
   font-family: "Inconsolata", "Bitstream Vera Sans Mono", monospace;
@@ -173,6 +173,10 @@ div.discuss {
  border: none;
  background: #FFF;
  color:#999999;
+}
+.overview {
+  width : 100%;
+  clear : both;
 }
 .overview h1, .apiComments h1 {
   font-size : 125%;
