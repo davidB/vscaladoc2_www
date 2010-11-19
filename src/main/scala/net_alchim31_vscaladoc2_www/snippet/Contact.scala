@@ -126,7 +126,7 @@ case class Required(errorMsg : String = "required") extends Validation[String] {
   override def plugIn(xhtml : NodeSeq) : NodeSeq = ValidationHelper.plugIn(xhtml, "input", new UnprefixedAttribute("required", "true", Null))
 }
 
-case class RegExp(regex : Regex, errorMsg : String = "doesn't match format") extends Validation[String] {
+class RegExp(val regex : Regex, val errorMsg : String = "doesn't match format") extends Validation[String] {
   def validate(v : String) = regex.pattern.matcher(v).matches()
   override def plugIn(xhtml : NodeSeq) : NodeSeq = ValidationHelper.plugIn(xhtml, "input", new UnprefixedAttribute("pattern", regex.pattern.pattern, Null))
 }
