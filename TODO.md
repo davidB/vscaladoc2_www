@@ -5,6 +5,8 @@ CHANGES :
 * form to register api (create/update/delete) from several source/format : javadoc2, scaladoc, scaladoc2, vscaladoc2 (json)
 * user can list api
 * user can browse vscaladoc2 api (json) in html
+* api registration 
+  * auto registration of artifacts from a info.ArtifactInfo (support for multi-module project/apis) to avoid long and annoying registration for every modules
 
 ## TODO, ideas
 * write the announce
@@ -60,9 +62,15 @@ CHANGES :
       * add helper.toInfo(uoa)
       * error sur display de methods (non available, non vscaladoc2) => link to origin
       * integrate a user comment support
-        * extrenal service : disquss,...
+        * extrenal service : Disqus, IntenseDebate, JS-Kit, SezWho, ...
         * collabdoc
-        * home made (comments hide by default, number of comments, treeview, add (only for register user)) 
+        * home made (comments hide by default, number of comments, treeview, add (only for register user))
+        * using a mailing-list (google groups, google wave fork)
+        * target features :
+          * no spam control : moderation, delete (administration)
+          * notification : email or rss (granularity item + sub : artifact(s), version, package, type, fieldext 
+          * retreive/display/add comments (lowest granularity)
+          * reply by email ?
 * api registration
   * register lift-2.2-M1
     * generate (with logo)
@@ -70,7 +78,7 @@ CHANGES :
   * register scalatest
   * register vscaladoc2_genjson, vscaladoc2_www
   * register non vscaladoc2 api (javadoc2 for java lib, lead scala lib (specs, scalatest, ...)
-  * allow registered user (or via captcha validation) to register remote api
+  * allow registered user (or unregistered user via captcha validation) to register remote api
   * add button to scan local api @local @admin
   * auto registration of artifacts from a info.ArtifactInfo (support for multi-module project/apis) to avoid long and annoying registration for every modules
 * user registration
