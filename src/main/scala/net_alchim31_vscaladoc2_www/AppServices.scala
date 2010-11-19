@@ -2,6 +2,7 @@ package net_alchim31_vscaladoc2_www
 
 
 import net.liftweb.common.{Full,Box,Empty,Failure,Loggable}
+import net_alchim31_vscaladoc2_www_gcomments.{GCommentsService, UrlMaker4GComments} 
 
 //TODO remove LiftRules / S dependencies
 object AppServices extends Loggable {
@@ -31,8 +32,10 @@ object AppServices extends Loggable {
   lazy val lafProvider = new LafProvider(workdir, lafHelper, idp, fsh)
   lazy val entityDisplayer: Box[EntityDisplayer] = lafProvider.newEntityDisplayer("entity0") //new EntityDisplayer4Debug()
   lazy val navigatorDisplayer: Box[NavigatorDisplayer] = lafProvider.newNavigatorDisplayer("navigator0") //new EntityDisplayer4Debug()
+  lazy val commentSystem : CommentSystem = new GCommentsService(new UrlMaker4GComments(uoaHelper), uoaHelper)
 
   def init() {
     apis.init()
+    commentSystem.init()
   }
 }

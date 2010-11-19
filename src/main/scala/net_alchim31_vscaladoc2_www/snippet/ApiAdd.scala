@@ -44,6 +44,7 @@ class ApiAdd extends Loggable {
         "version" -%> holder.version.toForm,
         "format" -%> holder.format.toForm,
         "url" -%>  holder.url.toForm,
+        "ggroupId" -%>  holder.ggroupId.toForm,
         "submit" -> SHtml.submit("Add", checkAndSave _))  ++ SHtml.hidden(checkAndSave _)
    }
    

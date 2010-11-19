@@ -22,7 +22,9 @@
 
     %h2 Overview
     %div(class="overview")
+      %div(class="discuss" id={"discuss_" + refPathOf(uoa)}) ?
       != description
+      
 
     %h2 Summary
     %table(class="summary")
@@ -42,6 +44,11 @@
         %th license
         %td
           != license
+      %tr
+        %th discussion group
+        %td
+          - for (gid <- ggroupId)
+            %a(href={"http://groups.google.com/group/" + gid}) #{gid}
 
     %h2 Sub-Artifacts
     %ul(class="artifacts")
@@ -60,3 +67,4 @@
       -for (uoa <- packages)
         %li
           %a(href={urlOf(uoa, "laf/api")}) #{labelOf(uoa)}
+

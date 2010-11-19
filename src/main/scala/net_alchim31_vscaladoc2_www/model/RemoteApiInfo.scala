@@ -1,7 +1,8 @@
 package net_alchim31_vscaladoc2_www.model
 
-import java.util.regex.Pattern
 
+import net.liftweb.mapper.{IHaveValidatedThisSQL, BySql}
+import java.util.regex.Pattern
 import java.net.URI
 import net.liftweb.mapper.MappedEnum
 import net.liftweb.mapper.Mapper
@@ -53,12 +54,20 @@ object RemoteApiInfo extends RemoteApiInfo with LongKeyedMetaMapper[RemoteApiInf
       case None => Failure("api for " + artifactId + "::" + version + " is not registered")
     }
   }
+  
+  def findAllGGroupId() : List[String] = findMap(BySql("ggroup_id IS NOT NULL", IHaveValidatedThisSQL("davidB", "2010-11-19"))){x =>
+    x.ggroupId.is match {
+      case null => Empty
+      case x if x.trim.length == 0 => Empty
+      case x => Full(x.trim)
+    }
+  }.distinct // NotBy(RemoteApiInfo.ggroupId, null)
 }
 
 class RemoteApiInfo extends LongKeyedMapper[RemoteApiInfo] with IdPK with CreatedUpdated {
     def getSingleton = RemoteApiInfo
     
-    private val txtFieldPattern = Pattern.compile("[A-Za-z0-9\\.-_]*")
+    private val txtFieldPattern = Pattern.compile("[A-Za-z0-9\\.\\-_]+")
     // fields
     object artifactId extends MappedString(this, 150) {
       override def validations = valMaxLen(maxLen, "too long : 150 max") _ :: valMinLen(3, "too short : 3 min") _:: valRegex(txtFieldPattern, "doesn't match pattern : " + txtFieldPattern.pattern) _ :: super.validations
@@ -73,6 +82,10 @@ class RemoteApiInfo extends LongKeyedMapper[RemoteApiInfo] with IdPK with Create
     }
     object format extends MappedApiProvider(this)
     object createdBy extends LongMappedMapper(this, User)
+    object ggroupId extends MappedString(this, 150) {
+      override def validations = valMaxLen(maxLen, "too long : 150 max") _ :: valMinLen(3, "too short : 3 min") _:: valRegex(txtFieldPattern, "doesn't match pattern : " + txtFieldPattern.pattern) _ :: super.validations
+      override def toForm = super.toForm.map( _ % ("required" -> "true") % ("pattern" -> txtFieldPattern.pattern))
+    }
 
     def provider : ApiProvider = format.is.asInstanceOf[ApiProviders.MyValue].ap
 

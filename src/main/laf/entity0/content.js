@@ -18,7 +18,6 @@ var updateInherited = function() {
 var logoMaxW=100;
 var logoMaxH=50;
 var imageResize = function(image) {
-  alert(image);
   var h = image.height;
   var w = image.width;
   if ( h > logoMaxH ) {
@@ -33,13 +32,51 @@ var imageResize = function(image) {
   image.width = w;
 };
 
-$(document).ready(function(){
+var discussLoad = function() {
+  var prefixLg = "discuss_".length; 
+  var refPaths = $.makeArray($.map($(".discuss"), function(x){
+    return x.id.substring(prefixLg);
+  }));
+  $.post("/comments.json",
+    {'refPaths[]': refPaths},
+    function(data){
+      for (var key in data) {
+        var value = data[key];
+        var node = $(".discuss[id='discuss_" + key + "']");
+        if (value[0] < 0) {
+          node.removeClass('discuss').addClass('nodiscuss').text("X");
+        } else {
+          node.html("<a href='" +value[1] + "' target='discussFrame' onclick='discussOpenFrame()'>" + value[0] + "</a>");
+        }
+      }
+    },
+    "json"
+  );  
+};
+var discussOpenFrame = function() {
+  var ctx = window.parent.document;
+  var discussH = $('#discussFrame', ctx).attr("scrollHeight");
+  var fullH0_3 = $('#contentFrameSet', ctx).attr("scrollHeight")*0.3;
+  //console.log("discussH " + discussH + " ... "+ fullH0_3 + "..." + ((undefined != discussH) && (undefined != fullH0_3) && (discussH < fullH0_3)));
+  
+  //!!! BAD way to open the frame but don't find better (like dynamily change scrollHeight)
+  // size always increase but when the value > to real size then no longer visual open
+  if ((undefined != discussH) && (undefined != fullH0_3) && (discussH < fullH0_3)) {
+    var current = $('#contentFrameSet', ctx).attr("rows").substring("*,".length).trim();
+    //console.log("current " + current);
+    var newDiscussH = parseInt(current) + (fullH0_3 - discussH);
+    $("#contentFrameSet", window.parent.document).attr("rows", "*," + newDiscussH);
+    //parent.document.getElementById("commentFrame").scrollHeight = parent.document.getElementById("commentFrame").scrollHeight + 10;
+  }
+};
+var onReady = function(){
   parent.document.title=document.title;
   showInherited = $.cookie('showInherited');
   updateInherited();
-  ${"#logo img").onload(resizeImage(this));
-});
-
+  discussLoad();
+  //$("#logo img").onload(imageResize(this));
+};
+$(document).ready(onReady);
 
 /**
  * Cookie plugin

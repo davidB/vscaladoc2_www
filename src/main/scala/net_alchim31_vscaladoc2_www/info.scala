@@ -1,5 +1,7 @@
 package net_alchim31_vscaladoc2_www
 
+import net.liftweb.util.Helpers
+
 /**
  * Definition of all types (data and service) available from template
  *
@@ -25,6 +27,7 @@ object info {
   trait Helper {
     def urlOf(v: String): String
     def urlOf(v : Uoa, subContext : String = "") : String
+    def refPathOf(uoa: Uoa): String
     def labelOf(v: String): String
     def labelOf(v: Uoa): String
     def fqNameOf(v : Uoa) : String
@@ -56,6 +59,7 @@ object info {
     def artifacts: List[Uoa4Artifact] = Nil
     def dependencies: List[Uoa4Artifact] = Nil
     def packages: List[Uoa4Package] = Nil
+    def ggroupId : Option[String] = None
     //def rawjson : Box[JObject] = Empty
   }
 
@@ -112,7 +116,7 @@ class UoaHelper() {
     }
   }
 
-  def apply(refPath: String): Box[Uoa] = apply(refPath.split('/').toList)
+  def apply(refPath: String): Box[Uoa] = apply(splitRefPath(refPath))
 
   def toRefPath(uoa: Uoa): String = uoa match {
     case Uoa4Artifact(artifactId, version) => artifactId + "/" + version
@@ -126,5 +130,24 @@ class UoaHelper() {
     case Uoa4Package(packageName, uoaArtifact) => uoaArtifact
     case Uoa4Type(typeName, uoaPackage) => uoaPackage.uoaArtifact
     case Uoa4Fieldext(fieldextName, uoaType) => uoaType.uoaPackage.uoaArtifact
+  }
+
+  def toUoa4Artifact(refPath : String) : Box[Uoa4Artifact] = Helpers.tryo{
+    val l = splitRefPath(refPath) 
+    Uoa4Artifact(l(0), l(1))
+  }
+  
+  def splitRefPath(refPath : String) = refPath.split('/').toList.map(_.trim).filter(_.length > 0)
+  
+  /**
+   * replace version by '_'
+   * @param refPath refPath to anonymize
+   * @return a tuple (extracted version, refPath with anonymized Version)
+   */
+  def anonymizeVersion(refPath : String) : (String, String) = {
+    val l = splitRefPath(refPath)
+    val v = l(1)
+    val l2 = l.head :: "_" :: l.tail.tail
+    (v, l2.mkString("/"))
   }
 }

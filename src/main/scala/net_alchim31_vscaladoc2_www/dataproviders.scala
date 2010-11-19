@@ -38,16 +38,17 @@ class ApiService(lazy_idp : () => InfoDataProvider) {
     val data = List(
         //("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("local:/"), ApiProviders.vscaladoc2),
         //("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("http://davidb.github.com/vscaladoc2_demoprj/vscaladoc2_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
-        ("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("http://alchim31.free.fr/apis/vscaladoc2_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2),
+        ("vscaladoc2_demoprj", "0.1-SNAPSHOT", new URI("http://alchim31.free.fr/apis/vscaladoc2_demoprj/0.1-SNAPSHOT"), ApiProviders.vscaladoc2, Some("vscaladoc")),
         //("framework_2.8.0", "2.2-M1", new URI("local:/"), ApiProviders.vscaladoc2)
-        ("scala-library", "2.8.0", new URI("http://alchim31.free.fr/apis/scala-library/2.8.0"), ApiProviders.vscaladoc2),
-        ("scala-library", "2.7.7", new URI("http://www.scala-lang.org/api/2.7.7"), ApiProviders.scaladoc)
+        ("scala-library", "2.8.0", new URI("http://alchim31.free.fr/apis/scala-library/2.8.0"), ApiProviders.vscaladoc2, None),
+        ("scala-library", "2.7.7", new URI("http://www.scala-lang.org/api/2.7.7"), ApiProviders.scaladoc, None)
     ).foreach { x =>
         val v: RemoteApiInfo = RemoteApiInfo.create
         v.artifactId(x._1)
         v.version(x._2)
         v.url(x._3.toASCIIString)
         v.format(x._4)
+        x._5.foreach( x => v.ggroupId(x))
         register(v)
       }
     }
@@ -58,13 +59,13 @@ class ApiService(lazy_idp : () => InfoDataProvider) {
   def register(v : RemoteApiInfo) : List[Box[ArtifactInfo]]= {
     // TODO check if the remote api is available or not
     v.save
-    val bartifact = idp.toArtifactInfo(Uoa4Artifact(v.artifactId.is, v.version.is))
-    println("register : " + Uoa4Artifact(v.artifactId.is, v.version.is) + " => "+ bartifact)
-    val childrenRegistration : List[Box[ArtifactInfo]] = v.provider match {
+    v.provider match {
       case VScaladoc2 => {
+        val bartifact = idp.toArtifactInfo(Uoa4Artifact(v.artifactId.is, v.version.is))
+        println("register : " + Uoa4Artifact(v.artifactId.is, v.version.is) + " => "+ bartifact)
         val children = bartifact.map(_.artifacts).openOr(Nil)
         println("children :" + children + " <- " + bartifact.map(_.artifacts.length))
-        children.flatMap { uoa =>
+        val childrenRegistration = children.flatMap { uoa =>
           findApiOf(uoa.artifactId, uoa.version) match {
             case x : Failure => {
               // TODO check if Failure for not registered 
@@ -77,16 +78,17 @@ class ApiService(lazy_idp : () => InfoDataProvider) {
               }
               v2.url(url)
               v2.format(v.format)
+              v2.ggroupId(v.ggroupId)
               println("try to register :" + v2)
               register(v2)
             }
             case _ => Nil //ignore
           }
         }
+        bartifact :: childrenRegistration
       }
       case _ => Nil
     }
-    bartifact :: childrenRegistration  
   }
 }
 
@@ -108,7 +110,11 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
 
   def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo] = {
     rdp.find(uoa).flatMap{ jv =>
-      Helpers.tryo { new ArtifactInfo4Json(uoa, jv.extract[json.ArtifactFile], uoaHelper, this) }
+      Helpers.tryo {
+        import model.{RemoteApiInfo}
+        val ggroupId = RemoteApiInfo.findApiOf(uoa.artifactId, uoa.version).map(_.ggroupId.is).toOption //TODO remove RemoteApiInfo object dependency
+        new ArtifactInfo4Json(uoa, jv.extract[json.ArtifactFile], uoaHelper, this, ggroupId)
+      }
     }
   }
   
@@ -152,7 +158,7 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
    * @return the list of result about ArtifactInfo searched
    */
   private def findAllArtifacts(uoa: Uoa4Artifact): List[Box[ArtifactInfo]] = {
-    // recursiv collect (manage cycle, avoid double deep search,....)
+    // recursiv collect (manage cycle, avoid double deep search, ...)
     def collectRecursiv(uoa: Uoa4Artifact , done : (Set[Uoa4Artifact], List[Box[ArtifactInfo]])) : (Set[Uoa4Artifact], List[Box[ArtifactInfo]]) = {
       done._1.contains(uoa) match {
         case true => done
@@ -356,7 +362,7 @@ object json {
 }
 
 //TODO provide converter to json to avoid intermediary type
-class ArtifactInfo4Json(val uoa: Uoa4Artifact, src: json.ArtifactFile, uoaHelper: UoaHelper, rdti : InfoDataProvider) extends ArtifactInfo {
+class ArtifactInfo4Json(val uoa: Uoa4Artifact, src: json.ArtifactFile, uoaHelper: UoaHelper, rdti : InfoDataProvider, override val ggroupId : Option[String]) extends ArtifactInfo {
   override def groupId = src.groupId.getOrElse("")
   override def artifactId = src.artifactId
   override def version = src.version

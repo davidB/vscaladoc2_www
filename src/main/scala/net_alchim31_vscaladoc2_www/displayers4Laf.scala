@@ -89,7 +89,8 @@ class ScalateDisplayer(helper: Helper, tmplDir: File) {
 class Helper4Laf(baseUrl: URI, uoaHelper: UoaHelper, idp : InfoDataProvider) extends Helper {
   def urlOf(vs: String*): String = urlOf(vs.filter(_ != "").mkString("/"))
   def urlOf(v: String): String = baseUrl.resolve(v).toASCIIString
-  def urlOf(uoa: Uoa, subContext: String = ""): String = urlOf(subContext, uoaHelper.toRefPath(uoa))
+  def urlOf(uoa: Uoa, subContext: String = ""): String = urlOf(subContext, refPathOf(uoa))
+  def refPathOf(uoa: Uoa): String = uoaHelper.toRefPath(uoa)
 
   def labelOf(v: String): String = uoaHelper(v) match {
     case Full(uoa) => labelOf(uoa)
@@ -147,8 +148,8 @@ class EntityDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir: F
 
   def serveType(uoa: Uoa4Type): Box[LiftResponse] = renderHtml("/type.scaml") { context =>
     //TODO keep original failure from a List[Box[x]]
-    Helpers.tryo {
-      context.attributes("logo") = rdti.toArtifactInfo(uoa.uoaPackage.uoaArtifact).map(_.logo).getOrElse("") //TODO
+    rdti.toArtifactInfo(uoa.uoaPackage.uoaArtifact).map { a =>
+      context.attributes("logo") = a.logo
       context.attributes("tpes") = rdti.toTypeInfo(uoa).map(_.open_!).sortWith((a, b) => a.kind == "object" || (a.kind < b.kind))
       context
     }
@@ -156,8 +157,8 @@ class EntityDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir: F
 
   def servePackage(uoa: Uoa4Package): Box[LiftResponse] = renderHtml("/package.scaml") { context =>
     //TODO keep original failure from a List[Box[x]]
-    Helpers.tryo {
-      context.attributes("logo") = rdti.toArtifactInfo(uoa.uoaArtifact).map(_.logo).getOrElse("") //TODO
+    rdti.toArtifactInfo(uoa.uoaArtifact).map { a =>
+      context.attributes("logo") = a.logo
       context.attributes("pkgs") = rdti.toPackageInfo(uoa).map(_.open_!)
       context
     }

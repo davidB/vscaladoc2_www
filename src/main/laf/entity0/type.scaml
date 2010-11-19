@@ -49,7 +49,8 @@
               %li #{entry}
       - for (entry <- ok.map(_.open_!).sortWith(_.simpleName < _.simpleName))
         -val deprecation = findDeprecation(entry.docTags)
-        %div(class={(if (tpe.isInherited(entry)) "isInherited" else "notInherited") + (if (!deprecation.isEmpty) " isDeprecated" else "")})
+        %div(class={"fieldext " + (if (tpe.isInherited(entry)) "isInherited" else "notInherited") + (if (!deprecation.isEmpty) " isDeprecated" else "")})
+          %div(class="discuss" id={"discuss_" + refPathOf(entry.uoa)}) ?
           =stringWithTypeRef(entry.signature, entry.simpleName)
           %div(class="apiComments")
             -for (deprecationMsg <- deprecation)
@@ -91,6 +92,7 @@
       %h2(style="cursor: help;" onClick={"$('#" + kind +"').toggle()"}) #{kind} #{simpleName}
       %div(id={kind})
         %div( id="intro")
+          %div(class="discuss" id={"discuss_" + refPathOf(uoa)}) ?
           =stringWithTypeRef(signature, simpleName)
 
           %br

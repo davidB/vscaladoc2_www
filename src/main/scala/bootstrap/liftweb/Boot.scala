@@ -4,8 +4,6 @@ import javax.sql.DataSource
 import javax.naming.Context
 import javax.naming.InitialContext
 import net.liftweb.mapper.MapperRules
-import net_alchim31_vscaladoc2_www.view.ApiView
-import net_alchim31_vscaladoc2_www.AppServices
 import _root_.net.liftweb.util._
 import _root_.net.liftweb.common._
 import _root_.net.liftweb.http._
@@ -16,6 +14,10 @@ import Helpers._
 import _root_.net.liftweb.mapper.{ DB, ConnectionManager, Schemifier, DefaultConnectionIdentifier, StandardDBVendor }
 import _root_.java.sql.{ Connection, DriverManager }
 import _root_.net_alchim31_vscaladoc2_www.model._
+import net_alchim31_vscaladoc2_www.AppServices
+import net_alchim31_vscaladoc2_www_gcomments.GCommentsInfoMapped
+import net_alchim31_vscaladoc2_www.view.CommentsView
+import net_alchim31_vscaladoc2_www.view.ApiView
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -57,7 +59,7 @@ class Boot extends Loggable {
     MapperRules.columnName = (_,name) => StringHelpers.snakify(name)
     MapperRules.tableName =  (_,name) => StringHelpers.snakify(name)
 
-    Schemifier.schemify(true, Schemifier.infoF _, User, RemoteApiInfo)
+    Schemifier.schemify(true, Schemifier.infoF _, User, RemoteApiInfo, GCommentsInfoMapped)
 
 //    RemoteApiInfo.init()
 
@@ -70,9 +72,11 @@ class Boot extends Loggable {
     val IsAdmin = If(() => { val b = User.currentUser.map( _.id.is <= 1).getOrElse(false); println("check", b, User.currentUser.map( _.id.is)); b } , "")
     def sitemap() = List(
             Menu("Home") / "index",
+            Menu("Home") / "blank" >> Hidden,
             Menu("Legal") / "legal" / ** >> Hidden,
             Menu("Admin") / "admin" / "index" >> IsAdmin
               submenus(RemoteApiInfo.menus : _*)
+              submenus(GCommentsInfoMapped.menus : _*)
 //      // Menu with special Link
 //      Menu(Loc("Static", Link(List("static"), true, "/static/index"),
 //        "Static Content")) ::
@@ -91,7 +95,9 @@ class Boot extends Loggable {
     //    scalateView.register
     AppServices.init()
     LiftRules.statelessDispatchTable.append(ApiView.dispatch)
-
+    LiftRules.dispatch.append(CommentsView) //statefull
+    //LiftRules.statelessDispatchTable.append(CommentsView)
+    
     // make requests utf-8, html
     LiftRules.early.append(_.setCharacterEncoding("UTF-8"))
     LiftRules.useXhtmlMimeType = false // recaptcha js lib
