@@ -1,3 +1,5 @@
+http://vscaladoc.alchim31.net/
+
 Vscaladoc2 :
 
 * allow registration of apidoc in several formats (Javadoc2, Scaladoc (1 & 2), VScaladoc2 (json))
@@ -24,5 +26,10 @@ The web service of VScaladoc2 :
 * it can be updated/restarted several times by week
 * it doesn't host your data (api, comment), it only cache or redirect
 
+You could browse the [demo] and use the document icon on right side to display discussion (if number  > 0) or start a new one if (number == 0).
+Due to the non-API provide by google-groups, number are refresh periodicaly ~ 30 min.
+
+    [home]: http://vscaladoc.alchim31.net/
+    [demo]: http://vscaladoc.alchim31.net/navigator/api/vscaladoc2_demoprj/0.1-SNAPSHOT
     [request it]: https://vscaladoc.uservoice.com/
     [issueTracker]: http://github.com/davidB/vscaladoc2_www/issues
