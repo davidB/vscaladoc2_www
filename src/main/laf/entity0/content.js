@@ -43,10 +43,14 @@ var discussLoad = function() {
       for (var key in data) {
         var value = data[key];
         var node = $(".discuss[id='discuss_" + key + "']");
-        if (value[0] < 0) {
+        var nb = value[0];
+        var url = value[1];
+        if ( nb < 0) {
           node.removeClass('discuss').addClass('nodiscuss').text("X");
+        } else if ( nb == 0){
+          node.html("<a href='" + url + "'>" + nb + "</a>");
         } else {
-          node.html("<a href='" +value[1] + "' target='discussFrame' onclick='discussOpenFrame()'>" + value[0] + "</a>");
+          node.html("<a href='" + url + "' target='discussFrame' onclick='discussOpenFrame()'>" + nb + "</a>");
         }
       }
     },
