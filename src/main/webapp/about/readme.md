@@ -1,6 +1,8 @@
-http://vscaladoc.alchim31.net/
+I'm please to announce VScaladoc2 web service (beta)
 
-Vscaladoc2 :
+at http://vscaladoc.alchim31.net/
+
+## VScaladoc2 :
 
 * allow registration of apidoc in several formats (Javadoc2, Scaladoc (1 & 2), VScaladoc2 (json))
   for every format except vscaladoc2, request will be redirected
@@ -19,17 +21,24 @@ Vscaladoc2 :
   * native email integration/notification => more reactivity
   * other back-end are possible (nabble,...) [request it]
 
-The web service of VScaladoc2 :
-
-* it is in staging, so reporting bugs, suggestions,... are all welcome
-* every 24H the server hibernate (rule for [host](http://stax.net)), some features/renderer could take time to restart (lazy)
-* it can be updated/restarted several times by week
-* it doesn't host your data (api, comment), it only cache or redirect
-
 You could browse the [demo] and use the document icon on right side to display discussion (if number  > 0) or start a new one if (number == 0).
 Due to the non-API provide by google-groups, number are refresh periodicaly ~ 30 min.
 
-    [home]: http://vscaladoc.alchim31.net/
-    [demo]: http://vscaladoc.alchim31.net/navigator/api/vscaladoc2_demoprj/0.1-SNAPSHOT
-    [request it]: https://vscaladoc.uservoice.com/
-    [issueTracker]: http://github.com/davidB/vscaladoc2_www/issues
+Full Api of Lift 2.2-M1 is under [framework_2.8.0] (name of the root artifact)
+
+## The web service (QoS) :
+
+* it is in staging, so reporting bugs, suggestions,... are all welcome
+* every 24H the server hibernate (rule for [host](http://stax.net)), some features/renderer could take time to restart (lazy) and cache to be updated
+* it can be updated/restarted several times by week
+* it doesn't host your data (api, comment), it only cache or redirect
+
+
+   [home]: http://vscaladoc.alchim31.net/
+   [request it]: https://vscaladoc.uservoice.com/
+   [issueTracker]: http://github.com/davidB/vscaladoc2_www/issues
+    
+   [demo]: http://vscaladoc.alchim31.net/navigator/api/vscaladoc2_demoprj/0.1-SNAPSHOT
+   [framework_2.8.0]: http://vscaladoc.alchim31.net/navigator/api/framework_2.8.0/2.2-M1
+
+
