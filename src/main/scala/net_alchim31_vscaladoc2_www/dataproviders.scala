@@ -225,7 +225,8 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
       case Full(jv) => {
         val pkgFile = jv.extract[json.PkgFile]
         //.map(x => if (excludeObjectSuffix) removeObjectSuffix(x) else x)
-        pkgFile.e.flatMap(_.templates).distinct.flatMap { refPath =>
+        val children = pkgFile.e.flatMap(_.templates).distinct
+        children.flatMap { refPath =>
           uoaHelper(refPath) match {
             case Full(uoa) =>
               uoa match {
@@ -245,16 +246,22 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
     if (deep <= 0) {
       Nil
     } else {
+      //select only not inherited types
+      val refPathPrefix = uoaHelper.toRefPath(uoa) + "."
       rdp.find(uoa) match {
         case x: Failure => List(x)
         case Empty => Nil
         case Full(jv) => {
           val tpeFile = jv.extract[json.TpeFile]
           //.map(x => if (excludeObjectSuffix) removeObjectSuffix(x) else x)
-          tpeFile.e.flatMap(_.templates).distinct.flatMap { refPath =>
+          val children = tpeFile.e.flatMap(_.templates).filter(_.startsWith(refPathPrefix)).distinct
+          if (uoa.uoaPackage.packageName == "scala.collection") {
+            println("children" , uoa, children.size)
+          }
+          children.flatMap { refPath =>
             uoaHelper(refPath) match {
-              case Full(uoa) =>
-                uoa match {
+              case Full(uoaChild) =>
+                uoaChild match {
                   case u: Uoa4Type => Full(u) :: findAllInnerTypes(u, deep - 1)
                   case x => println("found :" + x); Nil //ignore
                 }
