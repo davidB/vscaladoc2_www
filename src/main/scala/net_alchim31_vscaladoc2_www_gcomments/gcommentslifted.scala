@@ -140,10 +140,10 @@ class GCommentsService(urlMaker : UrlMaker4GComments, uoaHelper : UoaHelper) ext
 
   def updateInfoFromFeeds() {
     try {
-      logger.info("update comments info from feeds")
+      logger.info("update comments info from feeds starting, previous : " + lastBatchUpdate)
       val extractor = new GCommentsFeedExtractor(urlMaker)
-      extractor.updateFromAtomFeeds(this)
-      logger.info("update comments info from feeds ... DONE")
+      val nb = extractor.updateFromAtomFeeds(this)
+      logger.info("total update comments info from feeds ... " + nb)
     } finally {
       ActorPing.schedule(this.updateInfoFromFeeds, TimeHelpers.minutes(30) ) //TODO read frequency from configuration 
     }

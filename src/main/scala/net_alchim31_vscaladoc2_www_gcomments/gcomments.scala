@@ -1,4 +1,5 @@
 package net_alchim31_vscaladoc2_www_gcomments
+import net.liftweb.common.Loggable
 
 import dispatch.Request
 import dispatch.Http
@@ -101,7 +102,7 @@ class UrlMaker4GComments(uoaHelper : UoaHelper) {
 }
 
 // TODO ignore data already processed, check update time
-class GCommentsFeedExtractor(val urlMaker : UrlMaker4GComments) {
+class GCommentsFeedExtractor(val urlMaker : UrlMaker4GComments) extends Loggable {
   //TODO find a better pattern to check Subject about API
   
   //private val _dateParser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
@@ -112,6 +113,7 @@ class GCommentsFeedExtractor(val urlMaker : UrlMaker4GComments) {
 
   protected[net_alchim31_vscaladoc2_www_gcomments]
   def fusionEntries(entries : Iterable[GCommentEntryInfo], find : String => Box[GCommentsInfo]) : Iterable[Box[GCommentsInfo]] = {
+    logger.info("fusion Entries :" + entries.size)
     for ((k, v) <- entries.groupBy(_.refPath )) yield {
       val v2 = v.toList.sortWith((x1 , x2) => x1.at.isBefore(x2.at))
       find(k) match {
@@ -148,6 +150,7 @@ class GCommentsFeedExtractor(val urlMaker : UrlMaker4GComments) {
       }
       collected.toIterable
     } else {
+      logger.info("no data to collect, feed updated at " + updated)
       Nil
     }
   }
@@ -168,9 +171,11 @@ class GCommentsFeedExtractor(val urlMaker : UrlMaker4GComments) {
     val httpClient = new Http()
     httpClient.client.getParams.setParameter("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)")
     val savedCnt = for (ggroupId <- store.findAllGGroupId()) yield {
-      val url = urlMaker.feed(ggroupId).toURL
-      val xml = new Http()(new Request(url.toString) >> {is => XML.load(is) })
-      updateData(xml, store.findByRefPath, store.save, previous)
+      val url = urlMaker.feed(ggroupId).toURL.toString
+      val xml = new Http()(new Request(url) >> {is => XML.load(is) })
+      val nb = updateData(xml, store.findByRefPath, store.save, previous)
+      logger.info("updates from " + url + " dated after " + previous + " : " + nb)
+      nb
     }
     store.lastBatchUpdate = now
     savedCnt.foldLeft(0)( _ + _)
