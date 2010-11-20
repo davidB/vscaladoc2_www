@@ -46,7 +46,7 @@ var discussLoad = function() {
         if (value[0] < 0) {
           node.removeClass('discuss').addClass('nodiscuss').text("X");
         } else {
-          node.html("<a href='" +value[1] + "' target='discussFrame' onclick='discussOpenFrame()'>" + value[0] + "</a>");
+          node.html("<a href='" +value[1] + "' target='discussFrame' onclick='discussOpenFrame()' title='discuss ?'>" + value[0] + "</a>");
         }
       }
     },
