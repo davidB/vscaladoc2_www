@@ -67,7 +67,8 @@ object RemoteApiInfo extends RemoteApiInfo with LongKeyedMetaMapper[RemoteApiInf
 class RemoteApiInfo extends LongKeyedMapper[RemoteApiInfo] with IdPK with CreatedUpdated {
     def getSingleton = RemoteApiInfo
     
-    private val txtFieldPattern = Pattern.compile("[A-Za-z0-9\\.\\-_]+")
+    private val txtFieldPattern = Pattern.compile("[A-Za-z0-9\\.\\-_]*")
+    private val urlFieldPattern = Pattern.compile("(http|file|local):/([A-Za-z0-9\\.\\-_/])*")
     // fields
     object artifactId extends MappedString(this, 150) {
       override def validations = valMaxLen(maxLen, "too long : 150 max") _ :: valMinLen(3, "too short : 3 min") _:: valRegex(txtFieldPattern, "doesn't match pattern : " + txtFieldPattern.pattern) _ :: super.validations
@@ -78,13 +79,15 @@ class RemoteApiInfo extends LongKeyedMapper[RemoteApiInfo] with IdPK with Create
       override def toForm = super.toForm.map( _ % ("required" -> "true") % ("pattern" -> txtFieldPattern.pattern))
     }
     object url extends MappedString(this, 150) {
-      override def toForm = super.toForm.map( _ % ("required" -> "true") % ("type" -> "url")) 
+      override def validations = valMaxLen(maxLen, "too long : 150 max") _ :: valMinLen(1, "too short : 1 min") _:: valRegex(urlFieldPattern, "doesn't match pattern : " + urlFieldPattern.pattern) _ :: super.validations
+      override def toForm = super.toForm.map( _ % ("required" -> "true") % ("pattern" -> urlFieldPattern.pattern)) 
     }
     object format extends MappedApiProvider(this)
     object createdBy extends LongMappedMapper(this, User)
     object ggroupId extends MappedString(this, 150) {
-      override def validations = valMaxLen(maxLen, "too long : 150 max") _ :: valMinLen(3, "too short : 3 min") _:: valRegex(txtFieldPattern, "doesn't match pattern : " + txtFieldPattern.pattern) _ :: super.validations
-      override def toForm = super.toForm.map( _ % ("required" -> "true") % ("pattern" -> txtFieldPattern.pattern))
+      //TODO allow to set :: valMinLen(3, "too short : 3 min") _ on optional field
+      override def validations = valMaxLen(maxLen, "too long : 150 max") _ :: valRegex(txtFieldPattern, "doesn't match pattern : " + txtFieldPattern.pattern) _ :: super.validations
+      override def toForm = super.toForm.map( _ % ("pattern" -> txtFieldPattern.pattern))
     }
 
     def provider : ApiProvider = format.is.asInstanceOf[ApiProviders.MyValue].ap
