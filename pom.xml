@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.alchim31.vscaladoc</groupId>
   <artifactId>vscaladoc2_www</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.1</version>
   <packaging>war</packaging>
   <name>VScaladoc2 Website for API</name>
   <inceptionYear>2010</inceptionYear>
