@@ -62,9 +62,7 @@ class ApiService(lazy_idp : () => InfoDataProvider) {
     v.provider match {
       case VScaladoc2 => {
         val bartifact = idp.toArtifactInfo(Uoa4Artifact(v.artifactId.is, v.version.is))
-        println("register : " + Uoa4Artifact(v.artifactId.is, v.version.is) + " => "+ bartifact)
         val children = bartifact.map(_.artifacts).openOr(Nil)
-        println("children :" + children + " <- " + bartifact.map(_.artifacts.length))
         val childrenRegistration = children.flatMap { uoa =>
           findApiOf(uoa.artifactId, uoa.version) match {
             case x : Failure => {
@@ -79,7 +77,6 @@ class ApiService(lazy_idp : () => InfoDataProvider) {
               v2.url(url)
               v2.format(v.format)
               v2.ggroupId(v.ggroupId)
-              println("try to register :" + v2)
               register(v2)
             }
             case _ => Nil //ignore
@@ -255,9 +252,6 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
           val tpeFile = jv.extract[json.TpeFile]
           //.map(x => if (excludeObjectSuffix) removeObjectSuffix(x) else x)
           val children = tpeFile.e.flatMap(_.templates).filter(_.startsWith(refPathPrefix)).distinct
-          if (uoa.uoaPackage.packageName == "scala.collection") {
-            println("children" , uoa, children.size)
-          }
           children.flatMap { refPath =>
             uoaHelper(refPath) match {
               case Full(uoaChild) =>
