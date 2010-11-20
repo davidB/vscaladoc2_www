@@ -15,22 +15,22 @@ var updateInherited = function() {
   }
 };
 
-var logoMaxW=100;
-var logoMaxH=50;
-var imageResize = function(image) {
-  var h = image.height;
-  var w = image.width;
-  if ( h > logoMaxH ) {
-    w = Math.floor( w * logoMaxH / h );
-    h = logoMaxH;
-  }
-  if ( w > logoMaxW ) {
-    h = Math.floor( h * logoMaxW / w );
-    w = logoMaxW;
-  }
-  image.height = h;
-  image.width = w;
-};
+//var logoMaxW=100;
+//var logoMaxH=50;
+//var imageResize = function(image) {
+//  var h = image.height;
+//  var w = image.width;
+//  if ( h > logoMaxH ) {
+//    w = Math.floor( w * logoMaxH / h );
+//    h = logoMaxH;
+//  }
+//  if ( w > logoMaxW ) {
+//    h = Math.floor( h * logoMaxW / w );
+//    w = logoMaxW;
+//  }
+//  image.height = h;
+//  image.width = w;
+//};
 
 var discussLoad = function() {
   var prefixLg = "discuss_".length; 
@@ -46,7 +46,7 @@ var discussLoad = function() {
         if (value[0] < 0) {
           node.removeClass('discuss').addClass('nodiscuss').text("X");
         } else {
-          node.html("<a href='" +value[1] + "' target='discussFrame' onclick='discussOpenFrame()' title='discuss ?'>" + value[0] + "</a>");
+          node.html("<a href='" +value[1] + "' target='discussFrame' onclick='discussOpenFrame()'>" + value[0] + "</a>");
         }
       }
     },
@@ -74,7 +74,7 @@ var onReady = function(){
   showInherited = $.cookie('showInherited');
   updateInherited();
   discussLoad();
-  //$("#logo img").onload(imageResize(this));
+  $("#logo * img").aeImageResize({ height: 70, width: 100 });
 };
 $(document).ready(onReady);
 
@@ -174,3 +174,83 @@ jQuery.cookie = function(name, value, options) {
         return cookieValue;
     }
 };
+
+
+// COPY From https://github.com/adeelejaz/jquery-image-resize/blob/master/jquery.ae.image.resize.js
+// Version: v2.1.0 (2010-11-20)
+// Author: Adeel Ejaz (http://adeelejaz.com/)
+// License: Dual licensed under MIT and GPL licenses.
+(function( $ ) {
+
+  $.fn.aeImageResize = function( params ) {
+
+    // We cannot do much unless we have one of these
+    if ( !params.height && !params.width ) {
+      return this;
+    }
+
+    var mathFloor = Math.floor
+      ,	isIE6 = $.browser.msie && (parseInt($.browser.version) == 6)
+      ,	aspectRatio = 0
+      ;
+
+    // Calculate aspect ratio now, if possible
+    if ( params.height && params.width ) {
+      aspectRatio = params.width / params.height;
+    }
+
+    // Attach handler to load
+    // Handler is executed just once per element
+    // Load event required for Webkit browsers
+    return this.one( "load", function() {
+
+      // Remove all attributes and CSS rules
+//      this
+//        .removeAttr( "height" )
+//        .removeAttr( "width" )
+//        .css({
+//          height: "",
+//          width: ""
+//        });
+
+      var imgHeight = this.height
+        ,	imgWidth = this.width
+        ,	imgAspectRatio = imgWidth / imgHeight
+        ,	bxHeight = params.height
+        ,	bxWidth = params.width
+        ,	bxAspectRatio = aspectRatio;
+
+      // Work the magic!
+      // If one parameter is missing, we just force calculate it
+      if ( !bxAspectRatio ) {
+        if ( bxHeight === 0 ) {
+          bxAspectRatio = imgAspectRatio - 1;
+        } else {
+          bxAspectRatio = imgAspectRatio + 1;
+        }
+      }
+
+      // Only resize the images that need resizing
+      if ( (bxHeight && imgHeight > bxHeight) || (bxWidth && imgWidth > bxWidth) ) {
+
+        if ( imgAspectRatio > aspectRatio ) {
+          bxHeight = mathFloor( imgHeight / imgWidth * bxWidth );
+        } else {
+          bxWidth = mathFloor( imgWidth / imgHeight * bxHeight );
+        }
+
+        $( this ).attr({
+          "height": bxHeight,
+          "width": bxWidth
+        });
+      }
+    })
+    .each(function() {
+
+      // Trigger load event (for Gecko and MSIE)
+      if ( this.complete || isIE6 ) {
+        this.trigger( "load" );
+      }
+    });
+  };
+})( jQuery );

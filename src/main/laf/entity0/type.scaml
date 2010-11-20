@@ -68,6 +68,8 @@
     %link(href={urlOf("laf/_rsrc/content.css")} type="text/css" rel="stylesheet")
   %body
     %div(class="header")
+      %div(id="logo")
+        != logo
       %div(id="path")
         %a(href={urlOf("")})
           %img(src={urlOf("favicon.ico")})
@@ -76,8 +78,6 @@
         %a(href={urlOf(tpe0.uoa.uoaPackage, "laf/api")}) #{labelOf(tpe0.uoa.uoaPackage)}
         \/
         %a(href={urlOf(tpe0.uoa, "laf/api")}) #{labelOf(tpe0.uoa)}
-      %div(id="logo")
-        != logo
 
     %h1
       #{fqNameOf(tpe0.uoa)}
