@@ -7,13 +7,58 @@
     <p>VScaladoc2 is the second generation. Second because it <b>no longer generates static html files</b>.</p>
     <p>Main advantage : Html rendering could be enhanced, in lot of case, without requiring regeneration of scaladoc by lib's creators.</p>
 
-    <div>VScaladoc2 website provide :
-    <ul>
-      <li>A central place where API of libraries can be referenced and find (Javadoc2/Scaladoc/Scaladoc2/VScaladoc2)</li>
-      <li>A html displayer for API generated in JSON format via <a href="http://github.com/davidB/vscaladoc2_genjson">vscaladoc2_genjson</a></li>
-    </ul>
+    <div rel="#about">
+      VScaladoc2 website provide :
+      <ul>
+        <li>A central place where API of libraries can be referenced and find (Javadoc2/Scaladoc/Scaladoc2/VScaladoc2)<br/>
+          for every format except vscaladoc2, request are redirected
+        </li>
+        <li>A html displayer for API generated in JSON format via <a href="http://github.com/davidB/vscaladoc2_genjson">vscaladoc2_genjson</a></li>
+        <li><a href="#" rel="#about">...</a></li>
+      </ul>
     </div>
-  </div> 
+    <div rel="#warning"><a href="#">QoS info</a></div>
+          
+    <div class="simple_overlay" id="about">
+      <div class="details">
+      VScaladoc2 website provide :
+      <ul>
+        <li>A central place where API of libraries can be referenced and find (Javadoc2/Scaladoc/Scaladoc2/VScaladoc2)<br/>
+          for every format except vscaladoc2, request are redirected
+        </li>
+        <li>A html displayer for API generated in JSON format via <a href="http://github.com/davidB/vscaladoc2_genjson">vscaladoc2_genjson</a></li>
+        <li>Support documentation in overview.html, package.html</li>
+        <li>Support multi-artifacts project and cross artifact reference</li>
+        <li>Support custom doctag<br/>
+          by default every doctags are displays, but some could have special display (eg : deprecated, tags (wip)).
+          So today, you could use doctags you like, generate doc / release and have better display tomorrow.<br/>
+          <code>@tags use a space separeted list of keyword</code>
+        </li>
+        <li>provide a primitive discussion system (google-groups as back-end)
+          <ul>
+            <li>no messages stored by vscaladoc => no risk to drop messages if vscaladoc fails</li>
+            <li>no registration to vscaladoc2  required</li>
+            <li>lib's owners manage/moderate as they <i>wish</i></li>  
+            <li>native email integration/notification => more reactivity</li>
+            <li>other back-end are possible (nabble,...) <a href="https://vscaladoc.uservoice.com/">request it</a></li>  
+          </ul>
+        </li>
+        </ul>
+      </div>
+    </div>  
+    <div class="simple_overlay" id="warning">
+      <div  class=".details">
+        <ul>
+          <li>it is in staging, so reporting bugs, suggestions,... are all welcome</li>
+          <li>every 24H the server hibernate (rule for [host](http://stax.net)), some features/renderer could take time to restart (lazy)</li>
+          <li>it can be updated/restarted several times by week</li>
+          <li>it doesn't host your data (api, comment), it only cache or redirect</li>      
+        </ul>
+      </div>
+    </div>
+ 
+  </div>
+  
 	<h2>Apis</h2>
 	<lift:Util.loggedIn>  
     <lift:ApiAdd.add form="POST">
@@ -39,6 +84,18 @@
       </lift:Listings.all>
     </tbody>
   </table>
+  <lift:Listings.paginate>
+    <p><nav:records/></p>
+    <nav:first /> | <nav:prev/> | <nav:allpages> | </nav:allpages> | <nav:next/> | <nav:last />
+  </lift:Listings.paginate>
 
+  <lift:tail>
+    <script>//<![CDATA[
+      $(document).ready(function(){
+        $("div[rel]").overlay();
+      });  
+    //]]>
+    </script>
+  </lift:tail>
 </lift:surround>
 

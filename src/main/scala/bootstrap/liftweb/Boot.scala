@@ -72,8 +72,8 @@ class Boot extends Loggable {
     val IsAdmin = If(() => { val b = User.currentUser.map( _.id.is <= 1).getOrElse(false); println("check", b, User.currentUser.map( _.id.is)); b } , "")
     def sitemap() = List(
             Menu("Home") / "index",
-            Menu("Home") / "blank" >> Hidden,
-            Menu("Legal") / "legal" / ** >> Hidden,
+            Menu("Blank") / "blank" >> Hidden,
+            Menu("About") / "about" / ** >> Hidden,
             Menu("Admin") / "admin" / "index" >> IsAdmin
               submenus(RemoteApiInfo.menus : _*)
               submenus(GCommentsInfoMapped.menus : _*)
