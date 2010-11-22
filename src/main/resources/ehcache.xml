@@ -448,6 +448,25 @@ in-memory capacity changed at runtime through the cache's configuration object.
     timeToLiveSeconds="1200"
     />
 
+  <!-- info read from one json file -->
+  <cache name="uoa2info"
+    maxElementsInMemory="100"
+    maxElementsOnDisk="1000"
+    eternal="false"
+    overflowToDisk="true"
+    timeToIdleSeconds="300"
+    timeToLiveSeconds="600"
+    memoryStoreEvictionPolicy="LFU"
+    />
+  <cache name="uoa2types"
+    maxElementsInMemory="10"
+    maxElementsOnDisk="1000"
+    eternal="false"
+    overflowToDisk="true"
+    timeToIdleSeconds="300"
+    timeToLiveSeconds="600"
+    memoryStoreEvictionPolicy="LFU"
+    />
   <!-- Page and Page Fragment Caches -->
   <cache name="PageCache4Browser"
     maxElementsInMemory="50"
@@ -456,7 +475,7 @@ in-memory capacity changed at runtime through the cache's configuration object.
     overflowToDisk="true"
     diskPersistent="true"
     timeToIdleSeconds="300"
-    timeToLiveSeconds="7200"
+    timeToLiveSeconds="43200"
     memoryStoreEvictionPolicy="LFU"
     />
   <cache name="PageCache4Laf"
@@ -465,7 +484,7 @@ in-memory capacity changed at runtime through the cache's configuration object.
     eternal="false"
     overflowToDisk="true"
     timeToIdleSeconds="300"
-    timeToLiveSeconds="3600"
+    timeToLiveSeconds="7200"
     memoryStoreEvictionPolicy="LFU"
     />
 

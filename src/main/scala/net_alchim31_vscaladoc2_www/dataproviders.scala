@@ -1,7 +1,6 @@
 package net_alchim31_vscaladoc2_www
 
 import net_alchim31_utils.FileSystemHelper
-
 import java.net.MalformedURLException
 import java.io.File
 import scala.collection.mutable.ListBuffer
@@ -20,12 +19,12 @@ trait RawDataProvider {
 }
 
 trait InfoDataProvider {
-  def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo]
-  def toPackageInfo(uoa: Uoa4Package): List[Box[PackageInfo]]
-  def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]]
-  def toFieldextInfo(uoa: Uoa4Fieldext): List[Box[FieldextInfo]]
-  def findAllNonEmptyPackages(uoa: Uoa4Artifact): List[Box[Uoa4Package]]
-  def findAllTypes(uoa: Uoa4Artifact): List[Box[Uoa4Type]]
+  def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo] = Empty
+  def toPackageInfo(uoa: Uoa4Package): List[Box[PackageInfo]] = Nil
+  def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]] = Nil
+  def toFieldextInfo(uoa: Uoa4Fieldext): List[Box[FieldextInfo]] = Nil
+  def findAllNonEmptyPackages(uoa: Uoa4Artifact): List[Box[Uoa4Package]] = Nil
+  def findAllTypes(uoa: Uoa4Artifact): List[Box[Uoa4Type]] = Nil
 }
 
 class ApiService(lazy_idp : () => InfoDataProvider) {
@@ -89,6 +88,33 @@ class ApiService(lazy_idp : () => InfoDataProvider) {
   }
 }
 
+trait InfoDataProviderCache extends InfoDataProvider {
+  self : InfoDataProvider =>
+
+  import net.sf.ehcache.{Cache, Element}
+  
+  protected def cacheUoa2info : Cache
+  protected def cacheUoa2types : Cache
+  
+  override def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo] = findOrUpdate(cacheUoa2info, uoa)(super.toArtifactInfo)
+  override def toPackageInfo(uoa: Uoa4Package): List[Box[PackageInfo]] = findOrUpdate(cacheUoa2info, uoa)(super.toPackageInfo)
+  override def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]] = findOrUpdate(cacheUoa2info, uoa)(super.toTypeInfo) 
+  override def toFieldextInfo(uoa: Uoa4Fieldext): List[Box[FieldextInfo]] = findOrUpdate(cacheUoa2info, uoa)(super.toFieldextInfo) 
+
+  override def findAllTypes(uoa: Uoa4Artifact): List[Box[Uoa4Type]] = findOrUpdate(cacheUoa2types, uoa)(super.findAllTypes)
+  
+  private def findOrUpdate[KeyType, ResultType](cache : Cache, k : KeyType)(f : KeyType => ResultType ) : ResultType = {
+    cache.get(k) match {
+      case null => {
+        val v = f(k)
+        cache.put(new Element(k, v))
+        v
+      }
+      case elem => elem.getObjectValue.asInstanceOf[ResultType]
+    }
+  }
+}
+
 class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) extends InfoDataProvider {
   implicit val formats = {
     //    val hints = new ShortTypeHints(classOf[StringWithRef] :: Nil) {
@@ -105,7 +131,7 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
     net.liftweb.json.DefaultFormats // Brings in default date formats etc.
   }
 
-  def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo] = {
+  override def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo] = {
     rdp.find(uoa).flatMap{ jv =>
       Helpers.tryo {
         import model.{RemoteApiInfo}
@@ -115,7 +141,7 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
     }
   }
   
-  def toPackageInfo(uoa: Uoa4Package): List[Box[PackageInfo]] = {
+  override def toPackageInfo(uoa: Uoa4Package): List[Box[PackageInfo]] = {
     rdp.find(uoa) match {
       case x: Failure => List(x)
       case Empty => Nil
@@ -126,7 +152,7 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
     }
   }
   
-  def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]] = {
+  override def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]] = {
     rdp.find(uoa) match {
       case x: Failure => List(x)
       case Empty => Nil
@@ -137,7 +163,7 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
     }
   }
 
-  def toFieldextInfo(uoa: Uoa4Fieldext): List[Box[FieldextInfo]] = {
+  override def toFieldextInfo(uoa: Uoa4Fieldext): List[Box[FieldextInfo]] = {
     rdp.find(uoa) match {
       case x: Failure => List(x)
       case Empty => Nil
@@ -169,7 +195,7 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
     collectRecursiv(uoa, (Set.empty, Nil))._2
   }
 
-  def findAllNonEmptyPackages(uoa: Uoa4Artifact): List[Box[Uoa4Package]] = {
+  override def findAllNonEmptyPackages(uoa: Uoa4Artifact): List[Box[Uoa4Package]] = {
     val art = findAllArtifacts(uoa);
     art.flatMap( x => x match {
       case f :Failure => List(f)
@@ -206,7 +232,7 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
     }
   }
   
-  def findAllTypes(uoa: Uoa4Artifact): List[Box[Uoa4Type]] = {
+  override def findAllTypes(uoa: Uoa4Artifact): List[Box[Uoa4Type]] = {
     val art = findAllArtifacts(uoa);
     art.flatMap( x => x match {
       case f :Failure => List(f)

@@ -1,5 +1,7 @@
 package net_alchim31_vscaladoc2_www
 
+import net.sf.ehcache.CacheManager
+
 
 import net.liftweb.common.{Full,Box,Empty,Failure,Loggable}
 import net_alchim31_vscaladoc2_www_gcomments.{GCommentsService, UrlMaker4GComments} 
@@ -28,7 +30,10 @@ object AppServices extends Loggable {
   lazy val apis = new ApiService({() => idp})
   lazy val lafHelper = new Helper4Laf(new URI(S.contextPath + "/"), uoaHelper, idp)
   lazy val rawDataProvider : RawDataProvider = new RawDataProviderWithLocalFSCache(fsh, workdir, apis, uoaHelper)//new RawDataProvider0(workdir, apis, uoaHelper)
-  lazy val idp : InfoDataProvider = new InfoDataProvider0(rawDataProvider, uoaHelper)
+  lazy val idp : InfoDataProvider = new InfoDataProvider0(rawDataProvider, uoaHelper) with InfoDataProviderCache {
+    protected val cacheUoa2info = CacheManager.getInstance().getCache("uoa2info")
+    protected val cacheUoa2types = CacheManager.getInstance().getCache("uoa2types")
+  }
   lazy val lafProvider = new LafProvider(workdir, lafHelper, idp, fsh)
   lazy val entityDisplayer: Box[EntityDisplayer] = lafProvider.newEntityDisplayer("entity0") //new EntityDisplayer4Debug()
   lazy val navigatorDisplayer: Box[NavigatorDisplayer] = lafProvider.newNavigatorDisplayer("navigator0") //new EntityDisplayer4Debug()
