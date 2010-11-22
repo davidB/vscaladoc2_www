@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration debug="false">
+  <!--jmxConfigurator /-->
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <!--pattern>%d %p %t %c - %m%n</Pattern-->
+      <!--pattern>%-4relative [%thread] %-5level %logger{20} - %msg%n</pattern-->
+      <pattern>%date %-5level %logger{20} - %msg%n</pattern>
+    </layout>
+  </appender>
+
+  <logger name="net_alchim31_vscaladoc2_www" level="DEBUG"/>
+  <logger name="net_alchim31_vscaladoc2_www_gcomments" level="DEBUG"/>
+
+  <root level="${root-level:-INFO}">
+    <appender-ref ref="STDOUT"/>
+  </root>
+</configuration>
+

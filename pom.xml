@@ -80,11 +80,31 @@
       <groupId>net.liftweb</groupId>
       <artifactId>lift-common_${scala.version}</artifactId>
       <version>${liftweb.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>net.liftweb</groupId>
       <artifactId>lift-util_${scala.version}</artifactId>
       <version>${liftweb.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>net.liftweb</groupId>
@@ -119,6 +139,11 @@
       <version>0.7.4</version>
     </dependency>
     <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>1.6.2</version>
+    </dependency>
+    <dependency>
       <groupId>net.sf.ehcache</groupId>
       <artifactId>ehcache-core</artifactId>
       <version>2.3.0</version>
@@ -128,6 +153,11 @@
       <artifactId>ehcache-web</artifactId>
       <version>2.0.3</version>
     </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>0.9.26</version>
+    </dependency>    
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
@@ -145,11 +175,6 @@
       <artifactId>specs_${scala.version}</artifactId>
       <version>1.6.5</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>joda-time</groupId>
-      <artifactId>joda-time</artifactId>
-      <version>1.6.2</version>
     </dependency>
     <!-- for RunWebApp -->
     <dependency>
