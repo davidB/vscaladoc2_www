@@ -2,15 +2,51 @@
 <web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 
   <description>VScaladoc2 Web front-end</description>
-  <display-name>VScaladoc2 : www</display-name>
+  <display-name>VScaladoc2</display-name>
+
   <filter>
-    <filter-name>LiftFilter</filter-name>
+    <filter-name>PageCache4Browser</filter-name>
+    <filter-class>net.sf.ehcache.constructs.web.filter.SimpleCachingHeadersPageCachingFilter</filter-class>
+    <init-param>
+      <param-name>blockingTimeoutMillis</param-name>
+      <param-value>30000</param-value>
+    </init-param>
+    <init-param>
+      <param-name>cacheName</param-name>
+      <param-value>PageCache4Browser</param-value>
+    </init-param>
+  </filter>
+  <filter>
+    <filter-name>PageCache4Laf</filter-name>
+    <filter-class>net.sf.ehcache.constructs.web.filter.SimpleCachingHeadersPageCachingFilter</filter-class>
+    <init-param>
+      <param-name>blockingTimeoutMillis</param-name>
+      <param-value>10000</param-value>
+    </init-param>
+    <init-param>
+      <param-name>cacheName</param-name>
+      <param-value>PageCache4Laf</param-value>
+    </init-param>
+  </filter>
+
+  <filter>
     <display-name>Lift Filter</display-name>
     <description>The Filter that intercepts lift calls</description>
+    <filter-name>LiftFilter</filter-name>
     <filter-class>net.liftweb.http.LiftFilter</filter-class>
   </filter>
 
   
+  <!-- This is a filter chain. They are executed in the order below.
+  Do not change the order. -->
+  <filter-mapping>
+    <filter-name>PageCache4Browser</filter-name>
+    <url-pattern>/navigator/_browser/api/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>PageCache4Laf</filter-name>
+    <url-pattern>/laf/api/*</url-pattern>
+  </filter-mapping>
   <filter-mapping>
     <filter-name>LiftFilter</filter-name>
     <url-pattern>/*</url-pattern>
