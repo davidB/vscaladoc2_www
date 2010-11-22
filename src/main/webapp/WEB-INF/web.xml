@@ -39,14 +39,14 @@
   
   <!-- This is a filter chain. They are executed in the order below.
   Do not change the order. -->
-  <filter-mapping>
+  <!--filter-mapping>
     <filter-name>PageCache4Browser</filter-name>
     <url-pattern>/navigator/_browser/api/*</url-pattern>
   </filter-mapping>
   <filter-mapping>
     <filter-name>PageCache4Laf</filter-name>
     <url-pattern>/laf/api/*</url-pattern>
-  </filter-mapping>
+  </filter-mapping-->
   <filter-mapping>
     <filter-name>LiftFilter</filter-name>
     <url-pattern>/*</url-pattern>
