@@ -62,7 +62,7 @@ class GCommentsService(urlMaker : UrlMaker4GComments, uoaHelper : UoaHelper) ext
   def findGroupIdOf(refPath : String) : Box[String] = {
     //TODO add cache
     uoaHelper.toUoa4Artifact(refPath).flatMap{ uoa =>
-      RemoteApiInfo.findApiOf(uoa.artifactId, uoa.version).map(_.ggroupId.is).filter(_.trim.length > 0)
+      RemoteApiInfo.findApiOf(uoa.artifactId, uoa.version).map(_.ggroupId.is).filter(x=> x != null & x.trim.length > 0)
     }
   }
   
