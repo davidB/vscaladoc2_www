@@ -1,5 +1,9 @@
 package net_alchim31_vscaladoc2_www
 
+import java.util.Date
+import java.util.TimeZone
+import java.text.SimpleDateFormat
+
 import net.liftweb.http.HeaderDefaults
 import net.liftweb.util.Helpers
 import scala.reflect.NameTransformer
@@ -20,6 +24,11 @@ import net_alchim31_vscaladoc2_www.info._
 
 //TODO add production configuration (cache client, scalate working dir, ...)
 class ScalateDisplayer(helper: Helper, tmplDir: File) {
+  private lazy val httpDateFormat = {
+    val b = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z")//, Locale.US)
+    b.setTimeZone(TimeZone.getTimeZone("UTC"))
+    b
+  }
   private lazy val _mimetypesFileTypeMap = {
     val b = new MimetypesFileTypeMap()
     b.addMimeTypes("text/javascript   js")
@@ -75,7 +84,8 @@ class ScalateDisplayer(helper: Helper, tmplDir: File) {
             val size = f.length
             val httpHeaders = List(
                 ("Content-Length", size.toString),
-                ("Content-Type", mimeType)
+                ("Content-Type", mimeType),
+                ("Last-Modified", httpDateFormat.format(new Date(f.lastModified)))
             )
             Full(StreamingResponse(rsrc.inputStream, () => {}, size, httpHeaders, Nil, 200))
           }
