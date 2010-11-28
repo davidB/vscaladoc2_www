@@ -103,14 +103,22 @@ trait InfoDataProviderCache extends InfoDataProvider {
 
   override def findAllTypes(uoa: Uoa4Artifact): List[Box[Uoa4Type]] = findOrUpdate(cacheUoa2types, uoa)(super.findAllTypes)
   
-  private def findOrUpdate[KeyType, ResultType](cache : Cache, k : KeyType)(f : KeyType => ResultType ) : ResultType = {
+  private def findOrUpdate[KeyType, ResultType](cache : Cache, k : KeyType)(f : KeyType => ResultType )(implicit m : Manifest[ResultType]) : ResultType = {
+    def update() = {
+      val v = f(k)
+      cache.put(new Element(k, v))
+      v
+    }
     cache.get(k) match {
-      case null => {
-        val v = f(k)
-        cache.put(new Element(k, v))
-        v
+      case null => update() 
+      case elem => {
+        val o = elem.getObjectValue 
+        if (m.erasure.isInstance(o)) {
+          o.asInstanceOf[ResultType]
+        } else {
+          update()
+        }
       }
-      case elem => elem.getObjectValue.asInstanceOf[ResultType]
     }
   }
 }
@@ -618,25 +626,29 @@ class RawDataProviderWithLocalFSCache(fs : FileSystemHelper, workdir : File, api
         val archive = localArchiveOf(uoa)
         if (archive._2.exists) {
           throw new Exception_UoaNotAvailable(uoa, "not in archives")
-        } else if (uri.getPath.indexOf(_archiveSuffix) > -1) {
-          (_archiveDownloader !?(10*1000, archive._1)).asInstanceOf[Box[Box[Any]]].flatMap(x => x) match {
+        } else /*if (uri.getPath.indexOf(_archiveSuffix) > -1)*/ {
+          (_archiveDownloader !?(600*1000, archive._1)).asInstanceOf[Box[Box[Any]]].flatMap(x => x) match {
             case Full(true) => f.exists match {
               case true => fs.toString(f)
               case false => throw new Exception_UoaNotAvailable(uoa, "not in archives")
             }
-            case x : Failure => throw (x.exception openOr new Exception(x.msg))
+            case x : Failure => f.exists match {
+              case true => fs.toString(f) //timeout could be raised, but file could be available (due to long queue and archive download by a previous request)
+              case false =>throw (x.exception openOr new Exception(x.msg)) 
+            }
             case Empty => throw new Exception("empty reply to download request")
           }
-        } else {
-          _archiveDownloader ! archive._1
-          new Http()(new Request(uri.toString) >- { s =>
-            val dir = f.getParentFile  
-            if (dir.exists || dir.mkdirs()) {   
-              fs.toFile(f, s)
-            }
-            s 
-          })
         }
+//        else {
+//          _archiveDownloader ! archive._1
+//          new Http()(new Request(uri.toString) >- { s =>
+//            val dir = f.getParentFile  
+//            if (dir.exists || dir.mkdirs()) {   
+//              fs.toFile(f, s)
+//            }
+//            s 
+//          })
+//        }
       }
     } openOr {
         new Http()(new Request(uri.toString) as_str)
@@ -659,7 +671,7 @@ class RawDataProviderWithLocalFSCache(fs : FileSystemHelper, workdir : File, api
       case artifact : Uoa4Artifact => {
         val archiveRPath = rpathOfArchive(artifact)
         val dest = toLocalFile(archiveRPath)
-        if (dest.exists) {
+        val r = if (dest.exists) {
           //already downloaded by previous request (probably done when file didn't exists)
           Full(true)
         } else {
@@ -680,9 +692,10 @@ class RawDataProviderWithLocalFSCache(fs : FileSystemHelper, workdir : File, api
             fs.unjar0gz(tmpdir, f)
             //move only files related to the version
             commit(tmpdir, toLocalFile("."), archiveRPath, (artifact.artifactId + "/" + artifact.version), (artifact.artifactId + "/" + artifact.version + "_.json"))
-            reply(f.exists)
+            dest.exists
           }
         }
+        reply(r)
       }
       case _ => Empty //ignore
     }
@@ -691,11 +704,16 @@ class RawDataProviderWithLocalFSCache(fs : FileSystemHelper, workdir : File, api
       destdir.mkdirs
       for (fname <- filenames) {
         val dest = new File(destdir, fname)
+        val src = new File(srcdir, fname)
         if (dest.exists) {
           fs.deleteRecursively(dest)
         }
-        dest.getParentFile.mkdir
-        fs.move(new File(srcdir, fname), dest)
+        if (src.exists) {
+          dest.getParentFile.mkdir
+          fs.move(new File(srcdir, fname), dest)
+        } else {
+          logger.warn("source to move doesn't exists : " + src)
+        }
       }
       fs.deleteRecursively(srcdir)
       if (srcdir.exists) {
