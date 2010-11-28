@@ -112,6 +112,7 @@ object ApiView extends Loggable {
         logger.warn(f)
         f.exception match {
           case Full(e: FileNotFoundException) => Full(NotFoundResponse("please contact admin"))
+          case Full(e) => logger.warn("failure with exption", e); v
           case _ => v
         }
       }
