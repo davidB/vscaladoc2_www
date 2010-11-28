@@ -1,8 +1,5 @@
 package net_alchim31_vscaladoc2_www
-
-import net_alchim31_vscaladoc2_www.info.Uoa
 import java.net.URI
-import net.liftweb.common.{Box}
 
 /**
  * Comments ignore version of artifacts => every request ignore version
