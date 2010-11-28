@@ -116,10 +116,12 @@ class FileSystemHelper {
     dest.getParentFile.mkdirs()
     using(new JarOutputStream(new FileOutputStream(tmpfile))){ os =>
       paths.foreach { path =>
-        using(new FileInputStream(new File(dir, path))) {is =>
+        val f = new File(dir, path)
+        using(new FileInputStream(f)) {is =>
           val entry = new JarEntry(path)
           os.putNextEntry(entry)
           copy(is, os)
+          entry.setTime(f.lastModified) //TODO set date in UTC
         }
       }
     }
@@ -153,6 +155,11 @@ class FileSystemHelper {
           }
           move(tmpfile, destfile)
           files += destfile
+        }
+        val t = ze.getTime()
+        if (t > -1) {
+          //TODO don't ignore timezone
+          destfile.setLastModified(t)
         }
         ze = is.getNextEntry()
       }
