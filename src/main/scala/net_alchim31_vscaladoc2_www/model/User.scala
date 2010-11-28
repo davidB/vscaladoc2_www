@@ -11,6 +11,7 @@ import net.tanesha.recaptcha.ReCaptchaFactory
 import scala.xml.XML
 import net.liftweb.http.S
 import net.liftweb.util.FieldError
+import net.liftweb.util.Props
 import net.liftweb.mapper.MappedPostalCode
 import net.liftweb.mapper.MappedCountry
 import net.liftweb.mapper.MappedTextarea
@@ -60,7 +61,7 @@ object User extends User with MetaMegaProtoUser[User] with ReCaptcha /* with CRU
   override def fieldOrder = List(firstName, lastName, email, locale, timezone, password)
 
   // TODO comment this line out to require email validations
-  override def skipEmailValidation = true
+  override def skipEmailValidation = Props.getBool("user.email.skipValidation", true)
 
   override def validateSignup(user: User): List[FieldError] = validateCaptcha() ::: super.validateSignup(user)
   override def signupXhtml(user: User) = {
