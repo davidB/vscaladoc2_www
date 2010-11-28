@@ -54,15 +54,18 @@ class GCommentsService(urlMaker : UrlMaker4GComments, uoaHelper : UoaHelper) ext
         back += ((refPathMapping(found.refPath.is), Info(found.nb.is, urlMaker.messages(found.ggroupId.is, found.threadId.is, found.firstId.is))))
       }
     }
-    logger.debug("in : " + refPaths)
-    logger.debug("return : " + back)
+    logger.trace("in : {}", refPaths)
+    logger.trace("return : {}", back)
     back.toMap
   }
   
   def findGroupIdOf(refPath : String) : Box[String] = {
     //TODO add cache
     uoaHelper.toUoa4Artifact(refPath).flatMap{ uoa =>
-      RemoteApiInfo.findApiOf(uoa.artifactId, uoa.version).map(_.ggroupId.is).filter(x=> x != null & x.trim.length > 0)
+      (RemoteApiInfo.findApiOf(uoa.artifactId, uoa.version)
+        .map(_.ggroupId.is)
+        .filter(x=> x != null & x.trim.length > 0)
+      )
     }
   }
   
