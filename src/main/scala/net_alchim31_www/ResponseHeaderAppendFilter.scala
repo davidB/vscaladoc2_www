@@ -50,6 +50,11 @@ class ResponseHeaderAppendFilter extends HttpFilter {
       val headerName = name.asInstanceOf[String]
       //response.addHeader(headerName, _filterConfig.getInitParameter(headerName))
       wrapper.setHeader(headerName, _filterConfig.getInitParameter(headerName))
+      if (headerName == "X-Cache-TTL") {
+        val value = _filterConfig.getInitParameter(headerName).toLong
+        wrapper.setHeader("Cache-Control", "max-age="+value)
+        wrapper.setDateHeader("Expires", System.currentTimeMillis() + (value * 1000))
+      }
     }
     //wrapper.flush()
   }
