@@ -7,16 +7,9 @@
 
 %html
   %head
-    %title API #{artifact.artifactId + "-" + artifact.version} : Browser
+    %title API : #{artifact.artifactId + "-" + artifact.version} : Browser
     %meta(http-equiv="content-type" content="text/html; charset=UTF-8")
     %meta(content="VScaladoc 2" name="generator")
-    %script(type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.js")
-    %script(type="text/javascript" src={urlOf("navigator/_rsrc/cookie.js")} id="all-classes")
-    %script(type="text/javascript" src={urlOf("navigator/_rsrc/browser.js")} id="all-classes")
-    -# %script(type="text/javascript" src={urlOf("navigator/_rsrc/jquery_quicksearch.js")})
-    %script(type="text/javascript" src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js")
-    -#%script(type="text/javascript" src={urlOf("navigator/_rsrc/jquery_tmpl_min.js")})
-    %script(type="text/javascript" src={urlOf("navigator/_rsrc/underscore_min.js")})
     %link(href={urlOf("navigator/_rsrc/browser.css")} type="text/css" rel="stylesheet")
   %body
     %h2 Filters
@@ -32,6 +25,13 @@
     %h2 Types
     %ul(id="classes")
 
+    %script(type="text/javascript" src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.4.min.js")
+    %script(type="text/javascript" src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js")
+    %script(type="text/javascript" src={urlOf("navigator/_rsrc/cookie.js")} id="all-classes")
+    %script(type="text/javascript" src={urlOf("navigator/_rsrc/browser.js")} id="all-classes")
+    -# %script(type="text/javascript" src={urlOf("navigator/_rsrc/jquery_quicksearch.js")})
+    -#%script(type="text/javascript" src={urlOf("navigator/_rsrc/jquery_tmpl_min.js")})
+    %script(type="text/javascript" src={urlOf("navigator/_rsrc/underscore_min.js")})
     %script(type="text/javascript")
       var data = [
       - for(tpe <- uoa4types.sortWith(_.typeName < _.typeName))

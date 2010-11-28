@@ -11,8 +11,6 @@
     %title API : #{artifact.artifactId} - #{artifact.version}
     %meta(http-equiv="content-type" content="text/html; charset=UTF-8")
     %meta(content="VScaladoc 2" name="generator")
-    %script(type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.js")
-    %script(type="text/javascript" src={urlOf("laf/_rsrc/content.js")})
     %link(href={urlOf("laf/_rsrc/content.css")} type="text/css" rel="stylesheet")
 
   %body
@@ -68,3 +66,5 @@
         %li
           %a(href={urlOf(uoa, "laf/api")}) #{labelOf(uoa)}
 
+    %script(type="text/javascript" src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.4.min.js")
+    %script(type="text/javascript" src={urlOf("laf/_rsrc/content.js")})
