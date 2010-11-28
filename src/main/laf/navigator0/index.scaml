@@ -7,7 +7,7 @@
 
 %html
   %head
-    %title API #{artifact.artifactId} - #{artifact.version}
+    %title API : #{artifact.artifactId}-#{artifact.version}
   %frameset(cols="250px, *")
     %frame(src={urlOf("navigator/_browser/api/" + artifact.artifactId +"/"+ artifact.version)} name="navFrame"  id="navFrame")
     %frameset(rows="*,0" name="contentFrameSet" id="contentFrameSet")
