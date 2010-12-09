@@ -50,7 +50,9 @@ class Boot extends Loggable {
         override def getPasswordAuthentication() = new javax.mail.PasswordAuthentication(user, Props.get("mail.smtp.auth.password").openOr(""))
       }
     }
-    Mailer.sendMail(From("VScaladoc"), Subject("Just a test"), To(Props.get("mail.to").openOr("zzz")), PlainMailBodyType("server started"))
+    for (mailto <- Props.get("mail.to")) {
+      Mailer.sendMail(From("VScaladoc"), Subject("Just a test"), To(mailto), PlainMailBodyType("server started"))
+    }
   }
 
   private def configureRDBMS() {
