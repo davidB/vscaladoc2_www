@@ -13,14 +13,144 @@
     %title API/Source : #{artifact.artifactId} - #{artifact.version}
     %meta(http-equiv="content-type" content="text/html; charset=UTF-8")
     %meta(content="VScaladoc 2" name="generator")
-    %link(href={urlOf("laf/src/_rsrc/css/sh_nedit.css")} type="text/css" rel="stylesheet")
+    %link(href={urlOf("laf/src/_rsrc/css/sh_nedit_min.css")} type="text/css" rel="stylesheet")
+    %style
+      /* holder for update on syntax */
+    %style
+      :plain
+        .line_numbers{background-color:#ececec;color:#aaa;margin:1em 0px;border-right:1px solid #ddd;text-align:right;font-weight:bold;font-style: normal;-moz-user-select:none;-khtml-user-select:none;user-select:none;}
+        .line_numbers a{color:#aaa;cursor:pointer;}
+        .line_numbers span{padding:0; margin:0;}
+        pre {font-family: 'Bitstream Vera Sans Mono','Courier',monospace; font-size: 10pt;line-height: 1 em;}
   %body
     %h1 #{artifactId}-#{version}
-    %pre(class="sh_scala")
-      =plainSource
+    %p
+      Style :
+      %select(id="themeSelect" onchange="return loadStyle();")
+        %option acid
+        %option berries-dark
+        %option berries-light
+        %option bipolar
+        %option blacknblue
+        %option bright
+        %option contrast
+        %option darkblue
+        %option darkness
+        %option desert
+        %option dull
+        %option easter
+        %option emacs
+        %option golden
+        %option greenlcd
+        %option ide-anjuta
+        %option ide-codewarrior
+        %option ide-devcpp
+        %option ide-eclipse
+        %option ide-kdev
+        %option ide-msvcpp
+        %option kwrite
+        %option matlab
+        %option navy
+        <option selected="">nedit
+        %option neon
+        %option night
+        %option pablo
+        %option peachpuff
+        %option print
+        %option rand01
+        %option the
+        %option typical
+        %option vampire
+        %option vim
+        %option vim-dark
+        %option whatis
+        %option whitengrey
+        %option zellner
+      
+    %table(style="display: inline-table")
+      %tbody
+        %tr(style="vertical-align:top;")
+          %td(style="padding-right:10px;")
+            -# write pre manually else closing pre (if pretty) will insert a too long blank line
+            !~~ "<pre class='line_numbers' style='font-weight:bold;'>"
+            -var i = 0
+            -for (eol <- plainSource.filter(_ == '\n'))
+              - i += 1 
+              !~~ "<a name='" + i +"'>" + i + "</a>"
+            !~~ "</pre>"
+          %td(width="100%")
+            %pre(class="sh_scala")
+              ~~ plainSource
 
     %script(type="text/javascript" src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.4.min.js")
     %script(type="text/javascript" src={urlOf("laf/src/_rsrc/sh_main_min.js")})
     %script(type="text/javascript" src={urlOf("laf/src/_rsrc/lang/sh_scala.js")})
     %script
+      var baseCssUrl = '#{urlOf("laf/src/_rsrc/css/sh_")}';
+      var request = null;
+      var cache = {};
+    :javascript
+      function setStyle(text) {
+        var style = document.getElementsByTagName('style').item(0);
+        if (style.styleSheet) {
+          style.styleSheet.cssText = text;
+        }
+        else {
+          while (style.hasChildNodes()) {
+            style.removeChild(style.firstChild);
+          }
+          style.appendChild(document.createTextNode(text));
+        }
+      }    
+      function handler() {
+        if (request.readyState === 4) {
+          try {
+            if (request.status === 0 || request.status === 200) {
+              setStyle(request.responseText);
+              var themeCode = document.getElementById('themeCode');
+              var value = themeCode.innerHTML;
+              cache[value] = request.responseText;
+            }
+          }
+          finally {
+            request = null;
+      
+            var select = document.getElementById('themeSelect');
+            select.disabled = false;
+      
+            //var caption = document.getElementById('caption');
+            //caption.style.display = 'block';
+      
+            //var throbber = document.getElementById('throbberImg');
+            //throbber.style.display = 'none';
+          }
+        }
+      }    
+      function loadStyle() {
+        var select = document.getElementById('themeSelect');
+        var value = select.options[select.selectedIndex].innerHTML;
+      
+        //var themeCode = document.getElementById('themeCode');
+        //themeCode.innerHTML = value;
+      
+        var cachedText = cache[value];
+        if (cachedText) {
+          setStyle(cachedText);
+          return;
+        }
+      
+        select.disabled = true;
+      
+        //var caption = document.getElementById('caption');
+        //caption.style.display = 'none';
+      
+        //var throbber = document.getElementById('throbberImg');
+        //throbber.style.display = 'block';
+      
+        request = sh_getXMLHttpRequest();
+        var url = baseCssUrl + value + '_min.css';
+        request.open('GET', url, true);
+        request.onreadystatechange = handler;
+        request.send(null);
+      }    
       $(document).ready(sh_highlightDocument);
