@@ -1,5 +1,6 @@
 package net_alchim31_vscaladoc2_www.view
 
+import net_alchim31_vscaladoc2_www.SourceDisplayer
 import net_alchim31_vscaladoc2_www.model.ApiProviders
 
 
@@ -31,6 +32,7 @@ object ApiView extends Loggable {
   lazy val _uoaHelper = AppServices.uoaHelper
   lazy val _entityDisplayer: Box[EntityDisplayer] = AppServices.entityDisplayer
   lazy val _navigatorDisplayer: Box[NavigatorDisplayer] = AppServices.navigatorDisplayer
+  lazy val _sourceDisplayer : Box[SourceDisplayer] = AppServices.sourceDisplayer
   
   val dispatch: LiftRules.DispatchPF = {
     case Req("sitemap" :: Nil, "txt", GetRequest) => () => failureConverter(serveSitemapTxt())
@@ -41,6 +43,8 @@ object ApiView extends Loggable {
     case Req("laf" :: "api" :: artifactId :: version :: entityPath, _, GetRequest) => () => failureConverter(serveEntity(artifactId, version, entityPath)(serveApi))
     case Req("laf" :: "api" :: artifactId :: Nil, _, GetRequest) => () => failureConverter(_entityDisplayer.flatMap(_.serveArtifacts(artifactId)))
     case Req("laf" :: "_rsrc" :: path, ext, GetRequest) => () => failureConverter(_entityDisplayer.flatMap(_.serveResource(path, ext)))
+    case Req("laf" :: "src" :: "_rsrc" :: path, ext, GetRequest) => () => failureConverter(_sourceDisplayer.flatMap(_.serveResource(path, ext)))
+    case Req("laf" :: "src" :: artifactId :: version :: filePath, ext, GetRequest) => () => failureConverter(serveSource(artifactId, version, filePath, ext, S.request.flatMap( x => tryo {x.section.toInt })))
     //case Req("api" :: "static" :: _, "json", GetRequest) => JString("Static")
   }
 
@@ -99,6 +103,19 @@ object ApiView extends Loggable {
     }
   }
 
+  private def serveSource(artifactId: String, version: String, filePath : List[String], extension : String, lineNum : Box[Int]): Box[LiftResponse] = {
+    def s(api : RemoteApiInfo) = {
+      api.provider match {
+        case VScaladoc2 => _sourceDisplayer.flatMap(_.serveHtmlized(api, filePath, extension, lineNum))
+        case _ => Full(NotFoundResponse("there is no support of source display for non VScaladoc2 API"))
+      }
+    }
+    for (
+      api <- RemoteApiInfo.findApiOf(artifactId, version) ?~! ("no registered api for " + artifactId + "/" + version);
+      resp <- s(api)
+    ) yield resp
+  }
+  
   private def serveBrowser(api: RemoteApiInfo, rurl: String, entityPath: List[String]): Box[LiftResponse] = {
     api.provider match {
       case VScaladoc2 => _navigatorDisplayer.flatMap(_.serveBrowser(api, entityPath))

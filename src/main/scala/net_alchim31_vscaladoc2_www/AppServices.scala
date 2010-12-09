@@ -37,6 +37,7 @@ object AppServices extends Loggable {
   lazy val lafProvider = new LafProvider(workdir, lafHelper, idp, fsh)
   lazy val entityDisplayer: Box[EntityDisplayer] = lafProvider.newEntityDisplayer("entity0") //new EntityDisplayer4Debug()
   lazy val navigatorDisplayer: Box[NavigatorDisplayer] = lafProvider.newNavigatorDisplayer("navigator0") //new EntityDisplayer4Debug()
+  lazy val sourceDisplayer : Box[SourceDisplayer] = lafProvider.newSourceDisplayer("src0")
   lazy val commentSystem : CommentSystem = new GCommentsService(new UrlMaker4GComments(uoaHelper), uoaHelper)
 
   def init() {

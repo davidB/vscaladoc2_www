@@ -35,6 +35,15 @@
   - val l2 = l.filter(x => x.uoaType.typeName != "Any"  && x.uoaType.typeName != "AnyRef").flatMap(x => toFieldextInfo(x).asInstanceOf[List[Box[FieldextInfo]]]) 
   - displayFieldexts0(tpe, kind, l2, label)
 
+- def minitoolbar(entry : EntityInfo)
+  %div(class="minitoolbar")
+    %div(class="discuss" id={"discuss_" + refPathOf(entry.uoa)}) ?
+    - for (src <- urlOfSource(entry))
+      %div(class="linksource")
+        %a(href={src}  target="discussFrame" onclick="discussOpenFrame()" title="Go to source")
+          %img(src={urlOf("laf/_rsrc/source_scala.png")}  border="0")
+
+  
 - def displayFieldexts0(tpe : TypeInfo, kind: String, l : List[Box[FieldextInfo]], label : String) =
   - if (!l.isEmpty)
     %h3(style="cursor: help;" onClick={"$('#"+ kind +"_" + label +"').toggle()"}) #{label}
@@ -50,7 +59,7 @@
       - for (entry <- ok.map(_.open_!).sortWith(_.simpleName < _.simpleName))
         -val deprecation = findDeprecation(entry.docTags)
         %div(class={"fieldext " + (if (tpe.isInherited(entry)) "isInherited" else "notInherited") + (if (!deprecation.isEmpty) " isDeprecated" else "")})
-          %div(class="discuss" id={"discuss_" + refPathOf(entry.uoa)}) ?
+          =minitoolbar(entry)
           =stringWithTypeRef(entry.signature, entry.simpleName)
           %div(class="apiComments")
             -for (deprecationMsg <- deprecation)
@@ -90,7 +99,7 @@
       %h2(style="cursor: help;" onClick={"$('#" + kind +"').toggle()"}) #{kind} #{simpleName}
       %div(id={kind})
         %div( id="intro")
-          %div(class="discuss" id={"discuss_" + refPathOf(uoa)}) ?
+          =minitoolbar(tpe)
           =stringWithTypeRef(signature, simpleName)
 
           %br

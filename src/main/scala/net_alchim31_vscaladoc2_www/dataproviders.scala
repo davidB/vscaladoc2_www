@@ -16,6 +16,7 @@ import net.liftweb.json.JsonAST._
 trait RawDataProvider {
   type UOA = String
   def find(uoa: Uoa): Box[JValue]
+  def toSourceString(uoa: Uoa4Artifact, filePath : String) : Box[String] = Failure("not implemented")
 }
 
 trait InfoDataProvider {
@@ -25,12 +26,16 @@ trait InfoDataProvider {
   def toFieldextInfo(uoa: Uoa4Fieldext): List[Box[FieldextInfo]] = Nil
   def findAllNonEmptyPackages(uoa: Uoa4Artifact): List[Box[Uoa4Package]] = Nil
   def findAllTypes(uoa: Uoa4Artifact): List[Box[Uoa4Type]] = Nil
+  def toSourceString(uoa: Uoa4Artifact, filePath : List[String], ext : String) : Box[String] = Failure("not implemented")
 }
 
-class ApiService(lazy_idp : () => InfoDataProvider) {
+class ApiService(lazy_idp : () => InfoDataProvider) extends Loggable {
   import net_alchim31_vscaladoc2_www.model.{RemoteApiInfo, ApiProviders, VScaladoc2}
 
+  import net.liftweb.actor._
+    
   private lazy val idp = lazy_idp()
+  private lazy val _childrenRegistor = new ChildrenRegistor()
   
   def init() {
     if (RemoteApiInfo.find() == Empty){
@@ -55,35 +60,47 @@ class ApiService(lazy_idp : () => InfoDataProvider) {
   
   def findApiOf(artifactId: String, version: String): Box[RemoteApiInfo] = RemoteApiInfo.findApiOf(artifactId, version)
 
-  def register(v : RemoteApiInfo) : List[Box[ArtifactInfo]]= {
-    // TODO check if the remote api is available or not
+  def register(v : RemoteApiInfo) = {
     v.save
-    v.provider match {
-      case VScaladoc2 => {
-        val bartifact = idp.toArtifactInfo(Uoa4Artifact(v.artifactId.is, v.version.is))
-        val children = bartifact.map(_.artifacts).openOr(Nil)
-        val childrenRegistration = children.flatMap { uoa =>
-          findApiOf(uoa.artifactId, uoa.version) match {
-            case x : Failure => {
-              // TODO check if Failure for not registered 
-              val v2: RemoteApiInfo = RemoteApiInfo.create
-              v2.artifactId(uoa.artifactId)
-              v2.version(uoa.version)
-              val url = v.url.is match {
-                case "local:/" => "local:/"
-                case x => x + "/../../" + uoa.artifactId + "/" + uoa.version
+    _childrenRegistor ! v
+  }
+  
+  class ChildrenRegistor extends LiftActor {
+    protected def messageHandler = {
+      case v : RemoteApiInfo => registerChildren(v)
+      case _ => () //ignore
+    }
+    
+    private def registerChildren(v : RemoteApiInfo) {
+      // TODO check if the remote api is available or not
+      logger.info("register : " + v)
+      v.provider match {
+        case VScaladoc2 => {
+          val bartifact = idp.toArtifactInfo(Uoa4Artifact(v.artifactId.is, v.version.is))
+          val children = bartifact.map(_.artifacts).openOr(Nil)
+          children.foreach { uoa =>
+            findApiOf(uoa.artifactId, uoa.version) match {
+              case x : Failure => {
+                // TODO check if Failure for not registered 
+                val v2: RemoteApiInfo = RemoteApiInfo.create
+                v2.artifactId(uoa.artifactId)
+                v2.version(uoa.version)
+                val url = v.url.is match {
+                  case "local:/" => "local:/"
+                  case x => x + "/../../" + uoa.artifactId + "/" + uoa.version
+                }
+                v2.url(url)
+                v2.format(v.format)
+                v2.ggroupId(v.ggroupId)
+                v2.save
+                this ! v2
               }
-              v2.url(url)
-              v2.format(v.format)
-              v2.ggroupId(v.ggroupId)
-              register(v2)
+              case _ => () //ignore
             }
-            case _ => Nil //ignore
           }
         }
-        bartifact :: childrenRegistration
+        case _ => () //ignore
       }
-      case _ => Nil
     }
   }
 }
@@ -100,7 +117,7 @@ trait InfoDataProviderCache extends InfoDataProvider {
   override def toPackageInfo(uoa: Uoa4Package): List[Box[PackageInfo]] = findOrUpdate(cacheUoa2info, uoa)(super.toPackageInfo)
   override def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]] = findOrUpdate(cacheUoa2info, uoa)(super.toTypeInfo) 
   override def toFieldextInfo(uoa: Uoa4Fieldext): List[Box[FieldextInfo]] = findOrUpdate(cacheUoa2info, uoa)(super.toFieldextInfo) 
-
+  
   override def findAllTypes(uoa: Uoa4Artifact): List[Box[Uoa4Type]] = findOrUpdate(cacheUoa2types, uoa)(super.findAllTypes)
   
   private def findOrUpdate[KeyType, ResultType](cache : Cache, k : KeyType)(f : KeyType => ResultType )(implicit m : Manifest[ResultType]) : ResultType = {
@@ -138,7 +155,7 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
     //    }
     net.liftweb.json.DefaultFormats // Brings in default date formats etc.
   }
-
+  val sourceRangeFormat = """([a-zA-Z0-9_\$./]+)(#(\d+)(:(\d+))?(-(\d+)(:(\d+))?)?)?""".r
   override def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo] = {
     rdp.find(uoa).flatMap{ jv =>
       Helpers.tryo {
@@ -183,6 +200,11 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
     }
   }
 
+  override def toSourceString(uoa: Uoa4Artifact, filePath : List[String], ext : String) : Box[String] = {
+    val p = filePath.mkString("", "/", ext)
+    rdp.toSourceString(uoa, p.substring(0, p.length-".html".length))
+  }
+  
   /**
    * find all artifacts from uoa (including uoa), recursivly, without duplicate.
    * @param uoa root uoa to scan
@@ -335,6 +357,23 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
 //  def toDocTags(l : List[(String, List[String], Option[String])]) : Seq[DocTag] = {
 //    l.map{ e => DocTag4Json(e._1, e._2, e._3) }
 //  }
+
+  def toSourceRange(s : Option[String]) : Option[SourceRange] = s.flatMap { s =>
+    def toSourcePos(l : String, c : String) : Option[SourcePos] = (l, c) match {
+      case (null, _) => None
+      case (line, null) => Some(SourcePos(line.toInt, None))
+      case (line, col) => Some(SourcePos(line.toInt, Some(col.toInt)))
+    }
+    s match {
+      case sourceRangeFormat(path, _, beginLine, _, beginCol, _, endLine, _, endCol) => {
+        var begin : Option[SourcePos] =  toSourcePos(beginLine, endLine)
+        var end : Option[SourcePos] = toSourcePos(endLine, endCol)
+        Some(SourceRange(path, begin, end))
+      }
+      case _ =>     println("don't match sourceRangeFormat", s); None
+    }
+  }
+
 }
 
 object json {
@@ -350,6 +389,7 @@ object json {
     logo : Option[String],
     license : Option[String],
     tags : Option[String],
+    linksources : Option[String],
     artifacts : List[String],
     dependencies : List[String]
   )
@@ -361,6 +401,7 @@ object json {
     qualifiedName: String,
     description: Option[String],
     docTags : List[DocTag],
+    source : Option[String],
     templates: List[String],
     packages: List[String])
   case class TpeFile(uoa: String, e: List[Tpe])
@@ -369,11 +410,11 @@ object json {
     qualifiedName: String,
     description: Option[String],
     docTags : List[DocTag],
+    source : Option[String],
     visibility: RawSplitStringWithRef,
     templates: List[String],
     aliasTypes: List[String],
     //resultType: RawSplitStringWithRef, // [ "DemoB", "vscaladoc_demoprj/0.1-SNAPSHOT/itest.demo2/DemoB" ] ],
-    //    sourceStartPoint : List[AnyRef], //[ "/home/dwayne/work/oss/vscaladoc2_demoprj/src/main/scala/itest/demo2/DemoB.scala", 6 ],
     methods: List[String], //[ "scala-library/2.8.0/scala/AnyRef/emoB$hash$asInstanceOf", "scala-library/2.8.0/scala/AnyRef/emoB$hash$isInstanceOf", "scala-library/2.8.0/scala/AnyRef/emoB$hashsynchronized", "scala-library/2.8.0/scala/AnyRef/emoB$hashne", "scala-library/2.8.0/scala/AnyRef/emoB$hasheq", "scala-library/2.8.0/scala/AnyRef/emoB$hash$bang$eq", "scala-library/2.8.0/scala/AnyRef/emoB$hash$eq$eq", "scala-library/2.8.0/scala/AnyRef/emoB$hash$hash$hash", "scala-library/2.8.0/scala/AnyRef/emoB$hashfinalize", "scala-library/2.8.0/scala/AnyRef/emoB$hashwait", "scala-library/2.8.0/scala/AnyRef/emoB$hashwait", "scala-library/2.8.0/scala/AnyRef/emoB$hashwait", "scala-library/2.8.0/scala/AnyRef/emoB$hashnotifyAll", "scala-library/2.8.0/scala/AnyRef/emoB$hashnotify", "scala-library/2.8.0/scala/AnyRef/emoB$hashtoString", "scala-library/2.8.0/scala/AnyRef/emoB$hashclone", "scala-library/2.8.0/scala/AnyRef/emoB$hashequals", "scala-library/2.8.0/scala/AnyRef/emoB$hashhashCode", "scala-library/2.8.0/scala/AnyRef/emoB$hashgetClass", "scala-library/2.8.0/scala/Any/2.DemoB$hashasInstanceOf", "scala-library/2.8.0/scala/Any/2.DemoB$hashisInstanceOf", "scala-library/2.8.0/scala/Any/2.DemoB$hash$bang$eq", "scala-library/2.8.0/scala/Any/2.DemoB$hash$eq$eq" ],
     values: List[String],
     //    "abstractTypes" : [ ],
@@ -389,6 +430,7 @@ object json {
     qualifiedName: String,
     description: Option[String],
     docTags : List[DocTag],
+    source : Option[String],
     visibility: RawSplitStringWithRef,
     resultType: RawSplitStringWithRef,
     valueParams: RawSplitStringWithRef,
@@ -397,6 +439,7 @@ object json {
 }
 
 //TODO provide converter to json to avoid intermediary type
+@serializable
 class ArtifactInfo4Json(val uoa: Uoa4Artifact, src: json.ArtifactFile, uoaHelper: UoaHelper, rdti : InfoDataProvider, override val ggroupId : Option[String]) extends ArtifactInfo {
   override def groupId = src.groupId.getOrElse("")
   override def artifactId = src.artifactId
@@ -406,6 +449,7 @@ class ArtifactInfo4Json(val uoa: Uoa4Artifact, src: json.ArtifactFile, uoaHelper
   override def logo = src.logo.getOrElse("")
   override def kind = src.kind.getOrElse("")
   override def license = src.license.getOrElse("")
+  override def linksources = src.linksources
   override lazy val artifacts = src.artifacts.flatMap(x => uoaHelper(x)).map(_.asInstanceOf[Uoa4Artifact])
   override lazy val dependencies = src.dependencies.flatMap(x => uoaHelper(x)).map(_.asInstanceOf[Uoa4Artifact])
   override lazy val packages = for(buoa <- rdti.findAllNonEmptyPackages(uoa); uoa <- buoa) yield uoa // TODO not ignore error
@@ -420,26 +464,29 @@ class ArtifactInfo4Json(val uoa: Uoa4Artifact, src: json.ArtifactFile, uoaHelper
 
 }
 
+@serializable
 case class DocTag4Json(key : String, override val bodies : List[String], override val variant : Option[String]) extends DocTag {
   def this(src : json.DocTag) = this(src.k, src.b, src.v)
 }
 
+@serializable
 class PackageInfo4Json(val uoa : Uoa4Package, val src : json.Pkg, rdti : InfoDataProvider0) extends PackageInfo {
   def simpleName: String = src.name
   def description: HtmlString = src.description.getOrElse("")
   lazy val docTags: Seq[DocTag] = src.docTags.map(x => new DocTag4Json(x))
-  def source: Option[URI] = None //for (file <- src.sourceStartPoint.headOption ; line <- src.sourceStartPoint.tail.headOption) yield {new URI("src://" + file + "#" + line) }
+  def source: Option[SourceRange] = rdti.toSourceRange(src.source)
   lazy val packages: List[Uoa4Package] = for(buoa <- rdti.findAllInnerNonEmptyPackages(uoa, false); uoa <- buoa) yield uoa // TODO not ignore error //rdti.toListPackage(src.packages)
   lazy val types: List[Uoa4Type] = rdti.toListType(src.templates)
 }
 
+@serializable
 class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : InfoDataProvider0) extends TypeInfo {
 
   def isCaseClass: Boolean = src.parentType.exists(x => x.head == "Product")
   def simpleName: String = src.name
   def description: HtmlString = src.description.getOrElse("")
   lazy val docTags: Seq[DocTag] = src.docTags.map(x => new DocTag4Json(x))
-  def source: Option[URI] = None //for (file <- src.sourceStartPoint.headOption ; line <- src.sourceStartPoint.tail.headOption) yield {new URI("src://" + file + "#" + line) }
+  def source: Option[SourceRange] = rdti.toSourceRange(src.source)
   def kind: String = src.kind
   def isInherited(m: FieldextInfo) = m.uoa.uoaType != uoa
   def signature: List[StringWithTypeRef] = {
@@ -468,12 +515,13 @@ class TypeInfo4Json(val uoa: Uoa4Type, val src: json.Tpe, rdti : InfoDataProvide
   def types: List[Uoa4Type] = rdti.toListType(src.templates)
 }
 
+@serializable
 class FieldextInfo4Json(val uoa: Uoa4Fieldext, val src: json.Fieldext, rdti : InfoDataProvider0) extends FieldextInfo {
 
   def simpleName: String = src.name
   def description: HtmlString = src.description.getOrElse("")
   def docTags: Seq[DocTag] = src.docTags.map(x => new DocTag4Json(x))
-  def source: Option[URI] = None //for (file <- src.sourceStartPoint.headOption ; line <- src.sourceStartPoint.tail.headOption) yield {new URI("src://" + file + "#" + line) }
+  def source: Option[SourceRange] = rdti.toSourceRange(src.source)
   def kind: String = src.kind
   def signature: List[StringWithTypeRef] = {
     val b = new ListBuffer[StringWithTypeRef]()
@@ -493,6 +541,7 @@ class FieldextInfo4Json(val uoa: Uoa4Fieldext, val src: json.Fieldext, rdti : In
     b.toList
   }
 }
+
 //TODO cache result of remote request
 //TODO download archive, store in DB, unarchive in local FS cache
 //TODO Http is not multi-thread, may be used a pool
@@ -607,6 +656,16 @@ class RawDataProviderWithLocalFSCache(fs : FileSystemHelper, workdir : File, api
             case x => throw new MalformedURLException("scheme " + x + " is nor supported as source for api (" + uri +")" )
           }
         }
+    }
+  }
+
+  override def toSourceString(uoa: Uoa4Artifact, filePath : String) : Box[String] = {
+    val rpath = uoa.artifactId + "/"+ uoa.version + "/_src_/" + filePath
+    logger.info("try to retrieve content of :" + rpath)
+    val f = toLocalFile(rpath)
+    f.exists match {
+      case true => Helpers.tryo{ fs.toString(f) }
+      case false => Failure("file '" + rpath + "' not availables (from cache)")
     }
   }
 

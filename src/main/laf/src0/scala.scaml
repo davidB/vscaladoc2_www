@@ -1,0 +1,26 @@
+!!! XML
+!!! 5
+
+-import net_alchim31_vscaladoc2_www.info._
+-import net.liftweb.common.{ Box, Full, Empty, Failure }
+
+-@ import val artifact : ArtifactInfo
+-#@ val path : String
+-@ val plainSource : String
+
+%html
+  %head
+    %title API/Source : #{artifact.artifactId} - #{artifact.version}
+    %meta(http-equiv="content-type" content="text/html; charset=UTF-8")
+    %meta(content="VScaladoc 2" name="generator")
+    %link(href={urlOf("laf/src/_rsrc/css/sh_nedit.css")} type="text/css" rel="stylesheet")
+  %body
+    %h1 #{artifactId}-#{version}
+    %pre(class="sh_scala")
+      =plainSource
+
+    %script(type="text/javascript" src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.4.min.js")
+    %script(type="text/javascript" src={urlOf("laf/src/_rsrc/sh_main_min.js")})
+    %script(type="text/javascript" src={urlOf("laf/src/_rsrc/lang/sh_scala.js")})
+    %script
+      $(document).ready(sh_highlightDocument);

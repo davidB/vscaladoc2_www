@@ -236,6 +236,7 @@
               <descriptors>
                 <descriptor>src/main/laf/entity0.xml</descriptor>
                 <descriptor>src/main/laf/navigator0.xml</descriptor>
+                <descriptor>src/main/laf/src0.xml</descriptor>
               </descriptors>
             </configuration>
           </execution>

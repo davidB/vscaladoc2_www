@@ -16,7 +16,7 @@ import java.io.File
 import org.fusesource.scalate.support.FileResourceLoader
 import java.io.{ StringWriter, PrintWriter }
 import java.net.URL
-import net.liftweb.common.{ Full, Box }
+import net.liftweb.common.{ Full, Box, Empty }
 import net.liftweb.http.{ XmlResponse, LiftResponse, InMemoryResponse, NotFoundResponse, NotImplementedResponse, StreamingResponse }
 import org.fusesource.scalate.{ TemplateEngine, DefaultRenderContext }
 import javax.activation.MimetypesFileTypeMap
@@ -183,6 +183,30 @@ class EntityDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir: F
 
 }
 
+class SourceDisplayer4Laf(helper : Helper, val rdti : InfoDataProvider, tmplDir: File) extends ScalateDisplayer(helper, tmplDir) with SourceDisplayer {
+  def serveHtmlized(rai : RemoteApiInfo, entityPath : List[String], ext : String, lineNum : Box[Int]) : Box[LiftResponse] = {
+      // if sourcelink  not define => 
+        // if sourcelink != embed:/ => substitute / redirect
+        // if sourcelink = embed 
+        //  if sourcefile exist => create a new one (scalate/snippet)
+        //  if sourcefile not exist => Full(NotFoundResponse("the sources file " + + " is not found for the artifact " + api.artifactId.is + "-" + api.version.is)
+    rdti.toArtifactInfo(Uoa4Artifact(rai.artifactId, rai.version)).flatMap { a =>
+      a.linksources match {
+        case Some("embed:/") => rdti.toSourceString(a.uoa, entityPath, ext) match {
+          case Full(str) => renderHtml("/scala.scaml") { context =>
+            context.attributes("artifact") = a
+            context.attributes("plainSource") = str
+            Full(context)
+          }
+          case _ => Full(NotFoundResponse("the sources file " + entityPath.mkString("", "/", ext) + " is not found for the artifact " + a.artifactId + "-" + a.version))
+        }
+        case Some(link) => Full(NotFoundResponse("TODO"))  // if sourcelink != embed:/ => substitute / redirect
+        case None => Full(NotFoundResponse("no linksources define for the API"))
+      }
+    }
+  }
+}
+
 import net_alchim31_utils.{ FileSystemHelper, ClasspathHelper }
 class LafProvider(cacheDir: File, helper: Helper, rdti: InfoDataProvider, fsh : FileSystemHelper) {
 
@@ -211,5 +235,9 @@ class LafProvider(cacheDir: File, helper: Helper, rdti: InfoDataProvider, fsh : 
 
   def newNavigatorDisplayer(lafName: String = "entity0"): Box[NavigatorDisplayer] = {
     extractLafIfNotExist(lafName).map(dir => new NavigatorDisplayer4Laf(helper, rdti, dir))
+  }
+
+  def newSourceDisplayer(lafName: String = "src0"): Box[SourceDisplayer] = {
+    extractLafIfNotExist(lafName).map(dir => new SourceDisplayer4Laf(helper, rdti, dir))
   }
 }

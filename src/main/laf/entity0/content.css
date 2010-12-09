@@ -153,18 +153,32 @@ pre, .codeAsDoc {
 #logo {
   float: right;
 }
-
+div.minitoolbar {
+  float: right;
+  padding : 0;
+  marging : 0;
+}
 div.discuss, div.nodiscuss {
   float: right;
   background : url('empty.png') no-repeat center;
   font-family: "Inconsolata", "Bitstream Vera Sans Mono", monospace;
-  font-size: 12px;
   width: 23px;
   height: 23px;
   padding-top : 6px;
+  font-size: 12px;
   text-align : center;
   font-weight: bold;
 }
+div.linksource {
+  float: right;
+  width: 23px;
+  height: 23px;
+  padding : 0;
+  font-size: 12px;
+  text-align : center;
+  font-weight: bold;
+}
+
 .overview h1, .overview h2, .overview h3, .apiComments h1, .apiComments h2, .apiComments h3 {
  font-family: "Bitstream Vera Sans", "Arial", "Helvetica", sans-serif;
  font-weight: bold;

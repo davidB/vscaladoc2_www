@@ -26,6 +26,10 @@ trait EntityDisplayer extends PartDisplayer {
   def serveArtifacts(artifactId : String): Box[LiftResponse]
 }
 
+trait SourceDisplayer extends PartDisplayer {
+  def serveHtmlized(api : RemoteApiInfo, entityPath : List[String], ext : String, lineNum : Box[Int]) : Box[LiftResponse]
+}
+
 class EntityDisplayer4Debug extends EntityDisplayer {
   def serveResource(path: List[String], ext : String): Box[LiftResponse] = Full(XmlResponse(
     <div>part :{ path.mkString("/") + ext }</div>

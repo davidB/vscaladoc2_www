@@ -50,7 +50,7 @@ var discussLoad = function() {
         } else if ( nb == 0){
           node.html("<a href='" + url + "'>" + nb + "</a>");
         } else {
-          node.html("<a href='" + url + "' target='discussFrame' onclick='discussOpenFrame()'>" + nb + "</a>");
+          node.html("<a href='" + url + "' target='discussFrame' onclick='discussOpenFrame()'  title='Discuss'>" + nb + "</a>");
         }
       }
     },

@@ -17,7 +17,9 @@ object info {
   type ArtifactKind = String
   
   case class StringWithTypeRef(s: String, uoaType : Box[Uoa] = Empty)
-
+  case class SourcePos(line : Int, column: Option[Int])
+  case class SourceRange(path : String, begin : Option[SourcePos], end : Option[SourcePos])
+  
   sealed trait Uoa
   case class Uoa4Artifact(artifactId: String, version: String) extends Uoa
   case class Uoa4Package(packageName: String, uoaArtifact: Uoa4Artifact) extends Uoa
@@ -33,7 +35,31 @@ object info {
     def fqNameOf(v : Uoa) : String
     def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo]
     def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]]
-    def toFieldextInfo(uoa: Uoa4Fieldext): List[Box[FieldextInfo]]    
+    def toFieldextInfo(uoa: Uoa4Fieldext): List[Box[FieldextInfo]]
+    def urlOfSource(entity : EntityInfo) : Option[String] = entity match {
+      case entity : PackageInfo  => toArtifactInfo(entity.uoa.uoaArtifact).toOption.flatMap{ x =>  urlOfSource(x, entity) };
+      case entity : TypeInfo     => toArtifactInfo(entity.uoa.uoaPackage.uoaArtifact).toOption.flatMap{ x => urlOfSource(x, entity) }
+      case entity : FieldextInfo => toArtifactInfo(entity.uoa.uoaType.uoaPackage.uoaArtifact).toOption.flatMap{ x => urlOfSource(x, entity) }
+    }
+    def urlOfSource(artifact : ArtifactInfo, entity : EntityInfo) : Option[String] = urlOfSource(artifact, entity.source)
+    def urlOfSource(artifact : ArtifactInfo, srcRange : Option[SourceRange]) : Option[String] = {
+      def interpolate0(text: String, vars: Map[String, String]) : String= {
+        (text /: vars) { (t, kv) => t.replace("${"+kv._1+"}", kv._2)  }
+      }
+      def interpolate(text : String, srcRange : SourceRange): String = interpolate0(text, Map(
+        ("artifactId" -> artifact.artifactId),
+        ("version" -> artifact.version),
+        ("path" -> srcRange.path),
+        ("beginLine" -> srcRange.begin.map(_.line.toString).getOrElse(""))
+        )
+      )
+      for (linksources <- artifact.linksources ; srcRange <- srcRange) yield {
+        linksources match {
+          case "embed:/" => urlOf(interpolate("/laf/src/${artifactId}/${version}/${path}.html#${beginLine}",srcRange))
+          case pattern =>  interpolate(pattern, srcRange)
+        }
+      }
+    }
   }
 
 //  trait ArtifactKind
@@ -60,30 +86,32 @@ object info {
     def dependencies: List[Uoa4Artifact] = Nil
     def packages: List[Uoa4Package] = Nil
     def ggroupId : Option[String] = None
+    def linksources : Option[String] = None
     //def rawjson : Box[JObject] = Empty
   }
 
   trait EntityInfo {
+    type UoaT <: Uoa
+    def uoa: UoaT
     def simpleName: String
     def signature: List[StringWithTypeRef]
     def description: HtmlString
     def docTags: Seq[DocTag]
-    def source: Option[URI]
+    def source: Option[SourceRange]
     //def rawjson : Box[JObject] = Empty
     def kind: String
   }
 
   trait PackageInfo extends EntityInfo {
-    def uoa: Uoa4Package
+    type UoaT = Uoa4Package
     def signature: List[StringWithTypeRef] = Nil
     def kind: String = "package"
-    def source: Option[URI]
     def packages: List[Uoa4Package]
     def types: List[Uoa4Type]
   }
   
   trait TypeInfo extends EntityInfo {
-    def uoa: Uoa4Type
+    type UoaT = Uoa4Type
     def isInherited(m: FieldextInfo) : Boolean
     def constructors: List[Box[FieldextInfo]]
     def fields: List[Uoa4Fieldext]
@@ -92,7 +120,7 @@ object info {
   }
 
   trait FieldextInfo extends EntityInfo {
-    def uoa: Uoa4Fieldext
+    type UoaT = Uoa4Fieldext
   }
 
   trait DocTag {
