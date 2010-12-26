@@ -15,7 +15,7 @@
         - case _ if swr.s == toBold => <b>{swr.s}</b>
         - case _ => swr.s
       - }
-    != l2.mkString
+    != l2.mkString(" ")
 
 - var failuresIdx = 0
 - def displayDocTags(docTags : Seq[DocTag]) =
@@ -106,6 +106,14 @@
           %div(class="apiComments")
             != description
             - displayDocTags(docTags)
+
+        - if (!subTypesInSameArtifact.isEmpty)
+          %h3(style="cursor: help;" onClick={"$('#"+ kind +"_subTypes').toggle()"}) SubTypes
+          in same artifact :
+          %ul(class="subTypes")
+            - for (stpeUoa <- subTypesInSameArtifact)
+              %li
+                %a(href={urlOf(stpeUoa, "laf/api")} title={fqNameOf(stpeUoa)}) #{labelOf(stpeUoa)}
 
         - displayFieldexts0(tpe, kind, constructors, "Constructors")
         - displayFieldexts1(tpe, kind, fields, "Fields")

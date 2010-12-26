@@ -201,4 +201,8 @@ div.linksource {
 .overview h3, .apiComments h3 {
   font-size : 110%;
 }
-
+ul.subTypes li {
+  display: inline;
+  list-style-type:none;
+  padding-left: 1em;
+}

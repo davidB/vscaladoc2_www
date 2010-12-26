@@ -117,6 +117,7 @@ object info {
     def fields: List[Uoa4Fieldext]
     def methods: List[Uoa4Fieldext]
     def types: List[Uoa4Type]
+    def subTypesInSameArtifact : List[Uoa4Type]
   }
 
   trait FieldextInfo extends EntityInfo {
