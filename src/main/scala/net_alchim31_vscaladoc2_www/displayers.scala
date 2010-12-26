@@ -15,7 +15,7 @@ trait PartDisplayer {
 
 trait NavigatorDisplayer extends PartDisplayer {
   def serveNavigator(api : RemoteApiInfo, entityPath : List[String]) : Box[LiftResponse]
-  def serveBrowser(api : RemoteApiInfo, entityPath : List[String]) : Box[LiftResponse]
+  def serveBrowser(api : RemoteApiInfo, entityPath : List[String], format : String = ".html") : Box[LiftResponse]
 }
 
 trait EntityDisplayer extends PartDisplayer {

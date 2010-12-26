@@ -33,6 +33,7 @@ class ScalateDisplayer(helper: Helper, tmplDir: File) {
     val b = new MimetypesFileTypeMap()
     b.addMimeTypes("text/javascript   js")
     b.addMimeTypes("text/css          css")
+    b.addMimeTypes("application/json  json")
     b
   }
 
@@ -48,14 +49,14 @@ class ScalateDisplayer(helper: Helper, tmplDir: File) {
     b
   }
 
-  private case class HtmlTextResponse(text: String, code: Int) extends LiftResponse with HeaderDefaults {
+  private case class TextResponse(text: String, code: Int, mimeType : String) extends LiftResponse with HeaderDefaults {
     def toResponse = {
       val bytes = text.getBytes("UTF-8")
-      InMemoryResponse(bytes, ("Content-Length", bytes.length.toString) :: ("Content-Type", "text/html; charset=utf-8") :: headers, cookies, code)
+      InMemoryResponse(bytes, ("Content-Length", bytes.length.toString) :: ("Content-Type", mimeType + "; charset=utf-8") :: headers, cookies, code)
     }
   }
 
-  protected def renderHtml(templatePath: String)(fillCtx: (RenderContext) => Box[RenderContext]): Box[LiftResponse] = {
+  protected def renderText(templatePath: String)(fillCtx: (RenderContext) => Box[RenderContext]): Box[LiftResponse] = {
     val template = _engine.load(templatePath)
     val buffer = new StringWriter()
     val context = new DefaultRenderContext(templatePath, _engine, new PrintWriter(buffer))
@@ -64,7 +65,13 @@ class ScalateDisplayer(helper: Helper, tmplDir: File) {
     //context.attributes("info") = info
     for (context <- fillCtx(context)) yield {
       template.render(context)
-      HtmlTextResponse(buffer.toString, 200)
+      val mimeType = _mimetypesFileTypeMap.getContentType(templatePath.substring(0, templatePath.length - ".scaml".length)) match {
+        case null => "text/html"
+        case "application/octet-stream" => "text/html"
+        case x => x
+      }
+      //println("mimeType : " + mimeType)
+      TextResponse(buffer.toString, 200, mimeType)
     }
   }
 
@@ -127,14 +134,14 @@ class Helper4Laf(baseUrl: URI, uoaHelper: UoaHelper, idp : InfoDataProvider) ext
 }
 
 class NavigatorDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir: File) extends ScalateDisplayer(helper, tmplDir) with NavigatorDisplayer {
-  def serveNavigator(rai: RemoteApiInfo, entityPath: List[String]): Box[LiftResponse] = renderHtml("/index.scaml") { context =>
+  def serveNavigator(rai: RemoteApiInfo, entityPath: List[String]): Box[LiftResponse] = renderText("/index.scaml") { context =>
     for ( artifact <- rdti.toArtifactInfo(Uoa4Artifact(rai.artifactId, rai.version))) yield {
       context.attributes("artifact") =  artifact
       context.attributes("entityPath") = entityPath
       context
     }
   }
-  def serveBrowser(rai: RemoteApiInfo, entityPath: List[String]): Box[LiftResponse] = renderHtml("/browser.scaml") { context =>
+  def serveBrowser(rai: RemoteApiInfo, entityPath: List[String], format : String = ""): Box[LiftResponse] = renderText("/browser" + format +".scaml") { context =>
     for ( artifact <- rdti.toArtifactInfo(Uoa4Artifact(rai.artifactId, rai.version))) yield {
       context.attributes("artifact") = artifact
       context.attributes("entityPath") = entityPath
@@ -148,7 +155,6 @@ class NavigatorDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir
       context
     }
   }
-
 }
 
 class EntityDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir: File) extends ScalateDisplayer(helper, tmplDir) with EntityDisplayer {
@@ -156,7 +162,7 @@ class EntityDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir: F
 
   def serveFieldext(uoa: Uoa4Fieldext): Box[LiftResponse] = Full(NotImplementedResponse())
 
-  def serveType(uoa: Uoa4Type): Box[LiftResponse] = renderHtml("/type.scaml") { context =>
+  def serveType(uoa: Uoa4Type): Box[LiftResponse] = renderText("/type.scaml") { context =>
     //TODO keep original failure from a List[Box[x]]
     rdti.toArtifactInfo(uoa.uoaPackage.uoaArtifact).map { a =>
       context.attributes("logo") = a.logo
@@ -165,7 +171,7 @@ class EntityDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir: F
     }
   }
 
-  def servePackage(uoa: Uoa4Package): Box[LiftResponse] = renderHtml("/package.scaml") { context =>
+  def servePackage(uoa: Uoa4Package): Box[LiftResponse] = renderText("/package.scaml") { context =>
     //TODO keep original failure from a List[Box[x]]
     rdti.toArtifactInfo(uoa.uoaArtifact).map { a =>
       context.attributes("logo") = a.logo
@@ -174,7 +180,7 @@ class EntityDisplayer4Laf(helper: Helper, val rdti: InfoDataProvider, tmplDir: F
     }
   }
 
-  def serveArtifact(uoa: Uoa4Artifact): Box[LiftResponse] = renderHtml("/artifact.scaml") { context =>
+  def serveArtifact(uoa: Uoa4Artifact): Box[LiftResponse] = renderText("/artifact.scaml") { context =>
     rdti.toArtifactInfo(uoa).map { a =>
       context.attributes("artifact") = a
       context
@@ -193,7 +199,7 @@ class SourceDisplayer4Laf(helper : Helper, val rdti : InfoDataProvider, tmplDir:
     rdti.toArtifactInfo(Uoa4Artifact(rai.artifactId, rai.version)).flatMap { a =>
       a.linksources match {
         case Some("embed:/") => rdti.toSourceString(a.uoa, entityPath, ext) match {
-          case Full(str) => renderHtml("/scala.scaml") { context =>
+          case Full(str) => renderText("/scala.scaml") { context =>
             context.attributes("artifact") = a
             context.attributes("plainSource") = str
             Full(context)

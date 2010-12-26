@@ -36,11 +36,22 @@ object ApiView extends Loggable {
   
   val dispatch: LiftRules.DispatchPF = {
     case Req("sitemap" :: Nil, "txt", GetRequest) => () => failureConverter(serveSitemapTxt())
-    case Req("navigator" :: "api" :: artifactId :: version :: entityPath, _, GetRequest) => () => failureConverter(serveEntity(artifactId, version, entityPath)(serveNavigator))
-    case Req("navigator" :: "_browser" :: "api" :: artifactId :: version :: Nil, _, GetRequest) => () => failureConverter(serveEntity(artifactId, version, Nil)(serveBrowser))
+    case Req("navigator" :: "api" :: artifactId :: version :: entityPath, ext, GetRequest) => () => failureConverter(serveEntity(artifactId, version, entityPath)(serveNavigator))
+    case Req("navigator" :: "_browser" :: "api" :: artifactId :: versionExt :: Nil, _, GetRequest) => () => {
+      val (version, ext) = versionExt.lastIndexOf('.') match {
+        case -1 => (versionExt, ".html")
+        case x => versionExt.substring(x) match {
+          case ext @ ".js"  => (versionExt.substring(0, x), ext)
+          case ext @ ".json"  => (versionExt.substring(0, x), ext)
+          case ext @ ".html"  => (versionExt.substring(0, x), ext)
+          case _ => (versionExt, ".html")
+        }
+      }
+      failureConverter(serveEntity(artifactId, version, Nil)(serveBrowser(ext) _ ))
+    }
     case Req("navigator" :: "_rsrc" :: path, ext, GetRequest) => () => failureConverter(_navigatorDisplayer.flatMap(_.serveResource(path, ext)))
     case Req("raw" :: "api" :: artifactId :: version :: entityPath, _, GetRequest) => () => failureConverter(serveOriginal(artifactId, version, entityPath))
-    case Req("laf" :: "api" :: artifactId :: version :: entityPath, _, GetRequest) => () => failureConverter(serveEntity(artifactId, version, entityPath)(serveApi))
+    case Req("laf" :: "api" :: artifactId :: version :: entityPath, ext, GetRequest) => () => failureConverter(serveEntity(artifactId, version, entityPath)(serveApi))
     case Req("laf" :: "api" :: artifactId :: Nil, _, GetRequest) => () => failureConverter(_entityDisplayer.flatMap(_.serveArtifacts(artifactId)))
     case Req("laf" :: "_rsrc" :: path, ext, GetRequest) => () => failureConverter(_entityDisplayer.flatMap(_.serveResource(path, ext)))
     case Req("laf" :: "src" :: "_rsrc" :: path, ext, GetRequest) => () => failureConverter(_sourceDisplayer.flatMap(_.serveResource(path, ext)))
@@ -116,9 +127,9 @@ object ApiView extends Loggable {
     ) yield resp
   }
   
-  private def serveBrowser(api: RemoteApiInfo, rurl: String, entityPath: List[String]): Box[LiftResponse] = {
+  private def serveBrowser(ext : String)(api: RemoteApiInfo, rurl: String, entityPath: List[String]): Box[LiftResponse] = {
     api.provider match {
-      case VScaladoc2 => _navigatorDisplayer.flatMap(_.serveBrowser(api, entityPath))
+      case VScaladoc2 => _navigatorDisplayer.flatMap(_.serveBrowser(api, entityPath, ext))
       case _ => Full(NotImplementedResponse())
     }
   }
