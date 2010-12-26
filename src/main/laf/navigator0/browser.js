@@ -1,176 +1,116 @@
-//TODO clean and refactor (reduce number of non-function variable)
-// manage user Options
-/*
-var cfg = {
-  filter4NameIgnoreCase : false,
-};
-
-
-var togglefilter4NameOptions = function(optionName) {
-  cfg[optionName] = !cfg[optionName];
-  $.cookie(optionName, cfg[optionName]);
-  $("input.option_" + optionName + "_cb").each(function(){this.checked = cfg[optionName]});
-  updateFilter4NameRE();
-};
-
-$(document).ready(function(){
-  for (optionName in cfg) {
-    cfg[optionName] = $.cookie(optionName);
-    cfg[optionName] = (cfg[optionName] == true || cfg[optionName] == "true");
-    $("input.option_" + optionName + "_cb").each(function(){this.checked = cfg[optionName]});
+(function() {
+  var displayTypesFrag, updateClassesDisplay, updateFilter4Name, updateFilter4Packages;
+  window.typeBrowserInfo = {
+    filter4Packages: [],
+    filter4NameRE: null,
+    lastUpdateClassDisplayCallId: null,
+    callCnt: 0,
+    dataAll: [],
+    templateNameOrig: null,
+    containerSelectorOrig: null,
+    displayData: [],
+    displayOffset: 0
   };
-});
-*/
-// Filter
-
-var filter4Packages = [];
-var updateFilter4Packages = function(evt){
-    filter4Packages = [];
-    var select = $("#packagesFilter").get(0);//evt.target; //this
-    for (var i=0; i<select.options.length; i++) {
-        if (select.options[i].selected == true) {
-            filter4Packages.push(select.options[i].text);
-        }
+  updateFilter4Packages = function() {
+    var selected, _i, _len, _ref;
+    window.typeBrowserInfo.filter4Packages = [];
+    _ref = $("#packagesFilter > input:checked");
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      selected = _ref[_i];
+      window.typeBrowserInfo.filter4Packages.push(selected.value);
     }
-    updateClassesDisplay(20);
-};
-
-var filter4NameRE = null;
-var filter4Name = "";
-
-var updateFilter4Name = function(evt) {
-    filter4Name = this.value;
-    updateFilter4NameRE();
-}
-var updateFilter4NameRE = function() {
-    if ((filter4Name == null) || (filter4Name.length == 0)) {
-      filter4NameRE = null;
+    $("#packagesFilterSelectedCount").text("" + (window.typeBrowserInfo.filter4Packages.length > 0 ? window.typeBrowserInfo.filter4Packages.length : 'All') + " packages selected");
+    return updateClassesDisplay(20);
+  };
+  updateFilter4Name = function() {
+    var flags, ignoreCase, pattern, startsWith;
+    pattern = $("#nameFilter").val();
+    if ((pattern === null) || (pattern.length === 0)) {
+      window.typeBrowserInfo.filter4NameRE = null;
     } else {
-      var flags = "";
-      var pattern = filter4Name;
-      var ignoreCase = $('input:radio[name=option_filter4NameMode]:checked').val() == "insensitive";
-      console.log("mode : " + $('input:radio[name=option_filter4NameMode]:checked').val() + " .. " + ignoreCase);
+      flags = "";
+      ignoreCase = $('input:radio[name=option_filter4NameMode]:checked').val() === "insensitive";
+      startsWith = $('input:checkbox[name=option_filter4NameStartMode]:checked').val() === "startsWith";
       if (ignoreCase) {
         flags = "i";
-        //support glob
         pattern = pattern.replace("\*", ".*?");
       } else {
-        // support camelcase
         pattern = pattern.replace(/([A-Z][^A-Z]*)/g, "$1[^A-Z]*?") + ".*";
       }
+      if (startsWith) {
+        pattern = "^" + pattern;
+      }
       console.log("filter4Name pattern : " + pattern);
-      filter4NameRE = new RegExp(pattern, flags);
+      window.typeBrowserInfo.filter4NameRE = new RegExp(pattern, flags);
     }
-    updateClassesDisplay(150);
-};
-
-var lastUpdateClassDisplayCallId = null;
-var callCnt = 0
-var updateClassesDisplay = function(waitBefore) {
-    if (lastUpdateClassDisplayCallId != null) {
-        clearTimeout(lastUpdateClassDisplayCallId);
+    return updateClassesDisplay(150);
+  };
+  updateClassesDisplay = function(waitBefore) {
+    var timestamp;
+    if (window.typeBrowserInfo.lastUpdateClassDisplayCallId !== null) {
+      clearTimeout(window.typeBrowserInfo.lastUpdateClassDisplayCallId);
     }
-    if (waitBefore == null) {
-      waitBefore = 300
-    }
-    lastUpdateClassDisplayCallId = setTimeout("updateClassesDisplayNow("+ (++callCnt) + "," + (new Date).getTime() +")", waitBefore);
-};
-var updateClassesDisplayNow = function(callId, requestAtTime) {
-    var startAtTime = (new Date).getTime()
-    var data = jQuery.grep( dataAll, function(n, i){
-      return (callId == callCnt)
-        && ((filter4Packages.length == 0) || ( filter4Packages.indexOf(n.pkg) != -1))
-        && ((filter4NameRE == null) || filter4NameRE.test(n.label));
+    waitBefore != null ? waitBefore : waitBefore = 300;
+    timestamp = "" + (new Date).getTime();
+    return window.typeBrowserInfo.lastUpdateClassDisplayCallId = setTimeout("updateClassesDisplayNow(" + (++window.typeBrowserInfo.callCnt) + ", " + timestamp + ")", waitBefore);
+  };
+  window.updateClassesDisplayNow = function(callId, requestAtTime) {
+    var data, diff, filterEndAt, startAtTime;
+    startAtTime = (new Date).getTime();
+    data = jQuery.grep(window.typeBrowserInfo.dataAll, function(n, i) {
+      return (callId === window.typeBrowserInfo.callCnt) && ((window.typeBrowserInfo.filter4Packages.length === 0) || (window.typeBrowserInfo.filter4Packages.indexOf(n.pkg) !== -1)) && ((window.typeBrowserInfo.filter4NameRE === null) || window.typeBrowserInfo.filter4NameRE.test(n.label));
     });
-    var filterEndAt = (new Date).getTime();
-    console.log("nb data found :" + data.length + "/"  + dataAll.length);
-    if (callId != callCnt) {
-      console.log("abort before update display");
+    filterEndAt = (new Date).getTime();
+    console.log("nb data found :" + data.length + "/" + window.typeBrowserInfo.dataAll.length);
+    if (callId !== window.typeBrowserInfo.callCnt) {
+      return console.log("abort before update display");
     } else {
       displayTypes(data, null, null);
-      var diff = (new Date).getTime() - startAtTime;
-      console.log("updateClassesDisplayNow delay :" + (startAtTime - requestAtTime) + " ms, filter duration :" + (filterEndAt - startAtTime) + "ms, display duration :" + diff + " ms");
+      diff = (new Date).getTime() - startAtTime;
+      return console.log("updateClassesDisplayNow delay :" + (startAtTime - requestAtTime) + " ms, filter duration :" + (filterEndAt - startAtTime) + "ms, display duration :" + diff + " ms");
     }
-};
-
-var dataAll = [];
-var templateNameOrig = null;
-var containerSelectorOrig = null;
-
-var initDisplayTypes = function(data, templateName, containerSelector) {
-   dataAll = data;
-   templateNameOrig = templateName
-   containerSelectorOrig = containerSelector;
-};
-
-var displayTypes = function(data) {
-  if (data == null) {
-    data = dataAll;
-  }
-  if (data != [] && templateNameOrig != null && containerSelectorOrig != null) {
-    $(containerSelectorOrig).empty();
-    displayOffset = 0;
-    displayData = data;
-    // use a setTimeout instead of calling tmpl on every data in one shoot to avoid "stack space exhausted" on firefox
-    setTimeout("displayTypesFrag()", 1);
-//    $.tmpl(templateName, data ).appendTo( containerSelector );
-//    $(containerSelector).fadeIn( "medium" );
-  }
-};
-
-var displayData = [];
-var displayOffset = 0;
-var displayTypesFrag = function() {
-  var d = displayData.slice(displayOffset, displayOffset+100);
-  //console.log(" d :" + displayOffset + " // " + d.length + " //  " +displayData.length);
-  displayOffset = displayOffset +101;
-  $.tmpl(templateNameOrig, d).appendTo( containerSelectorOrig );
-  if (displayOffset <= displayData.length) {
-    setTimeout(displayTypesFrag, 1);
-  }
-};
-
-$(document).ready(function(){
-        $("#packagesFilter")
-        .each(function() {
-                for (var i=0; i<this.options.length; i++) {
-                    this.options[i].selected = false;
-                }
-        })
-        .bind("change", updateFilter4Packages)
-        ;
-        $("#nameFilter").val("");
-        $("#nameFilter").bind("keyup", updateFilter4Name);
-        $("input:radio[name=option_filter4NameMode]").bind("change", updateFilter4NameRE);
-
-});
-
-/**
-* Selects an option by value
-*
-* @name     selectOptions
-* @author   Mathias Bank (http://www.mathias-bank.de)
-* @param    value specifies, which options should be selected
-* @example  jQuery("#myselect").selectOptions("val1");
-*
-*/
-jQuery.fn.selectOptions = function(value) {
-    this.each(
-        function()	{
-            if(this.nodeName.toLowerCase() != "select") return;
-
-            // get number of options
-            var optionsLength = this.options.length;
-
-            for(var i = 0; i<optionsLength; i++) {
-                this.options[i].selected = (this.options[i].text == value);
-            }
-        }
-    );
-    return this;
-};
-
-var selectPackage = function(name) {
-    $("#packagesFilter").selectOptions(name);
-    updateFilter4Packages();
-};
+  };
+  displayTypesFrag = function() {
+    var d;
+    d = window.typeBrowserInfo.displayData.slice(window.typeBrowserInfo.displayOffset, window.typeBrowserInfo.displayOffset + 100);
+    window.typeBrowserInfo.displayOffset += 100 + 1;
+    $.tmpl(window.typeBrowserInfo.templateNameOrig, d).appendTo(window.typeBrowserInfo.containerSelectorOrig);
+    if (window.typeBrowserInfo.displayOffset <= window.typeBrowserInfo.displayData.length) {
+      return setTimeout(displayTypesFrag, 1);
+    }
+  };
+  window.initDisplayTypes = function(data, templateName, containerSelector) {
+    window.typeBrowserInfo.dataAll = data;
+    window.typeBrowserInfo.templateNameOrig = templateName;
+    return window.typeBrowserInfo.containerSelectorOrig = containerSelector;
+  };
+  window.displayTypes = function(data) {
+    data != null ? data : data = window.typeBrowserInfo.dataAll;
+    console.log("displayTypes :" + data.length);
+    if (data !== [] && window.typeBrowserInfo.templateNameOrig !== null && window.typeBrowserInfo.containerSelectorOrig !== null) {
+      $(window.typeBrowserInfo.containerSelectorOrig).empty();
+      window.typeBrowserInfo.displayOffset = 0;
+      window.typeBrowserInfo.displayData = data;
+      return setTimeout(displayTypesFrag, 1);
+    }
+  };
+  window.displayPackages = function(data) {
+    var arr, select;
+    data != null ? data : data = window.typeBrowserInfo.dataAll;
+    $("#packagesFilter > input").unbind("change");
+    arr = _.uniq(jQuery.map(data, function(n, i) {
+      return n.pkg;
+    }).sort(), true);
+    select = $('#packagesFilter');
+    $.each(arr, function(key, value) {
+      return select.append("<input type='checkbox' value='" + value + "'/>" + value + "<br/>");
+    });
+    return $("#packagesFilter > input").change(updateFilter4Packages);
+  };
+  $(document).ready(function() {
+    $("#nameFilter").val("");
+    $("#nameFilter").bind("keyup", updateFilter4Name);
+    $("#options_filter4Name > input").change(updateFilter4Name);
+    return updateFilter4Packages();
+  });
+}).call(this);

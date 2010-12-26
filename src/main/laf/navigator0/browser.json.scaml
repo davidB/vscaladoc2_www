@@ -1,0 +1,12 @@
+-import net_alchim31_vscaladoc2_www.info._
+-@ val artifact : ArtifactInfo
+-@ val uoa4types : List[Uoa4Type]
+{
+"values" : [
+- for(tpe <- uoa4types.sortWith(_.typeName < _.typeName))
+  { "pkg" : "#{tpe.uoaPackage.packageName}", "u" : "#{urlOf(tpe, "laf/api")}", "t" : "#{fqNameOf(tpe)}", "label" : "#{labelOf(tpe)}" },
+{}
+]
+}
+
+
