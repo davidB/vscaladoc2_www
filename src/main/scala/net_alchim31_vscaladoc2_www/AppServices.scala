@@ -27,7 +27,7 @@ object AppServices extends Loggable {
 
   lazy val fsh = new FileSystemHelper() 
   lazy val uoaHelper = new UoaHelper()
-  lazy val apis = new ApiService({() => idp})
+  lazy val apis = new ApiService({() => idp}, CacheManager.getInstance().getCache("rais"))
   lazy val lafHelper = new Helper4Laf(new URI(S.contextPath + "/"), uoaHelper, idp)
   lazy val rawDataProvider : RawDataProvider = new RawDataProviderWithLocalFSCache(fsh, workdir, apis, uoaHelper)//new RawDataProvider0(workdir, apis, uoaHelper)
   lazy val idp : InfoDataProvider = new InfoDataProvider0(rawDataProvider, uoaHelper) with InfoDataProviderCache {

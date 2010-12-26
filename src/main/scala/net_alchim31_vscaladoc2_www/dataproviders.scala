@@ -12,6 +12,7 @@ import net_alchim31_vscaladoc2_www.info._
 import net.liftweb.common.{ Box, Full, Empty, Failure, Loggable }
 import net.liftweb.json.JsonParser.parse
 import net.liftweb.json.JsonAST._
+import net.sf.ehcache.{Cache, Element}
 
 trait RawDataProvider {
   type UOA = String
@@ -29,7 +30,7 @@ trait InfoDataProvider {
   def toSourceString(uoa: Uoa4Artifact, filePath : List[String], ext : String) : Box[String] = Failure("not implemented")
 }
 
-class ApiService(lazy_idp : () => InfoDataProvider) extends Loggable {
+class ApiService(lazy_idp : () => InfoDataProvider, cache2rai : Cache) extends Loggable {
   import net_alchim31_vscaladoc2_www.model.{RemoteApiInfo, ApiProviders, VScaladoc2}
 
   import net.liftweb.actor._
@@ -58,7 +59,21 @@ class ApiService(lazy_idp : () => InfoDataProvider) extends Loggable {
     }
   }
   
-  def findApiOf(artifactId: String, version: String): Box[RemoteApiInfo] = RemoteApiInfo.findApiOf(artifactId, version)
+  def findApiOf(artifactId: String, version: String): Box[RemoteApiInfo] = {
+    val k = artifactId + "::"+ version
+    def update() = {
+      val v = RemoteApiInfo.findApiOf(artifactId, version)
+      cache2rai.put(new Element(k, v))
+      v
+    }
+    cache2rai.get(k) match {
+      case null => update() 
+      case elem => elem.getObjectValue match {
+        case r : Box[RemoteApiInfo] => r 
+        case _ => update()
+      }
+    }
+  }
 
   def register(v : RemoteApiInfo) = {
     v.save
@@ -108,8 +123,6 @@ class ApiService(lazy_idp : () => InfoDataProvider) extends Loggable {
 trait InfoDataProviderCache extends InfoDataProvider {
   self : InfoDataProvider =>
 
-  import net.sf.ehcache.{Cache, Element}
-  
   protected def cacheUoa2info : Cache
   protected def cacheUoa2types : Cache
   

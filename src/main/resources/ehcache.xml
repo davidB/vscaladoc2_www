@@ -448,6 +448,17 @@ in-memory capacity changed at runtime through the cache's configuration object.
     timeToLiveSeconds="1200"
     />
 
+  <!-- RemoteInfoApi read from Mapper (remote RDBMS) -->
+  <cache name="rais"
+    maxElementsInMemory="1000"
+    maxElementsOnDisk="1000"
+    eternal="false"
+    overflowToDisk="false"
+    timeToIdleSeconds="300"
+    timeToLiveSeconds="600"
+    memoryStoreEvictionPolicy="LRU"
+    />
+    
   <!-- info read from one json file -->
   <cache name="uoa2info"
     maxElementsInMemory="100"
