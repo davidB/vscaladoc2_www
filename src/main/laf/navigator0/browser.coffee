@@ -106,6 +106,18 @@ $(document).ready(() ->
   #).change(updateFilter4Packages)
   $("#nameFilter").val("")
   $("#nameFilter").bind("keyup", updateFilter4Name)
+  $("#nameFilter").bind("keypress", (ev) ->
+    key = ev.keyCode || ev.charCode || 0
+    /* ENTER PRESSED*/
+    if key == 10 || key == 13
+      $("ul#classes > li:first > a").each(() ->
+        #.trigger('click') doesn't simulate a click on a link
+        # alternative something like top.frames[this.target].location = this.href
+        fakeEvent = document.createEvent("HTMLEvents")
+        fakeEvent.initEvent("click", true, true)
+        this.dispatchEvent(fakeEvent)
+      )
+  )
   $("#options_filter4Name > input").change(updateFilter4Name)
   updateFilter4Packages()
 )

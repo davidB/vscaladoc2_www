@@ -110,6 +110,19 @@
   $(document).ready(function() {
     $("#nameFilter").val("");
     $("#nameFilter").bind("keyup", updateFilter4Name);
+    $("#nameFilter").bind("keypress", function(ev) {
+      var key;
+      key = ev.keyCode || ev.charCode || 0;
+      /* ENTER PRESSED*/;
+      if (key === 10 || key === 13) {
+        return $("ul#classes > li:first > a").each(function() {
+          var fakeEvent;
+          fakeEvent = document.createEvent("HTMLEvents");
+          fakeEvent.initEvent("click", true, true);
+          return this.dispatchEvent(fakeEvent);
+        });
+      }
+    });
     $("#options_filter4Name > input").change(updateFilter4Name);
     return updateFilter4Packages();
   });
