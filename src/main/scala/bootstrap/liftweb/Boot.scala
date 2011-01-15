@@ -28,7 +28,9 @@ class Boot extends Loggable {
     logger.debug("LogMode : DEBUG MODE ENABLED!")
     logger.info("cfg : RunMode : " + Props.mode)
     logger.info("cfg : user.home = " + System.getProperty("user.home"))
-
+    
+    new java.io.File(System.getProperty("user.home"), ".config/vscaladoc2").mkdirs()
+    
     // where to search snippet
     LiftRules.addToPackages("net_alchim31_vscaladoc2_www")
     
@@ -61,7 +63,7 @@ class Boot extends Loggable {
       val vendor =
         new StandardDBVendor(
           Props.get("db.driver") openOr "org.h2.Driver",
-          Props.get("db.url") openOr "jdbc:h2:lift_proto.db;AUTO_SERVER=TRUE",
+          Props.get("db.url") openOr "jdbc:h2:~/.config/vscaladoc2/db/"+ Props.mode +";AUTO_SERVER=TRUE",
           Props.get("db.user"),
           Props.get("db.password"))
 

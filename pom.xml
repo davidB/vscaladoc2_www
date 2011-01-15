@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.alchim31.vscaladoc</groupId>
   <artifactId>vscaladoc2_www</artifactId>
-  <version>0.3</version>
+  <version>0.4-SNAPSHOT</version>
   <packaging>war</packaging>
   <name>VScaladoc2 Website for API</name>
   <inceptionYear>2010</inceptionYear>
@@ -162,7 +162,7 @@
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>0.9.26</version>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
@@ -302,6 +302,49 @@
                 <goals>
                   <goal>precompile</goal>
                 </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <!-- http://simplericity.com/2009/11/10/1257880778509.html -->
+      <id>exec</id>
+      <repositories>
+        <repository>
+          <id>kos</id>
+          <url>http://opensource.kantega.no/nexus/content/groups/public/</url>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>kos</id>
+          <url>http://opensource.kantega.no/nexus/content/groups/public/</url>
+        </pluginRepository>
+      </pluginRepositories>
+      <dependencies>
+        <dependency>
+          <groupId>com.h2database</groupId>
+          <artifactId>h2</artifactId>
+          <version>${h2.version}</version>
+          <scope>runtime</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.simplericity.jettyconsole</groupId>
+            <artifactId>jetty-console-maven-plugin</artifactId>
+            <version>1.36</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>createconsole</goal>
+                </goals>
+                <!--configuration>
+                  <backgroundImage>${basedir}/src/main/jettyconsole/puffin.jpg</backgroundImage>
+                </configuration-->
               </execution>
             </executions>
           </plugin>
