@@ -1,2 +1,5 @@
 # Properties in this file will be read when running in dev mode
-
+db.driver=org.h2.Driver
+db.url=jdbc:h2:~/.config/vscaladoc2/db/default;AUTO_SERVER=TRUE
+db.user=sa
+db.password=sa

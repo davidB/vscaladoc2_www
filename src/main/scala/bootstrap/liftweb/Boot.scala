@@ -60,15 +60,16 @@ class Boot extends Loggable {
   private def configureRDBMS() {
     DefaultConnectionIdentifier.jndiName = "jdbc/vscaladoc2"
     if (!DB.jndiJdbcConnAvailable_?) {
+      val vendorUrl = Props.get("db.url").open_!
       val vendor =
         new StandardDBVendor(
-          Props.get("db.driver") openOr "org.h2.Driver",
-          Props.get("db.url") openOr "jdbc:h2:~/.config/vscaladoc2/db/"+ Props.mode +";AUTO_SERVER=TRUE",
+          Props.get("db.driver").open_!,
+          vendorUrl,
           Props.get("db.user"),
           Props.get("db.password"))
 
       LiftRules.unloadHooks.append(vendor.closeAllConnections_! _)
-
+      logger.info("cfg : db.url = " + vendorUrl)
       DB.defineConnectionManager(DefaultConnectionIdentifier, vendor)
     }
 
