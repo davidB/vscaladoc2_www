@@ -11,7 +11,7 @@ import net.liftweb.mapper.OrderBy
 import net.liftweb.mapper.LongMappedMapper
 import net.liftweb.mapper.MappedDateTime
 import net.liftweb.mapper.MappedString
-import net.liftweb.mapper.MappedString
+import net.liftweb.mapper.MappedBoolean
 import net.liftweb.sitemap.Loc.LocGroup
 import scala.xml.NodeSeq
 import net.liftweb.mapper.CRUDify
@@ -90,6 +90,9 @@ class RemoteApiInfo extends LongKeyedMapper[RemoteApiInfo] with IdPK with Create
       override def toForm = super.toForm.map( _ % ("pattern" -> txtFieldPattern.pattern))
     }
 
+    object available extends MappedBoolean(this)
+    object parent extends LongMappedMapper(this, RemoteApiInfo)
+    
     def provider : ApiProvider = format.is.asInstanceOf[ApiProviders.MyValue].ap
 
     def baseUrl = new URI(url.is)

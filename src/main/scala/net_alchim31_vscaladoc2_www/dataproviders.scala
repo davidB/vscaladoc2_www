@@ -85,32 +85,56 @@ class ApiService(lazy_idp : () => InfoDataProvider, cache2rai : Cache) extends L
       case v : RemoteApiInfo => registerChildren(v)
       case _ => () //ignore
     }
-    
+// (for { .... sequence of Box }) match {
+//   case Empty => ...
+//   case Full(x) => ...
+//   case f:Failure =>
+//     logger.error("Error when processing action. Error message: " + f.messageChain)
+//     f.exception.foreach { e => logger.debug("Exception leading to that error", e)
+// }    
     private def registerChildren(v : RemoteApiInfo) {
       // TODO check if the remote api is available or not
       logger.info("register : " + v)
+      
       v.provider match {
         case VScaladoc2 => {
-          val bartifact = idp.toArtifactInfo(Uoa4Artifact(v.artifactId.is, v.version.is))
-          val children = bartifact.map(_.artifacts).openOr(Nil)
-          children.foreach { uoa =>
-            findApiOf(uoa.artifactId, uoa.version) match {
-              case x : Failure => {
-                // TODO check if Failure for not registered 
-                val v2: RemoteApiInfo = RemoteApiInfo.create
-                v2.artifactId(uoa.artifactId)
-                v2.version(uoa.version)
-                val url = v.url.is match {
-                  case "local:/" => "local:/"
-                  case x => x + "/../../" + uoa.artifactId + "/" + uoa.version
+          idp.toArtifactInfo(Uoa4Artifact(v.artifactId.is, v.version.is)) match {
+            case x: Failure => {
+              logger.warn("can't retreive : " + v + " -- "+ x) //TODO provide end-user feedback
+              v.available(false)
+              v.save
+            }
+            case Empty => {
+              logger.warn("can't retreive : " + v + " -- (no details)") //TODO provide end-user feedback
+              v.available(false)
+              v.save
+            }
+            case Full(aInfo) => {
+              v.available(true)
+              v.save
+              val children = aInfo.artifacts
+              children.foreach { uoa =>
+                findApiOf(uoa.artifactId, uoa.version) match {
+                  case x : Failure => {
+                    // TODO check if Failure for not registered 
+                    val v2: RemoteApiInfo = RemoteApiInfo.create
+                    v2.artifactId(uoa.artifactId)
+                    v2.version(uoa.version)
+                    val url = v.url.is match {
+                      case "local:/" => "local:/"
+                      case x => x + "/../../" + uoa.artifactId + "/" + uoa.version
+                    }
+                    v2.url(url)
+                    v2.format(v.format)
+                    v2.createdBy(v.createdBy)
+                    v2.ggroupId(v.ggroupId)
+                    v2.parent(v)
+                    v2.save
+                    this ! v2
+                  }
+                  case _ => () //ignore
                 }
-                v2.url(url)
-                v2.format(v.format)
-                v2.ggroupId(v.ggroupId)
-                v2.save
-                this ! v2
               }
-              case _ => () //ignore
             }
           }
         }

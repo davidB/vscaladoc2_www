@@ -72,22 +72,14 @@
     </lift:ApiAdd.add>
   </lift:Util.loggedIn>
   <div>
-  <lift:Listings.paginate>
-    <p><nav:records/></p>
-    <nav:first /> | <nav:prev/> | <nav:allpages> | </nav:allpages> | <nav:next/> | <nav:last />
-  </lift:Listings.paginate>
   </div>
 	<table>
 	  <tbody>
 	    <lift:Listings.all>
-		    <tr><td><api:artifactId /></td><td><a api:url="" target="_top"><api:version /></a></td><td><api:format /></td></tr>
+		    <tr><td><api:artifactId /></td><td><api:versions>&nbsp;<a api:url="" target="_top"><api:version /></a><sub>(<api:format />)</sub></api:versions></td></tr>
       </lift:Listings.all>
     </tbody>
   </table>
-  <lift:Listings.paginate>
-    <p><nav:records/></p>
-    <nav:first /> | <nav:prev/> | <nav:allpages> | </nav:allpages> | <nav:next/> | <nav:last />
-  </lift:Listings.paginate>
 
   <lift:tail>
     <script>//<![CDATA[
