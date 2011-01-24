@@ -21,6 +21,9 @@ trait RawDataProvider {
 }
 
 trait InfoDataProvider {
+  import model.{RemoteApiInfo}
+  var findApiOf : (String, String) => Box[RemoteApiInfo] = (artifactId, version) => RemoteApiInfo.findApiOf(artifactId, version)
+
   def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo] = Empty
   def toPackageInfo(uoa: Uoa4Package): List[Box[PackageInfo]] = Nil
   def toTypeInfo(uoa: Uoa4Type): List[Box[TypeInfo]] = Nil
@@ -35,7 +38,11 @@ class ApiService(lazy_idp : () => InfoDataProvider, cache2rai : Cache) extends L
 
   import net.liftweb.actor._
     
-  private lazy val idp = lazy_idp()
+  private lazy val idp = {
+    val b = lazy_idp()
+    b.findApiOf = this.findApiOf
+    b
+  }
   private lazy val _childrenRegistor = new ChildrenRegistor()
   
   def init() {
@@ -76,8 +83,14 @@ class ApiService(lazy_idp : () => InfoDataProvider, cache2rai : Cache) extends L
   }
 
   def register(v : RemoteApiInfo) = {
-    v.save
+    save(v)
     _childrenRegistor ! v
+  }
+  
+  private def save(v : RemoteApiInfo) = {
+    val k = v.artifactId.is + "::"+ v.version.is
+    cache2rai.put(new Element(k, v))
+    v.save
   }
   
   class ChildrenRegistor extends LiftActor {
@@ -102,16 +115,16 @@ class ApiService(lazy_idp : () => InfoDataProvider, cache2rai : Cache) extends L
             case x: Failure => {
               logger.warn("can't retreive : " + v + " -- "+ x) //TODO provide end-user feedback
               v.available(false)
-              v.save
+              save(v)
             }
             case Empty => {
               logger.warn("can't retreive : " + v + " -- (no details)") //TODO provide end-user feedback
               v.available(false)
-              v.save
+              save(v)
             }
             case Full(aInfo) => {
               v.available(true)
-              v.save
+              save(v)
               val children = aInfo.artifacts
               children.foreach { uoa =>
                 findApiOf(uoa.artifactId, uoa.version) match {
@@ -129,7 +142,7 @@ class ApiService(lazy_idp : () => InfoDataProvider, cache2rai : Cache) extends L
                     v2.createdBy(v.createdBy)
                     v2.ggroupId(v.ggroupId)
                     v2.parent(v)
-                    v2.save
+                    save(v2)
                     this ! v2
                   }
                   case _ => () //ignore
@@ -193,11 +206,11 @@ class InfoDataProvider0(val rdp: RawDataProvider, val uoaHelper: UoaHelper) exte
     net.liftweb.json.DefaultFormats // Brings in default date formats etc.
   }
   val sourceRangeFormat = """([a-zA-Z0-9_\$./]+)(#(\d+)(:(\d+))?(-(\d+)(:(\d+))?)?)?""".r
+  
   override def toArtifactInfo(uoa: Uoa4Artifact): Box[ArtifactInfo] = {
     rdp.find(uoa).flatMap{ jv =>
       Helpers.tryo {
-        import model.{RemoteApiInfo}
-        val ggroupId = RemoteApiInfo.findApiOf(uoa.artifactId, uoa.version).map(_.ggroupId.is).toOption //TODO remove RemoteApiInfo object dependency
+        val ggroupId = findApiOf(uoa.artifactId, uoa.version).map(_.ggroupId.is).toOption //TODO remove RemoteApiInfo object dependency
         new ArtifactInfo4Json(uoa, jv.extract[json.ArtifactFile], uoaHelper, this, ggroupId)
       }
     }
